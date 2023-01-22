@@ -287,8 +287,9 @@ contract tshareVault is ReentrancyGuard {
 		}
 		UserInfo storage user = userInfo[_user];
 		if(user.amount != _amount) {
-            uint256 _profit = user.amount * accDtxPerShare / 1e12 - user.debt;
-			user.debt = user.debt - _profit; //debt reduces by user earnings(amount available for harvest)
+			uint256 _current = user.amount * accDtxPerShare / 1e12;
+            uint256 _profit = _current - user.debt;
+			user.debt = _current - _profit; //debt reduces by user earnings(amount available for harvest)
 			totalTshares = totalTshares - user.amount + _amount; // minus previous, plus new
 			user.amount = _amount;
 		}
