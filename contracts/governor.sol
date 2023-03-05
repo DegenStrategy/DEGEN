@@ -11,6 +11,7 @@ import "./interface/IVoting.sol";
 import "./interface/IRewardBoost.sol";
 import "./interface/IacPool.sol";
 import "./interface/ITreasury.sol";
+import "./interface/IVault.sol";
 
 
     /**
@@ -71,6 +72,15 @@ contract DTXgovernor {
     uint256 public immutable acPool6ID = 7;
 	
 	uint256 public immutable nftStakingPoolID = 10;
+	
+	address public immutable plsVault = ;
+	address public immutable plsxVault = ;
+	address public immutable hexVault = ;
+	address public immutable incVault = ;
+	address public immutable lp1Vault = ; // PLS LP
+	address public immutable lp2Vault = ; // USD LP
+	address public immutable lp3Vault = ; // HEX LP
+	address public immutable lp4Vault = ; // PLSX LP
     
     mapping(address => uint256) private _rollBonus;
 	
@@ -362,6 +372,41 @@ contract DTXgovernor {
 	    _rollBonus[_forPool] = _bonus;
 	}
 
+	function updateVault(uint256 _type, uint256 _amount) external {
+
+        require(msg.sender == farmContract);
+
+        if(_type == 0) {
+            IVault(plsVault).setDepositFee(_amount);
+            IVault(plsxVault).setDepositFee(_amount);
+            IVault(hexVault).setDepositFee(_amount);
+			IVault(incVault).setDepositFee(_amount);
+        } else if(_type == 2) {
+            IVault(plsVault).setFundingRate(_amount);
+            IVault(plsxVault).setFundingRate(_amount);
+            IVault(hexVault).setFundingRate(_amount);
+			IVault(incVault).setFundingRate(_amount);
+        } else if(_type == 3) {
+            IVault(plsVault).setRefShare1(_amount);
+            IVault(plsxVault).setRefShare1(_amount);
+            IVault(hexVault).setRefShare1(_amount);
+			IVault(incVault).setRefShare1(_amount);
+        } else if(_type == 4) {
+            IVault(plsVault).setRefShare2(_amount);
+            IVault(plsxVault).setRefShare2(_amount);
+            IVault(hexVault).setRefShare2(_amount);
+			IVault(incVault).setRefShare2(_amount);
+        } else if(_type == 5) {
+            IVault(plsVault).updateSettings(_amount);
+            IVault(plsxVault).updateSettings(_amount);
+            IVault(hexVault).updateSettings(_amount);
+			IVault(incVault).updateSettings(_amount);
+			IVault(lp1Vault).updateSettings(_amount);
+			IVault(lp2Vault).updateSettings(_amount);
+			IVault(lp3Vault).updateSettings(_amount);
+			IVault(lp4Vault).updateSettings(_amount);
+        }
+    }
 	
 	function setGovernorTax(uint256 _amount) external {
 		require(msg.sender == farmContract);
