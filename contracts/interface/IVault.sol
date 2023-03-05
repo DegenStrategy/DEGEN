@@ -1,4 +1,4 @@
-interface MyInterface {
+interface IVault {
     event CollectedFee(address ref, uint256 amount);
     event Deposit(
         address indexed sender,
