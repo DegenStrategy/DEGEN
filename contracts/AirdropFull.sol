@@ -48,7 +48,7 @@ contract AirDrop is ReentrancyGuard {
 			IacPool(claimInto).giftDeposit(amount, msg.sender, minToServe[claimInto]);
 			IVoting(votingCreditContract).airdropVotingCredit(amount * payout[claimInto] / 1000, msg.sender);
 		} else {
-			require(IDTX(DTX).transferFrom(address(this), msg.sender, amount));
+			require(IDTX(DTX).transfer(msg.sender, amount));
 		}
 
 		userCredit[msg.sender]-= amount;
