@@ -27,9 +27,6 @@ contract tshareVault is ReentrancyGuard {
 
     struct UserInfo {
         uint256 amount;
-		address pool;
-		uint256 harvestThreshold;
-        uint256 feeToPay;
 		uint256 debt;
     }
 
@@ -126,7 +123,6 @@ contract tshareVault is ReentrancyGuard {
 	 * fee is the amount paid to harvester
      */
     function stakeHexShares(address _poolInto, uint256 _threshold, uint256 _fee) external nonReentrant {
-        require(_fee <= 250, "maximum 2.5%!");
 		UserInfo storage user = userInfo[msg.sender];
 		require(user.amount == 0, "already have an active stake!");
         harvest();
@@ -143,9 +139,6 @@ contract tshareVault is ReentrancyGuard {
 		totalTshares+= _amount;
         
 		user.amount = _amount;
-		user.pool = _poolInto; 
-		user.harvestThreshold = _threshold;
-		user.feeToPay = _fee;
 		user.debt = _debt;
 
         emit Deposit(msg.sender, _amount, _poolInto, _threshold, _fee, _debt);
@@ -228,52 +221,6 @@ contract tshareVault is ReentrancyGuard {
 
 		emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);      
     }
-
-
-	//copy+paste of the previous function, can harvest custom stake ID
-	//In case user has too many stakes, or if some are not worth harvesting
-	function proxyHarvest(address _beneficiary) public {
-        UserInfo storage user = userInfo[msg.sender];
-		require(user.amount > 0, "no shares");
-        harvest();
-        uint256 _toWithdraw = 0;
-        uint256 _payout = 0;
-        address _harvestInto;
-        uint256 _minThreshold;
-        uint256 _callFee;
-
-		 _harvestInto = user.pool;
-		 _callFee = user.feeToPay;
-		 _minThreshold = user.harvestThreshold;
-		 
-		_toWithdraw = user.amount * accDtxPerShare / 1e12 - user.debt;
-		user.debt = user.amount * accDtxPerShare / 1e12;
-		
-		if(_harvestInto == _beneficiary) {
-			//fee paid to harvester
-			_payout = _toWithdraw * defaultDirectPayout / 10000;
-			_callFee = _payout * _callFee / 10000;
-			token.safeTransfer(msg.sender, _callFee); 
-			token.safeTransfer(_beneficiary, (_payout - _callFee)); 
-		} else {
-			_payout = _toWithdraw * poolPayout[_harvestInto].amount / 10000;
-			require(_payout > _minThreshold, "minimum threshold not met");
-			_callFee = _payout * _callFee / 10000;
-			token.safeTransfer(msg.sender, _callFee); 
-			IacPool(_harvestInto).giftDeposit((_payout - _callFee), _beneficiary, poolPayout[_harvestInto].minServe);
-		}
-		uint256 _penalty = _toWithdraw - _payout;
-		token.safeTransfer(treasury, _penalty); //penalty to treasury
-		
-		emit Harvest(msg.sender, _beneficiary, _harvestInto, _payout, _penalty, _callFee);
-	
-    }
-	
-	function massProxyHarvest(address[] calldata _beneficiary) external {
-		for(uint256 i = 0; i<_beneficiary.length; i++) {
-			proxyHarvest(_beneficiary[i]);
-		}
-	}
 	
 	function recalculate(address _user) public {
 		harvest();
