@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interface/IDTX.sol";
 
 contract VotingCredit is Ownable {
-	address public immutable token;
+	IDTX public immutable token;
 	
 	address public immutable airdropContract = ;
 	address public immutable airdropContractFull = ; //no penalty
@@ -26,7 +26,7 @@ contract VotingCredit is Ownable {
 	// allows for custom implementations
 	mapping(uint256 => uint256) public burnedForId;
 	
-	constructor(address _token, uint256 _creditingContractCount, uint256 _deductingContractCount, address _airdropContract, address _airdropContractFull) {
+	constructor(IDTX _token, uint256 _creditingContractCount, uint256 _deductingContractCount, address _airdropContract, address _airdropContractFull) {
 		token = _token;
 		creditingContractCount = _creditingContractCount;
 		deductingContractCount = _deductingContractCount;
@@ -60,7 +60,7 @@ contract VotingCredit is Ownable {
 		if(userCredit[from] >= amount) {
 			userCredit[from]-= amount;
 		} else {
-			require(IDTX(token).transferDTX(from, owner(), amount));
+			require(token.transferDTX(from, owner(), amount));
 		}
 		return true;
 	}
@@ -75,7 +75,7 @@ contract VotingCredit is Ownable {
 	
 	//manually deposit tokens to get voting credit
 	function depositCredit(uint256 amount) external {
-		require(IDTX(token).transferDTX(msg.sender, owner(), amount));
+		require(token.transferDTX(msg.sender, owner(), amount));
 		userCredit[msg.sender]+=amount;
 		emit AddCredit(msg.sender, amount);
 	}
@@ -115,6 +115,6 @@ contract VotingCredit is Ownable {
 	
 	
 	function changeGovernor() external {
-		_transferOwnership(IDTX(token).governor());
+		_transferOwnership(token.governor());
 	}
 }
