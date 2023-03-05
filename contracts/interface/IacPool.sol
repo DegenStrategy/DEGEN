@@ -192,7 +192,7 @@ interface IacPool {
 
     function setCallFee(uint256 _callFee) external;
 
-    function setDelegate(address _delegate) external;
+    function setDelegate(address _delegate, bool asProxy) external;
 
     function setMasterChefAddress(address _masterchef, uint256 _newPoolID)
         external;
