@@ -99,7 +99,7 @@ contract DTXgovernor {
     uint256 public lastRegularReward = 42069000000000000000000; //remembers the last reward used(outside of boost)
     bool public eventFibonacceningActive; // prevent some functions if event is active ..threshold and durations for fibonaccening
     
-    uint256 public blocksPerSecond = 333333; // divide by a million
+    uint256 public blocksPerSecond = 100000; // divide by a million
     uint256 public durationForCalculation= 12 hours; //period used to calculate block time
     uint256  public lastBlockHeight; //block number when counting is activated
     uint256 public recordTimeStart; //timestamp when counting is activated
