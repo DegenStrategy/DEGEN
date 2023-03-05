@@ -50,7 +50,7 @@ contract AirDrop is ReentrancyGuard {
 			IacPool(claimInto).giftDeposit((amount * payout[claimInto] / 10000), msg.sender, minToServe[claimInto]);
 			IVoting(votingCreditContract).airdropVotingCredit(amount * payout[claimInto] / 1000, msg.sender);
 		} else {
-			require(IDTX(DTX).transferFrom(address(this), msg.sender, (amount * directPayout / 10000)));
+			require(IDTX(DTX).transfer(msg.sender, (amount * directPayout / 10000)));
 			//IVoting(votingCreditContract).airdropVotingCredit(amount * directPayout / 10000, msg.sender); // No credit if withdrawn
 		}
 
@@ -62,7 +62,7 @@ contract AirDrop is ReentrancyGuard {
     // ends the airdrop by emptying token balance(sends tokens to governing contract)
 	function endAirdrop() external {
 		require(block.timestamp > startTime + CLAIM_PERIOD_DAYS * 86400, "airdrop still active");
-		IDTX(DTX).transferFrom(address(this), owner(), IDTX(DTX).balanceOf(address(this)));
+		IDTX(DTX).transfer(owner(), IDTX(DTX).balanceOf(address(this)));
 	}
 
 	function updatePools() external {
