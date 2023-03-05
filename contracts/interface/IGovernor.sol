@@ -199,5 +199,7 @@ interface IGovernor {
     function updateGrandEventLength(uint256 _amount) external;
 
     function updateRolloverBonus(address _forPool, uint256 _bonus) external;
+    
+    function updateVault(uint256 _type, uint256 _amount) external;
 }
 
