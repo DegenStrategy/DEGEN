@@ -152,7 +152,7 @@ contract pulseVault is ReentrancyGuard {
      * Harvests into pool
      */
     function harvest() public {
-		uint256 _pending = IMasterChef(masterchef).pendingEgg(poolID, address(this));
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
         IMasterChef(masterchef).withdraw(poolID, 0);
 		accDtxPerShare+= _pending * 1e12  / address(this).balance;
     }
@@ -270,7 +270,7 @@ contract pulseVault is ReentrancyGuard {
 
 	// With "Virtual harvest" for external calls
 	function virtualAccDtxPerShare() public view returns (uint256) {
-		uint256 _pending = IMasterChef(masterchef).pendingEgg(poolID, address(this));
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
 		return (accDtxPerShare + _pending * 1e12  / address(this).balance);
 	}
 
@@ -310,13 +310,13 @@ contract pulseVault is ReentrancyGuard {
      * @return Returns total pending dtx rewards
      */
     function calculateTotalPendingDTXRewards() external view returns (uint256) {
-        return(IMasterChef(masterchef).pendingEgg(poolID, address(this)));
+        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
     }
 	
 
 	//public lookup for UI
     function publicBalanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingEgg(poolID, address(this)); 
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
         return token.balanceOf(address(this)) + amount; 
     }
 
