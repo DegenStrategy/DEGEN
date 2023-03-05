@@ -12,7 +12,7 @@ import "./interface/IVoting.sol";
 // Seems more simple than a merkle-tree airdrop
 // if fees too high, do the merkle-tree style
 contract AirDrop is ReentrancyGuard {
-	address public immutable DTX;
+	IDTX public immutable DTX;
 	address public immutable initiatingAddress; // inititates balances
 
     uint256 public startTime;
@@ -36,7 +36,7 @@ contract AirDrop is ReentrancyGuard {
 	event AddCredit(uint256 credit, address user);
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(address _dtx, address initiator) {
+	constructor(IDTX _dtx, address initiator) {
 		DTX = _dtx;
 		initiatingAddress = initiator;
 		startTime = block.timestamp;
@@ -48,7 +48,7 @@ contract AirDrop is ReentrancyGuard {
 			IacPool(claimInto).giftDeposit(amount, msg.sender, minToServe[claimInto]);
 			IVoting(votingCreditContract).airdropVotingCredit(amount * payout[claimInto] / 1000, msg.sender);
 		} else {
-			require(IDTX(DTX).transfer(msg.sender, amount));
+			require(DTX.transfer(msg.sender, amount));
 		}
 
 		userCredit[msg.sender]-= amount;
@@ -98,6 +98,6 @@ contract AirDrop is ReentrancyGuard {
 	}
 
 	function owner() public view returns(address) {
-		return IDTX(DTX).governor();
+		return DTX.governor();
 	}
 }
