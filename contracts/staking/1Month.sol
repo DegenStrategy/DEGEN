@@ -546,9 +546,9 @@ contract DTXtimeDeposit is ReentrancyGuard {
      /**
      * Users can delegate their shares
      */
-    function setDelegate(address _delegate) external {
+    function setDelegate(address _delegate, bool asProxy) external {
         address _wallet;
-		allowOrigin ? _wallet=tx.origin : _wallet=msg.sender;
+		(allowOrigin && asProxy) ? _wallet=tx.origin : _wallet=msg.sender;
         userDelegate[_wallet] = _delegate;
         
 		emit SetDelegate(_wallet, _delegate);
