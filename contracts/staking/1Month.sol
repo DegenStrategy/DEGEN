@@ -488,10 +488,11 @@ contract DTXtimeDeposit is ReentrancyGuard {
      * user delegates their shares to cast a vote on a proposal
      * casting to proposal ID = 0 is basically neutral position (not voting)
 	 * Is origin is allowed, proxy contract can be used to vote in all pools in a single tx
+	 * asProxy allows contracts to vote as well
      */
-    function voteForProposal(uint256 proposalID) external {
+    function voteForProposal(uint256 proposalID, bool asProxy) external {
         address _wallet;
-		allowOrigin ? _wallet = tx.origin : _wallet = msg.sender;
+		(allowOrigin && asProxy) ? _wallet = tx.origin : _wallet = msg.sender;
         uint256 votingFor = userVote[_wallet]; //the ID the user is voting for(before change)
 		
         if(proposalID != votingFor) { // do nothing if false(already voting for that ID)
