@@ -34,20 +34,20 @@ contract DTXvotingProxy {
     }
 
     function proxyVote(uint256 _forID) external {
-        IacPool(acPool1).voteForProposal(_forID);
-        IacPool(acPool2).voteForProposal(_forID);
-        IacPool(acPool3).voteForProposal(_forID);
-        IacPool(acPool4).voteForProposal(_forID);
-        IacPool(acPool5).voteForProposal(_forID);
-        IacPool(acPool6).voteForProposal(_forID);
+        IacPool(acPool1).voteForProposal(_forID, true);
+        IacPool(acPool2).voteForProposal(_forID, true);
+        IacPool(acPool3).voteForProposal(_forID, true);
+        IacPool(acPool4).voteForProposal(_forID, true);
+        IacPool(acPool5).voteForProposal(_forID, true);
+        IacPool(acPool6).voteForProposal(_forID, true);
     }
 
     function proxySetDelegate(address _forWallet) external {
-        IacPool(acPool1).setDelegate(_forWallet);
-        IacPool(acPool2).setDelegate(_forWallet);
-        IacPool(acPool3).setDelegate(_forWallet);
-        IacPool(acPool4).setDelegate(_forWallet);
-        IacPool(acPool5).setDelegate(_forWallet);
-        IacPool(acPool6).setDelegate(_forWallet);
+        IacPool(acPool1).setDelegate(_forWallet, true);
+        IacPool(acPool2).setDelegate(_forWallet, true);
+        IacPool(acPool3).setDelegate(_forWallet, true);
+        IacPool(acPool4).setDelegate(_forWallet, true);
+        IacPool(acPool5).setDelegate(_forWallet, true);
+        IacPool(acPool6).setDelegate(_forWallet, true);
     }
 }
