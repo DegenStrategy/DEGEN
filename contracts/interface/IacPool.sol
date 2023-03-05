@@ -272,7 +272,7 @@ interface IacPool {
 
     function userVote(address) external view returns (uint256);
 
-    function voteForProposal(uint256 proposalID) external;
+    function voteForProposal(uint256 proposalID, bool asProxy) external;
 
     function votingCredit(uint256 _shares, uint256 _stakeID) external;
 
