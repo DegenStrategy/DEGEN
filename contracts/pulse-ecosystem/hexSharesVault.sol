@@ -57,12 +57,11 @@ contract tshareVault is ReentrancyGuard {
     uint256 public defaultDirectPayout = 500; //5% if withdrawn into wallet
 	
 
-    event Deposit(address indexed sender, uint256 amount, address poolInto, uint256 threshold, uint256 fee, uint256 debt);
+    event Deposit(address indexed sender, uint256 amount, uint256 debt);
     event Withdraw(address indexed sender, uint256 harvestAmount, uint256 penalty);
     event UserSettingUpdate(address indexed user, address poolAddress, uint256 threshold, uint256 feeToPay);
 
-    event Harvest(address indexed harvester, address indexed beneficiary, address harvestInto, uint256 harvestAmount, uint256 penalty, uint256 callFee); //harvestAmount contains the callFee
-    event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
+    event Harvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
 
     /**
      * @notice Constructor
@@ -141,7 +140,7 @@ contract tshareVault is ReentrancyGuard {
 		user.amount = _amount;
 		user.debt = _debt;
 
-        emit Deposit(msg.sender, _amount, _poolInto, _threshold, _fee, _debt);
+        emit Deposit(msg.sender, _amount, _debt);
     }
 	
     /**
@@ -219,7 +218,7 @@ contract tshareVault is ReentrancyGuard {
 		uint256 _penalty = _toWithdraw - _payout;
 		token.safeTransfer(treasury, _penalty); //penalty to treasury
 
-		emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);      
+		emit Harvest(msg.sender, _harvestInto, _payout, _penalty);      
     }
 	
 	function recalculate(address _user) public {
