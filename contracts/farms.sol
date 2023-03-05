@@ -24,15 +24,7 @@ contract DTXfarms is Ownable {
         uint256 firstCallTimestamp;
         uint16 newDepositFee;
     }
-    struct ProposalDecreaseLeaks {
-        bool valid;
-        uint256 farmMultiplier;
-        uint256 memeMultiplier;
-        uint256 valueSacrificedForVote;
-		uint256 valueSacrificedAgainst;
-		uint256 delay;
-        uint256 firstCallTimestamp;
-    }
+
      struct ProposalGovTransfer {
         bool valid;
         uint256 firstCallTimestamp;
@@ -52,11 +44,21 @@ contract DTXfarms is Ownable {
 		uint256 valueSacrificedAgainst;
 		uint256 delay;
     }
+	
+	struct ProposalVault {	
+        bool valid;	
+        uint256 firstCallTimestamp;	
+        uint256 proposedType;	
+        uint256 proposedValue;	
+		uint256 valueSacrificedForVote;	
+		uint256 valueSacrificedAgainst;	
+		uint256 delay;	
+    }
 
     ProposalFarm[] public proposalFarmUpdate;
-    ProposalDecreaseLeaks[] public proposeRewardReduction;
 	ProposalGovTransfer[] public governorTransferProposals; 
 	ProposalTax[] public govTaxProposals; 
+	ProposalVault[] public vaultProposals;
     
     address public immutable token; //DTX token(address!)
 	
@@ -205,137 +207,6 @@ contract DTXfarms is Ownable {
 		}
     }
 
-    /**
-     * Regulatory process for determining rewards for 
-     * farms and meme pools during inflation boosts
-     * The rewards should be reduced for farms and pool tha toperate without time lock
-     * to prevent tokens from hitting the market
-    */
-    function initiateRewardsReduction(uint256 depositingTokens, uint256 multiplierFarms, uint256 multiplierMemePools, uint256 delay) external {
-    	require(depositingTokens >= IGovernor(owner()).costToVote(), "minimum cost to vote");
-		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-		require(multiplierFarms <= 10000 && multiplierMemePools <= 10000, "out of range");
-		require(multiplierFarms != 0 && multiplierMemePools != 0, "cant be null, division by 0");
-    	
-		IVoting(creditContract).deductCredit(msg.sender, depositingTokens); 
-		    proposeRewardReduction.push(
-		        ProposalDecreaseLeaks(true, multiplierFarms, multiplierMemePools, depositingTokens, 0, delay, block.timestamp)
-		        );
-    	
-    	emit ProposeRewardReduction(msg.sender, proposeRewardReduction.length - 1, multiplierFarms, multiplierMemePools, depositingTokens, delay);
-    }
-	function voteRewardsReductionY(uint256 proposalID, uint256 withTokens) external {
-		require(proposeRewardReduction[proposalID].valid, "invalid");
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		proposeRewardReduction[proposalID].valueSacrificedForVote+= withTokens;
-
-		emit AddVotes(1, proposalID, msg.sender, withTokens, true);
-	}
-	function voteRewardsReductionN(uint256 proposalID, uint256 withTokens, bool withAction) external {
-		require(proposeRewardReduction[proposalID].valid, "invalid");
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		proposeRewardReduction[proposalID].valueSacrificedAgainst+= withTokens;
-		if(withAction) { vetoRewardsReduction(proposalID); }
-
-		emit AddVotes(1, proposalID, msg.sender, withTokens, false);
-	}
-    function vetoRewardsReduction(uint256 proposalID) public {
-    	require(proposeRewardReduction[proposalID].valid == true, "Proposal already invalid");
-		require(proposeRewardReduction[proposalID].firstCallTimestamp + proposeRewardReduction[proposalID].delay <= block.timestamp, "pending delay");
-		require(proposeRewardReduction[proposalID].valueSacrificedForVote < proposeRewardReduction[proposalID].valueSacrificedAgainst, "needs more votes");
-		
-    	proposeRewardReduction[proposalID].valid = false;  
-    	
-    	emit EnforceProposal(1, proposalID, msg.sender, false);
-    }
-    function executeRewardsReduction(uint256 proposalID) public {
-		require(!isReductionEnforced, "reward reduction is active"); //only when reduction is not enforced
-    	require(
-    	    proposeRewardReduction[proposalID].valid &&
-    	    proposeRewardReduction[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + proposeRewardReduction[proposalID].delay < block.timestamp,
-    	    "Conditions not met"
-    	   );
-		   
-		if(proposeRewardReduction[proposalID].valueSacrificedForVote >= proposeRewardReduction[proposalID].valueSacrificedAgainst) {
-			farmMultiplierDuringBoost = proposeRewardReduction[proposalID].farmMultiplier;
-			memeMultiplierDuringBoost = proposeRewardReduction[proposalID].memeMultiplier;
-			proposeRewardReduction[proposalID].valid = false;
-			
-			emit EnforceProposal(1, proposalID, msg.sender, true);
-		} else {
-			vetoRewardsReduction(proposalID);
-		}
-    }
-    
-    /**
-     * When event is active, reduction of rewards must be manually activated
-     * Reduces the rewards by a factor
-     * Call this to enforce and "un-enforce"
-    */
-    function enforceRewardReduction(bool withUpdate) public {
-        uint256 allocPoint; uint16 depositFeeBP;
-        if (IGovernor(owner()).eventFibonacceningActive() && !isReductionEnforced) {
-            
-            (, allocPoint, , , depositFeeBP) = IMasterChef(masterchef).poolInfo(0);
-            IGovernor(owner()).setPool(
-                0, allocPoint * farmMultiplierDuringBoost / 10000, depositFeeBP, false
-            );
-            
-            (, allocPoint, , , depositFeeBP) = IMasterChef(masterchef).poolInfo(1);
-            IGovernor(owner()).setPool(
-                1, allocPoint * farmMultiplierDuringBoost / 10000, depositFeeBP, false
-            );
-
-            (, allocPoint, , , depositFeeBP) = IMasterChef(masterchef).poolInfo(8);
-            IGovernor(owner()).setPool(
-                8, allocPoint * memeMultiplierDuringBoost / 10000, depositFeeBP, false
-            );
-
-            (, allocPoint, , , depositFeeBP) = IMasterChef(masterchef).poolInfo(9);
-            IGovernor(owner()).setPool(
-                9, allocPoint * memeMultiplierDuringBoost / 10000, depositFeeBP, false
-            );
-            
-            isReductionEnforced = true;
-            
-        } else if(!(IGovernor(owner()).eventFibonacceningActive()) && isReductionEnforced) {
-
-        //inverses the formula... perhaps should keep last Reward
-        //the mutliplier shall not change during event!
-            (, allocPoint, , , depositFeeBP) = IMasterChef(masterchef).poolInfo(0);
-            IGovernor(owner()).setPool(
-                0, allocPoint * 10000 / farmMultiplierDuringBoost, depositFeeBP, false
-            );
-            
-            (, allocPoint, , , depositFeeBP) = IMasterChef(masterchef).poolInfo(1);
-            IGovernor(owner()).setPool(
-                1, allocPoint * 10000 / farmMultiplierDuringBoost, depositFeeBP, false
-            );
-
-            (, allocPoint, , , depositFeeBP) = IMasterChef(masterchef).poolInfo(8);
-            IGovernor(owner()).setPool(
-                8, allocPoint * 10000 / memeMultiplierDuringBoost, depositFeeBP, false
-            );
-
-            (, allocPoint, , , depositFeeBP) = IMasterChef(masterchef).poolInfo(9);
-            IGovernor(owner()).setPool(
-                9, allocPoint * 10000 / memeMultiplierDuringBoost, depositFeeBP, false
-            );
-            
-            isReductionEnforced = false;
-        }
-	
-	if(withUpdate) { updateAllPools(); }
-    }
-
-	//updates all pools in masterchef
-    function updateAllPools() public {
-        IMasterChef(IDTX(token).owner()).massUpdatePools();
-    }
 
 	/*
 	* Transfer tokens from governor into treasury wallet OR burn them from governor
@@ -481,6 +352,63 @@ contract DTXfarms is Ownable {
 		}
     }
 	
+		    //process for setting deposit fee, funding fee and referral commission	
+    function proposeVault(uint256 depositingTokens, uint256 _type, uint256 _amount, uint256 delay) external {	
+        require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");	
+        require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");	
+        //  Vault has requirement for maximum amount	
+        	
+    	IERC20(token).safeTransferFrom(msg.sender, owner(), depositingTokens);	
+    	vaultProposals.push(	
+    	    ProposalVault(true, block.timestamp, _type, _amount, depositingTokens, 0, delay)	
+    	    );	
+    	emit ProposeVault(	
+    	    vaultProposals.length - 1, depositingTokens, _type, _amount, msg.sender, delay	
+    	   );	
+    }	
+	function voteVaultY(uint256 proposalID, uint256 withTokens) external {	
+		require(vaultProposals[proposalID].valid, "invalid");	
+			
+		IERC20(token).safeTransferFrom(msg.sender, owner(), withTokens);	
+		vaultProposals[proposalID].valueSacrificedForVote+= withTokens;	
+				
+		emit AddVotes(5, proposalID, msg.sender, withTokens, true);	
+	}	
+	function voteVaultN(uint256 proposalID, uint256 withTokens, bool withAction) external {	
+		require(vaultProposals[proposalID].valid, "invalid");	
+			
+		IERC20(token).safeTransferFrom(msg.sender, owner(), withTokens);	
+			
+		vaultProposals[proposalID].valueSacrificedAgainst+= withTokens;	
+		if(withAction) { vetoGovernorTransfer(proposalID); }	
+		emit AddVotes(5, proposalID, msg.sender, withTokens, false);	
+	}	
+    function vetoVault(uint256 proposalID) public {	
+    	require(vaultProposals[proposalID].valid == true, "Invalid proposal"); 	
+		require(vaultProposals[proposalID].firstCallTimestamp + vaultProposals[proposalID].delay <= block.timestamp, "pending delay");	
+		require(vaultProposals[proposalID].valueSacrificedForVote < vaultProposals[proposalID].valueSacrificedAgainst, "needs more votes");	
+			
+    	vaultProposals[proposalID].valid = false;	
+		emit EnforceProposal(5, proposalID, msg.sender, false);	
+    }	
+    function executeVault(uint256 proposalID) public {	
+    	require(	
+    	    vaultProposals[proposalID].valid == true &&	
+    	    vaultProposals[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + vaultProposals[proposalID].delay  < block.timestamp,	
+    	    "conditions not met"	
+        );	
+    		
+		if(vaultProposals[proposalID].valueSacrificedForVote >= vaultProposals[proposalID].valueSacrificedAgainst) {	
+            IGovernor(owner()).updateVault(vaultProposals[proposalID].proposedType, vaultProposals[proposalID].proposedValue);	
+			vaultProposals[proposalID].valid = false; 	
+				
+			emit EnforceProposal(5, proposalID, msg.sender, true);	
+		} else {	
+			vetoVault(proposalID);	
+		}	
+    }	
+}
+	
 	function syncCreditContract() external {
 		creditContract = IGovernor(owner()).creditContract();
 	}
@@ -490,6 +418,6 @@ contract DTXfarms is Ownable {
 	 * also to make sure all data and latest events are synced correctly
 	 */
 	function proposalLengths() external view returns(uint256, uint256, uint256, uint256) {
-		return(proposalFarmUpdate.length, proposeRewardReduction.length, governorTransferProposals.length, govTaxProposals.length);
+		return(proposalFarmUpdate.length, vaultProposals.length, governorTransferProposals.length, govTaxProposals.length);
 	}
 }
