@@ -430,7 +430,7 @@ contract tokenVault is ReentrancyGuard {
 		uint256 _lastAction = user.lastAction;
         uint256 secondsSinceLastaction = block.timestamp - _lastAction;
 				
-		if(secondsSinceLastaction >= 3600) {
+		if(secondsSinceLastaction >= 3600  && fundingRate > 0) {
 			user.lastAction = block.timestamp - (secondsSinceLastaction % 3600);
 			
 			uint256 commission = (block.timestamp - _lastAction) / 3600 * user.amount * fundingRate / 100000;
