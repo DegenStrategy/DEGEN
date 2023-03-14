@@ -97,4 +97,6 @@ interface IMasterChef {
         returns (uint256 amount, uint256 rewardDebt);
 
     function withdraw(uint256 _pid, uint256 _amount) external;
+    
+    function publishTokens(address _to, uint256 _amount) external;
 }
