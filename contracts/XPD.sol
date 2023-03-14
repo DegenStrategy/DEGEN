@@ -10,7 +10,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contr
 import "./interface/IMasterChef.sol";
 import "./interface/IGovernor.sol";
 
-contract DTX is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
+contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	string private _name;
     string private _symbol;
 	
@@ -26,9 +26,9 @@ contract DTX is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	//makes it easier to verify(without event logs)
 	uint256 public trustedContractCount; 
     
-	constructor() ERC20("DecentralizeX", "DTX") {
-		_name = string("DecentralizeX");
-		_symbol = string("DTX");
+	constructor() ERC20("PulseDAO", "XPD") {
+		_name = string("PulseDAO");
+		_symbol = string("XPD");
 	}
 	
     modifier decentralizedVoting {
