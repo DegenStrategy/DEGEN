@@ -60,7 +60,7 @@ contract VotingCredit is Ownable {
 		if(userCredit[from] >= amount) {
 			userCredit[from]-= amount;
 		} else {
-			require(token.burnToken(from, amount));
+			require(token.transferDTX(from, owner(), amount));
 		}
 		return true;
 	}
@@ -75,7 +75,7 @@ contract VotingCredit is Ownable {
 	
 	//manually deposit tokens to get voting credit
 	function depositCredit(uint256 amount) external {
-		require(token.burnToken(msg.sender, amount));
+		require(token.transferDTX(msg.sender, owner(), amount));
 		userCredit[msg.sender]+=amount;
 		emit AddCredit(msg.sender, amount);
 	}
