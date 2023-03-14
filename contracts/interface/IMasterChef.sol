@@ -39,6 +39,8 @@ interface IMasterChef {
     function governorFee() external view returns (uint256);
 
     function isSpecialPool(address) external view returns (bool);
+    
+    function credit(address) external view returns (uint256);
 
     function massUpdatePools() external;
 
