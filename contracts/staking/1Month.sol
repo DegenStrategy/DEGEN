@@ -16,7 +16,7 @@ import "../interface/IVoting.sol";
 /**
  * DTX time-locked deposit
  * Auto-compounding pool(1Month Deposit)
- * !!! Warning: !!! Licensed under Business Source License 1.1 (BSL 1.1)
+ * !!! Warning: !!! Copyrighted. 
  */
 contract DTXtimeDeposit is ReentrancyGuard {
     using SafeMath for uint256;
@@ -27,12 +27,14 @@ contract DTXtimeDeposit is ReentrancyGuard {
         uint256 dtxAtLastUserAction; // keeps track of DTX deposited at the last user action
         uint256 lastUserActionTime; // keeps track of the last user action time
         uint256 mandatoryTimeToServe; // optional: disables early withdraw
+		uint256 burned; // tokens burned
     }
 	//allows stakes to be transferred, similar to token transfers
 	struct StakeTransfer {
 		uint256 shares; // ALLOWANCE of shares
         uint256 lastDepositedTime;
-        uint256 mandatoryTimeToServe; 
+        uint256 mandatoryTimeToServe;
+		uint256 burned;
 	}
 
     IERC20 public immutable token; // DTX token
@@ -57,6 +59,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
 
 	uint256 public poolID; 
     uint256 public totalShares;
+	uint256 public totalBurned; // burned (principal)
     address public admin; //admin = governing contract!
     address public treasury; //penalties go to this address
     address public migrationPool; //if pools are to change
@@ -100,7 +103,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
 	event TrustedPool(address contractAddress, bool setting);
 	
 	event StakeApproval(address owner, address spender, uint256 allowanceID, uint256 shareAllowance, uint256 lastDeposit, uint256 mandatoryTime);
-	event StakeAllowanceRevoke(address owner, address spender, uint256 allowanceID);
+	event StakeAllowanceRevoke(address owner, address spender, uint256 allowanceID, uint256 burned);
 	event TransferStakeFrom(address _from, address _to, uint256 _stakeID, uint256 _allowanceID);
 	
 	event SetDelegate(address userDelegating, address delegatee);
@@ -149,7 +152,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
     	require(_amount > 0, "Nothing to deposit");
 	
         uint256 pool = balanceOf();
-        require(token.transferFrom(msg.sender, address(this), _amount), "token transfer failed");
+        require(token.burnToken(msg.sender, _amount), "token burn failed");
         uint256 currentShares = 0;
         if (totalShares != 0) {
             currentShares = (_amount.mul(totalShares)).div(pool);
@@ -160,7 +163,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         totalShares = totalShares.add(currentShares);
         
         userInfo[msg.sender].push(
-                UserInfo(currentShares, block.timestamp, _amount, block.timestamp, 0)
+                UserInfo(currentShares, block.timestamp, _amount, block.timestamp, 0, _amount)
             );
         
 		uint256 votingFor = userVote[msg.sender];
@@ -182,7 +185,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         require(_amount >= minimumGift, "Below Minimum Gift");
 
         uint256 pool = balanceOf();
-        require(token.transferFrom(msg.sender, address(this), _amount), "token transfer failed");
+        require(token.burnToken(msg.sender, _amount), "token burn failed");
         uint256 currentShares = 0;
         if (totalShares != 0) {
             currentShares = (_amount.mul(totalShares)).div(pool);
@@ -191,9 +194,10 @@ contract DTXtimeDeposit is ReentrancyGuard {
         }
         
         totalShares = totalShares.add(currentShares);
+		totalBurned = totalBurned + _amount;
         
         userInfo[_toAddress].push(
-                UserInfo(currentShares, block.timestamp, _amount, block.timestamp, _minToServeInSecs)
+                UserInfo(currentShares, block.timestamp, _amount, block.timestamp, _minToServeInSecs, _amount)
             );
 			
         uint256 votingFor = userVote[_toAddress];
@@ -220,7 +224,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         if(msg.sender != admin) { require(_recipientAddr == msg.sender, "can only extend your own stake"); }
 
         uint256 pool = balanceOf();
-        require(token.transferFrom(msg.sender, address(this), _amount), "token transfer failed");
+        require(token.burnToken(msg.sender, _amount), "token burn failed");
         uint256 currentShares = 0;
         if (totalShares != 0) {
             currentShares = (_amount.mul(totalShares)).div(pool);
@@ -230,7 +234,9 @@ contract DTXtimeDeposit is ReentrancyGuard {
         UserInfo storage user = userInfo[_recipientAddr][_stakeID];
 
         user.shares = user.shares.add(currentShares);
+		user.burned = user.burned + _amount;
         totalShares = totalShares.add(currentShares);
+		totalBurned = totalBurned + _amount;
         
         if(_lockUpTokensInSeconds > user.mandatoryTimeToServe || 
 				block.timestamp > user.lastDepositedTime.add(withdrawFeePeriod)) { 
@@ -301,25 +307,27 @@ contract DTXtimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(_shares)).div(totalShares);
         user.shares = user.shares.sub(_shares);
         totalShares = totalShares.sub(_shares);
+		totalBurned = totalBurned - currentAmount;
 
         uint256 currentWithdrawFee = 0;
         
         if (block.timestamp < user.lastDepositedTime.add(withdrawFeePeriod)) {
             uint256 withdrawFee = uint256(2500).sub(((block.timestamp.sub(user.lastDepositedTime)).div(86400)).mul(786).div(10));
             currentWithdrawFee = currentAmount.mul(withdrawFee).div(10000);
-            require(token.transfer(treasury, currentWithdrawFee)); 
+            IMasterChef(masterchef).publishTokens(treasury, currentWithdrawFee); 
             currentAmount = currentAmount.sub(currentWithdrawFee);
         } else if(block.timestamp > user.lastDepositedTime.add(withdrawFeePeriod).add(gracePeriod)) {
             uint256 withdrawFee = block.timestamp.sub(user.lastDepositedTime.add(withdrawFeePeriod)).div(86400).mul(786).div(10);
             if(withdrawFee > 2500) { withdrawFee = 2500; }
             currentWithdrawFee = currentAmount.mul(withdrawFee).div(10000);
-            require(token.transfer(treasury, currentWithdrawFee));  
+            IMasterChef(masterchef).publishTokens(treasury, currentWithdrawFee);  
             currentAmount = currentAmount.sub(currentWithdrawFee);
         }
 
         if (user.shares > 0) {
             user.dtxAtLastUserAction = user.shares.mul(balanceOf().sub(currentAmount)).div(totalShares);
             user.lastUserActionTime = block.timestamp;
+			user.burned = user.burned - user.dtxAtLastUserAction;
         } else {
             _removeStake(msg.sender, _stakeID); //delete the stake
         }
@@ -331,7 +339,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
 
 		emit Withdraw(msg.sender, currentAmount, currentWithdrawFee, _shares);
 		
-        require(token.transfer(msg.sender, currentAmount));
+		IMasterChef(masterchef).publishTokens(msg.sender, currentAmount);
     } 
     
     /**
@@ -366,6 +374,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(_shares)).div(totalShares);
         user.shares = user.shares.sub(_shares);
         totalShares = totalShares.sub(_shares);
+		totalBurned = totalBurned - currentAmount;
 		
 		uint256 votingFor = userVote[msg.sender];
         if(votingFor != 0) {
@@ -378,6 +387,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         if (user.shares > 0) {
             user.dtxAtLastUserAction = user.shares.mul(balanceOf()).div(totalShares);
             user.lastUserActionTime = block.timestamp;
+			user.burned = user.burned - currentAmount;
         } else {
             _removeStake(msg.sender, _stakeID); //delete the stake
         }
@@ -398,7 +408,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
 		//only trustedSenders allowed. TrustedPools are under condition that the stake has matured(hopStake checks condition)
         
         uint256 pool = balanceOf();
-        require(token.transferFrom(msg.sender, address(this), _amount), "token transfer failed");
+		
         uint256 currentShares = 0;
         if (totalShares != 0) {
             currentShares = (_amount.mul(totalShares)).div(pool);
@@ -407,10 +417,11 @@ contract DTXtimeDeposit is ReentrancyGuard {
         }
         
         totalShares = totalShares.add(currentShares);
+		totalBurned+= _amount;
         
         userInfo[_recipientAddress].push(
                 UserInfo(currentShares, previousLastDepositedTime, _amount,
-                    block.timestamp, _mandatoryTime)
+                    block.timestamp, _mandatoryTime, _amount)
             );
 
 		uint256 votingFor = userVote[_recipientAddress];
@@ -460,6 +471,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         if(!partialTransfers) { require(_shares == user.shares, "must transfer full stake"); }
         
         user.shares = user.shares.sub(_shares);
+		uint256 burnedAmount = _shares.mul(balanceOf()).div(totalShares);
 
 		uint256 votingFor = userVote[msg.sender];
         if(votingFor != 0) {
@@ -471,12 +483,13 @@ contract DTXtimeDeposit is ReentrancyGuard {
         }
         
         userInfo[_recipientAddress].push(
-                UserInfo(_shares, user.lastDepositedTime, _tokensTransferred, block.timestamp, user.mandatoryTimeToServe)
+                UserInfo(_shares, user.lastDepositedTime, _tokensTransferred, block.timestamp, user.mandatoryTimeToServe, burnedAmount)
             );
 
         if (user.shares > 0) {
             user.dtxAtLastUserAction = user.shares.mul(balanceOf()).div(totalShares);
             user.lastUserActionTime = block.timestamp;
+			user.burned = user.burned - burnedAmount;
         } else {
             _removeStake(msg.sender, _stakeID); //delete the stake
         }
@@ -554,7 +567,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
 		emit SetDelegate(_wallet, _delegate);
     }
 	
-	//allows third party stake transfer(stake IDs can be changed, so instead of being identified through ID, it's identified by shares, lastdeposit and mandatory time
+	//allows third party stake transfer(stake IDs can be changed, so instead of being identified through ID, it's identified by shares, lastdeposit and mandatory time and burned aount
     function giveStakeAllowance(address spender, uint256 _stakeID) external {
 		UserInfo storage user = userInfo[msg.sender][_stakeID];
 		require(user.shares.mul(balanceOf()).div(totalShares) >= minimumGift, "below minimum threshold");
@@ -562,10 +575,10 @@ contract DTXtimeDeposit is ReentrancyGuard {
 		uint256 _allowanceID = _stakeAllowances[msg.sender][spender].length;
 
 		_stakeAllowances[msg.sender][spender].push(
-			StakeTransfer(user.shares, user.lastDepositedTime, user.mandatoryTimeToServe)
+			StakeTransfer(user.shares, user.lastDepositedTime, user.mandatoryTimeToServe, user.burned)
 		);
 		
-		emit StakeApproval(msg.sender, spender, _allowanceID, user.shares, user.lastDepositedTime, user.mandatoryTimeToServe);
+		emit StakeApproval(msg.sender, spender, _allowanceID, user.shares, user.lastDepositedTime, user.mandatoryTimeToServe, user.burned);
     }
 	
     //Note: allowanceID (and not ID of the stake!)
@@ -586,9 +599,9 @@ contract DTXtimeDeposit is ReentrancyGuard {
         return _stakeAllowances[owner][spender].length;
     }
 	
-    function stakeAllowances(address owner, address spender, uint256 allowanceID) public view returns (uint256, uint256, uint256) {
+    function stakeAllowances(address owner, address spender, uint256 allowanceID) public view returns (uint256, uint256, uint256, uint256) {
         StakeTransfer storage stakeStore = _stakeAllowances[owner][spender][allowanceID];
-        return (stakeStore.shares, stakeStore.lastDepositedTime, stakeStore.mandatoryTimeToServe);
+        return (stakeStore.shares, stakeStore.lastDepositedTime, stakeStore.mandatoryTimeToServe, stakeStore.burned);
     }
 	
     /**
@@ -605,13 +618,14 @@ contract DTXtimeDeposit is ReentrancyGuard {
         require(_stakeID < userInfo[_from].length, "wrong stake ID");
         UserInfo storage user = userInfo[_from][_stakeID];
 		
-		(uint256 _shares, uint256 _lastDeposit, uint256 _mandatoryTime) = stakeAllowances(_from, msg.sender, allowanceID);
+		(uint256 _shares, uint256 _lastDeposit, uint256 _mandatoryTime, uint256 _burned) = stakeAllowances(_from, msg.sender, allowanceID);
 
 		//since stake ID can change, the stake to transfer is identified through number of shares, last deposit and mandatory time
 		//checks if stake allowance(for allowanceID) matches the actual stake of a user
 		require(_shares == user.shares, "incorrect stake or allowance");
 		require(_lastDeposit == user.lastDepositedTime, "incorrect stake or allowance");
 		require(_mandatoryTime == user.mandatoryTimeToServe, "incorrect stake or allowance");
+		require(_burned == user.burned, "incorrect stake or allowance");
      
 		uint256 votingFor = userVote[_from];
         if(votingFor != 0) {
@@ -627,7 +641,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
 		
         userInfo[_to].push(
                 UserInfo(_shares, _lastDeposit, _shares.mul(balanceOf()).div(totalShares),
-                    block.timestamp, _mandatoryTime)
+                    block.timestamp, _mandatoryTime, _burned)
             );
 
         emit TransferStakeFrom(_from, _to, _stakeID, allowanceID);
@@ -649,10 +663,12 @@ contract DTXtimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(_shares)).div(totalShares);
         user.shares = user.shares.sub(_shares);
         totalShares = totalShares.sub(_shares);
+		totalBurned = totalBurned - currentAmount;
 
         if (user.shares > 0) {
             user.dtxAtLastUserAction = user.shares.mul(balanceOf().sub(currentAmount)).div(totalShares);
             user.lastUserActionTime = block.timestamp;
+			user.burned = user.burned - currentAmount;
         } else {
             _removeStake(msg.sender, _stakeID); //delete the stake
         }
@@ -663,8 +679,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         }
 
 		emit Withdraw(treasury, currentAmount, 0, _shares);
-		
-        require(token.transfer(treasury, currentAmount), "token transfer failed");
+
 		IVoting(votingCreditAddress).addCredit(currentAmount, msg.sender); //in the votingCreditAddress regulate how much is credited, depending on where it's coming from (msg.sender)
     } 
 
@@ -683,6 +698,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         
         uint256 currentAmount = (balanceOf().mul(user.shares)).div(totalShares);
         totalShares = totalShares.sub(user.shares);
+		totalBurned = totalBurned - currentAmount;
 		
         user.shares = 0; // equivalent to deleting the stake. Pools are no longer to be used,
 						//setting user shares to 0 is sufficient
@@ -769,7 +785,8 @@ contract DTXtimeDeposit is ReentrancyGuard {
      */
     function balanceOf() public view returns (uint256) {
         uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
-        return token.balanceOf(address(this)).add(amount); 
+		uint256 _credit = IMasterChef(masterchef).credit(address(this));
+        return totalBurned.add(amount).add(_credit); 
     }
 	
     
@@ -837,15 +854,6 @@ contract DTXtimeDeposit is ReentrancyGuard {
 	function enableDisableStakeTransfer(bool _setting) external adminOnly {
 		allowStakeTransfer = _setting;
 	}
-
-    /**
-     * @notice Withdraws from MasterChef to Vault without caring about rewards.
-     * @dev EMERGENCY ONLY. Only callable by the contract admin.
-     */
-    function emergencyWithdraw() external adminOnly {
-        IMasterChef(masterchef).emergencyWithdraw(poolID);
-        token.transfer(admin, token.balanceOf(address(this)));
-    }
 	
 	/*
 	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
