@@ -143,4 +143,3 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         return _symbol;
     }
 }
-
