@@ -28,7 +28,7 @@ interface IDTX {
 
     function burn(uint256 amount) external;
 
-    function burnToken(address account, uint256 amount) external returns (bool);
+    function burnDTX(address account, uint256 amount) external returns (bool);
 
     function burnFrom(address account, uint256 amount) external;
 
@@ -74,6 +74,12 @@ interface IDTX {
     function totalSupply() external view returns (uint256);
 
     function transfer(address to, uint256 amount) external returns (bool);
+    
+    function transferDTX(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool);
 
     function transferFrom(
         address from,
