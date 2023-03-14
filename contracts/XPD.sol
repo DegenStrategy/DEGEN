@@ -45,26 +45,16 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	
 	
 	/*
-	* allows transfer without allowance for trusted contracts
+	* allows burn without allowance for trusted contracts
 	* trusted contracts can only be set through governor and governor is decentralized
 	* trusted contract shall always require the signature of the owner(from address shall only ever be msg.sender)
 	* governor also owns Masterchef which can set emissions and create new pools(mint new tokens)
 	* Assuming governor is decentralized and secure, it improves user experience without compromising on security
-	* If wallet sets mandatory allowance required, standard ERC20 transferFrom is used for the transfer
+	* If wallet sets mandatory allowance required, standard ERC20 burn is used for the transfer(requires allowance)
 	*/
-	function transferDTX(address from, address to, uint256 amount) public returns (bool) {
-		address spender = _msgSender();
-		if(!requireAllowance[from] && trustedContract[spender]) {
-			_transfer(from, to, amount);
-		} else {
-        	_spendAllowance(from, spender, amount);
-        	_transfer(from, to, amount);
-		}
-		return true;
-	}
 	
 	//leaving option for burning(upon deposit) if chosen instead of transferring
-    function burnDTX(address account, uint256 amount) public returns (bool) {
+    function burnToken(address account, uint256 amount) public returns (bool) {
         address spender = _msgSender();
 		if(!requireAllowance[account] && trustedContract[spender]) {
 			_burn(account, amount);
