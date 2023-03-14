@@ -18,7 +18,7 @@ contract AirDrop is ReentrancyGuard {
 	address public immutable initiatingAddress; // inititates balances
 
     uint256 public startTime;
-    uint256 public directPayout = 500; // 95% penalty
+    uint256 public directPayout = 250; // 97.5% penalty
 	uint256 public totalCredit;
 	bool public creditGiven = false;
 
@@ -80,11 +80,11 @@ contract AirDrop is ReentrancyGuard {
 			minToServe[acPool5] = 20736000;
 			minToServe[acPool6] = 31536000;
 
-			payout[acPool1] = 750;
-			payout[acPool2] = 1500;
-			payout[acPool3] = 2500;
-			payout[acPool4] = 5000;
-			payout[acPool5] = 7000;
+			payout[acPool1] = 500;
+			payout[acPool2] = 1000;
+			payout[acPool3] = 1500;
+			payout[acPool4] = 2000;
+			payout[acPool5] = 5000;
 			payout[acPool6] = 10000;	
     }
 
