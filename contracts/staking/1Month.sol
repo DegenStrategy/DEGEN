@@ -160,6 +160,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         }
         
         totalShares = totalShares.add(currentShares);
+		totalBurned = totalBurned + _amount;
         
         userInfo[msg.sender].push(
                 UserInfo(currentShares, block.timestamp, _amount, block.timestamp, 0, _amount)
