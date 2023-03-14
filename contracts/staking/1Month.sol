@@ -417,7 +417,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
         
         userInfo[_recipientAddress].push(
                 UserInfo(currentShares, previousLastDepositedTime, _amount,
-                    block.timestamp, _mandatoryTime, _amount)
+                    block.timestamp, _mandatoryTime)
             );
 
 		uint256 votingFor = userVote[_recipientAddress];
@@ -467,7 +467,6 @@ contract DTXtimeDeposit is ReentrancyGuard {
         if(!partialTransfers) { require(_shares == user.shares, "must transfer full stake"); }
         
         user.shares = user.shares.sub(_shares);
-		uint256 burnedAmount = _shares.mul(balanceOf()).div(totalShares);
 
 		uint256 votingFor = userVote[msg.sender];
         if(votingFor != 0) {
