@@ -43,7 +43,6 @@ contract DTXsyncContracts {
         updatePoolsInSideContracts();
         updateMasterchef();
 		nftStaking();
-		updateCreditContract();
     }
 
     function updatePools() public {
@@ -94,19 +93,6 @@ contract DTXsyncContracts {
         INFTstaking(_stakingContract).setAdmin();
     }
 	
-    
-	function updateCreditContract() public {
-        address governor = IDTX(tokenDTX).governor();
-		
-		address creditContract = IGovernor(governor).creditContract();
-		IChange(creditContract).changeGovernor();
-
-        IChange(IGovernor(governor).consensusContract()).syncCreditContract();
-        IChange(IGovernor(governor).farmContract()).syncCreditContract();
-        IChange(IGovernor(governor).fibonacceningContract()).syncCreditContract();
-        IChange(IGovernor(governor).basicContract()).syncCreditContract();
-		IChange(IGovernor(governor).nftAllocationContract()).syncCreditContract();
-	}
     
     function updateMasterchef() public {
 		address governor = IDTX(tokenDTX).governor();
