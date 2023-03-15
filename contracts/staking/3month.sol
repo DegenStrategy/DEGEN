@@ -63,7 +63,6 @@ contract TimeDeposit is ReentrancyGuard {
     address public treasury; //penalties go to this address
     address public migrationPool; //if pools are to change
 	
-	address public votingCreditAddress;
 	
 	uint256 public minimumGift = 1000000 * 1e18;
 	bool public updateMinGiftGovernor = true; //allows automatic update by anybody to costToVote from governing contract
@@ -648,7 +647,7 @@ contract TimeDeposit is ReentrancyGuard {
      * At the time of launch there is no option(voting with credit), but can be added later on
     */
 	function votingCredit(uint256 _shares, uint256 _stakeID) public {
-        require(votingCreditAddress != address(0), "disabled");
+        require(votingCreditAddress() != address(0), "disabled");
         require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
         UserInfo storage user = userInfo[msg.sender][_stakeID];
         require(_shares > 0, "Nothing to withdraw");
@@ -674,7 +673,7 @@ contract TimeDeposit is ReentrancyGuard {
 		emit Withdraw(treasury, currentAmount, 0, _shares);
 		
 		IMasterChef(masterchef).publishTokens(treasury, currentAmount));
-		IVoting(votingCreditAddress).addCredit(currentAmount, msg.sender); //in the votingCreditAddress regulate how much is credited, depending on where it's coming from (msg.sender)
+		IVoting(votingCreditAddress()).addCredit(currentAmount, msg.sender); //in the votingCreditAddress regulate how much is credited, depending on where it's coming from (msg.sender)
     } 
 	
     /**
@@ -946,8 +945,8 @@ contract TimeDeposit is ReentrancyGuard {
         emit RemoveVotes(voter, proposalID, diff);
     }
     
-    function regulateVotingCredit(address _newAddress) external adminOnly {
-        votingCreditAddress = _newAddress;
+    function votingCreditAddress() public view returns (address) {
+    	return IGovernor(admin).creditContract();
     }
 	
     /**
