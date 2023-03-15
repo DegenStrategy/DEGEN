@@ -3,11 +3,10 @@
 pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./interface/IDTX.sol";
 
-contract VotingCredit is Ownable {
+contract VotingCredit {
 	IDTX public immutable token;
 	
 	address public immutable airdropContract = ;
@@ -114,7 +113,7 @@ contract VotingCredit is Ownable {
 	}
 	
 	
-	function changeGovernor() external {
-		_transferOwnership(token.governor());
+	function owner() public view returns (address) {
+		return token.governor();
 	}
 }
