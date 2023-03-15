@@ -3,14 +3,13 @@ pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./interface/IGovernor.sol";
 import "./interface/IDTX.sol";
 import "./interface/IVoting.sol";
 
 //compile with optimization enabled(60runs)
-contract DTXbasics is Ownable {
+contract DTXbasics {
     address public immutable token; //DTX token (address)
     
     //addresses for time-locked deposits(autocompounding pools)
@@ -564,8 +563,8 @@ contract DTXbasics is Ownable {
 
     //transfers ownership of this contract to new governor
     //masterchef is the token owner, governor is the owner of masterchef
-    function changeGovernor() external {
-		_transferOwnership(IDTX(token).governor());
+    function owner() public view returns (address) {
+		return (IDTX(token).governor());
     }
 
     function updatePools() external {
