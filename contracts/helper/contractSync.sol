@@ -68,6 +68,9 @@ contract DTXsyncContracts {
         IacPool(acPool6).setAdmin();
     }
 
+	/* 
+		* No longer needed (owner() retrieves governor address from token contract 
+		
     function updateSideContractsOwner() public {
         address governor = IDTX(tokenDTX).governor();
 
@@ -77,6 +80,7 @@ contract DTXsyncContracts {
         IChange(IGovernor(governor).basicContract()).changeGovernor();
 		IChange(IGovernor(governor).creditContract()).changeGovernor();
     }
+	*/
 
     function updatePoolsInSideContracts() public {
         address governor = IDTX(tokenDTX).governor();
