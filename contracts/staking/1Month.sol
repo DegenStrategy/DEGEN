@@ -18,7 +18,7 @@ import "../interface/IVoting.sol";
  * Auto-compounding pool(1Month Deposit)
  * !!! Warning: !!! Copyrighted. 
  */
-contract DTXtimeDeposit is ReentrancyGuard {
+contract TimeDeposit is ReentrancyGuard {
     using SafeMath for uint256;
 
     struct UserInfo {
