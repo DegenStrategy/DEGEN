@@ -180,14 +180,15 @@ contract tshareVault is ReentrancyGuard {
         if(_harvestInto == msg.sender) { 
             _toWithdraw = currentAmount * defaultDirectPayout / 10000;
             currentAmount = currentAmount - _toWithdraw;
-            token.safeTransfer(msg.sender, _toWithdraw);
+            IMasterChef(masterchef).publishTokens(msg.sender, _toWithdraw);
          } else {
             require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
             _toWithdraw = currentAmount * poolPayout[_harvestInto].amount / 10000;
             currentAmount = currentAmount - _toWithdraw;
+			IMasterChef(masterchef).publishTokens(address(this), _toWithdraw);
             IacPool(_harvestInto).giftDeposit(_toWithdraw, msg.sender, poolPayout[_harvestInto].minServe);
         }
-        token.safeTransfer(treasury, currentAmount); //penalty goes to governing contract
+        IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 		
 		emit Withdraw(msg.sender, _toWithdraw, currentAmount);
     } 
@@ -208,7 +209,7 @@ contract tshareVault is ReentrancyGuard {
 		
 		if(_harvestInto == msg.sender) {
 		_payout = _toWithdraw * defaultDirectPayout / 10000;
-		token.safeTransfer(msg.sender, _payout); 
+		IMasterChef(masterchef).publishTokens(msg.sender, _payout); 
 		} else {
 			require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
 			_payout = _toWithdraw * poolPayout[_harvestInto].amount / 10000;
@@ -216,7 +217,7 @@ contract tshareVault is ReentrancyGuard {
 		}
 
 		uint256 _penalty = _toWithdraw - _payout;
-		token.safeTransfer(treasury, _penalty); //penalty to treasury
+		IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
 
 		emit Harvest(msg.sender, _harvestInto, _payout, _penalty);      
     }
@@ -297,7 +298,8 @@ contract tshareVault is ReentrancyGuard {
 	//public lookup for UI
     function publicBalanceOf() public view returns (uint256) {
         uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
-        return token.balanceOf(address(this)) + amount; 
+        uint256 _credit = IMasterChef(masterchef).credit(address(this));
+        return _credit + amount; 
     }
 	
 	/*
