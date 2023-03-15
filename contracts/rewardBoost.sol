@@ -4,7 +4,6 @@ pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./interface/IGovernor.sol";
 import "./interface/IMasterChef.sol";
@@ -18,7 +17,7 @@ import "./interface/IVoting.sol";
 // When A threshold of tokens are collected, a reward boost event can be scheduled
 // During the event there is a period of boosted rewards
 // After the event ends, the tokens are burned and the global inflation is reduced
-contract DTXrewardBoost is Ownable {    
+contract DTXrewardBoost {    
     struct FibonacceningProposal {
         bool valid;
         uint256 firstCallTimestamp;
@@ -451,8 +450,8 @@ contract DTXrewardBoost is Ownable {
     
     //transfers ownership of this contract to new governor
     //masterchef is the token owner, governor is the owner of masterchef
-    function changeGovernor() external {
-		_transferOwnership(IDTX(address(token)).governor());
+    function owner() public view returns (address) {
+		return IDTX(address(token)).governor();
     }
 	
 	function syncCreditContract() external {
