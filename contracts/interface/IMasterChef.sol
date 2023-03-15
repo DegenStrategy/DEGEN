@@ -101,4 +101,6 @@ interface IMasterChef {
     function withdraw(uint256 _pid, uint256 _amount) external;
     
     function publishTokens(address _to, uint256 _amount) external;
+    
+    function transferCredit(address _to, uint256 _amount) external;
 }
