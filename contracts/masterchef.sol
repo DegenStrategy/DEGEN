@@ -91,6 +91,11 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		dtx.mint(_to, _amount);
 	}
 	
+	function transferCredit(address _to, uint256 _amount) external {
+		credit[msg.sender] = credit[msg.sender] - _amount;
+		credit[_to] = credit[_to] + _amount;
+	}
+	
     // Add a new lp to the pool. Can only be called by the owner.
     function add(uint256 _allocPoint, IERC20 _lpToken, uint16 _depositFeeBP, bool _withUpdate) public onlyOwner {
         require(_depositFeeBP <= 10000, "add: invalid deposit fee basis points");
