@@ -124,7 +124,7 @@ contract TimeDeposit is ReentrancyGuard {
         address _admin,
         address _treasury,
         uint256 _poolID
-    ) public {
+    ) {
         token = _token;
         dummyToken = _dummyToken;
         masterchef = _masterchef;
