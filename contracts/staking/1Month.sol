@@ -163,7 +163,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
 		totalBurned = totalBurned + _amount;
         
         userInfo[msg.sender].push(
-                UserInfo(currentShares, block.timestamp, _amount, block.timestamp, 0, _amount)
+                UserInfo(currentShares, block.timestamp, _amount, block.timestamp, 0)
             );
         
 		uint256 votingFor = userVote[msg.sender];
@@ -197,7 +197,7 @@ contract DTXtimeDeposit is ReentrancyGuard {
 		totalBurned = totalBurned + _amount;
         
         userInfo[_toAddress].push(
-                UserInfo(currentShares, block.timestamp, _amount, block.timestamp, _minToServeInSecs, _amount)
+                UserInfo(currentShares, block.timestamp, _amount, block.timestamp, _minToServeInSecs)
             );
 			
         uint256 votingFor = userVote[_toAddress];
