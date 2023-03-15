@@ -373,6 +373,7 @@ contract TimeDeposit is ReentrancyGuard {
         user.shares = user.shares.sub(_shares);
         totalShares = totalShares.sub(_shares);
 		totalPublished = totalPublished + currentAmount;
+		IMasterChef(masterchef).transferCredit(_poolAddress, currentAmount);
 		
 		uint256 votingFor = userVote[msg.sender];
         if(votingFor != 0) {
@@ -832,6 +833,8 @@ contract TimeDeposit is ReentrancyGuard {
      */
     function setMigrationPool(address _newPool) external adminOnly {
 		migrationPool = _newPool;
+		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
+		IMasterChef(masterchef).transferCredit(_newPool, _currentCredit);
     }
     
      /**
