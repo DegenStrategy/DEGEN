@@ -12,7 +12,7 @@ contract PulseDAOLand is ERC721URIStorage {
 	
 	event SetTokenURI(uint256 tokenID, string URI);
 
-    constructor(address _dtx) ERC721("DecentralizeX Virtual Land", "DTX LAND") {
+    constructor(address _dtx) ERC721("PulseDAO Virtual Land", "XPD LAND") {
 		tokenAddress = _dtx;
 	}
 	
