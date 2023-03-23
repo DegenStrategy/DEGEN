@@ -54,6 +54,8 @@ contract DTXChef is Ownable, ReentrancyGuard {
     PoolInfo[] public poolInfo;
     // Info of each user that stakes LP tokens.
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
+	// User Credit (can publish such amount of tokens)
+	mapping(address => uint256) public credit;
 	// Does Pool Already Exist?
 	mapping(IERC20 => bool) public poolExistence;
     // Total allocation points. Must be the sum of all allocation points in all pools.
@@ -83,7 +85,17 @@ contract DTXChef is Ownable, ReentrancyGuard {
     function poolLength() external view returns (uint256) {
         return poolInfo.length;
     }
-
+	
+	function publishTokens(address _to, uint256 _amount) external {
+		credit[msg.sender] = credit[msg.sender] - _amount;
+		dtx.mint(_to, _amount);
+	}
+	
+	function transferCredit(address _to, uint256 _amount) external {
+		credit[msg.sender] = credit[msg.sender] - _amount;
+		credit[_to] = credit[_to] + _amount;
+	}
+	
     // Add a new lp to the pool. Can only be called by the owner.
     function add(uint256 _allocPoint, IERC20 _lpToken, uint16 _depositFeeBP, bool _withUpdate) public onlyOwner {
         require(_depositFeeBP <= 10000, "add: invalid deposit fee basis points");
@@ -167,7 +179,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
         if (user.amount > 0) {
             uint256 pending = user.amount.mul(pool.accDtxPerShare).div(1e12).sub(user.rewardDebt);
             if(pending > 0) {
-				dtx.mint(msg.sender, pending);
+				credit[msg.sender]+= pending;
             }
         }
         if(_amount > 0) {
@@ -192,7 +204,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
         updatePool(_pid);
         uint256 pending = user.amount.mul(pool.accDtxPerShare).div(1e12).sub(user.rewardDebt);
         if(pending > 0) {
-			dtx.mint(msg.sender, pending);
+			credit[msg.sender]+= pending;
         }
         if(_amount > 0) {
             user.amount = user.amount.sub(_amount);
