@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+import "../interface/IDTX.sol";
 import "../interface/IMasterChef.sol";
 import "../interface/IacPool.sol";
 import "../interface/IGovernor.sol";
@@ -34,7 +35,7 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 mandatoryTimeToServe; 
 	}
 
-    IERC20 public immutable token; // DTX token
+    IDTX public immutable token; // DTX token
 
     IERC20 public immutable dummyToken; 
 
@@ -114,7 +115,7 @@ contract TimeDeposit is ReentrancyGuard {
      * @param _treasury: address of the treasury (collects fees)
      */
     constructor(
-        IERC20 _token,
+        IDTX _token,
         IERC20 _dummyToken,
         IMasterChef _masterchef,
         address _admin,
@@ -443,7 +444,7 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(user.shares)).div(totalShares); 
         uint256 toPay = currentAmount.mul(IGovernor(admin).getRollBonus(_poolInto)).div(10000);
 
-        require(IERC20(token).balanceOf(admin) >= toPay, "governor reserves are currently insufficient");
+        require(IDTX(token).balanceOf(admin) >= toPay, "governor reserves are currently insufficient");
         
         if(_poolInto == address(this)) {
             IGovernor(admin).stakeRolloverBonus(msg.sender, _poolInto, toPay, _stakeID); //gov sends tokens to extend the stake
@@ -671,7 +672,7 @@ contract TimeDeposit is ReentrancyGuard {
 
 		emit Withdraw(treasury, currentAmount, 0, _shares);
 		
-		IMasterChef(masterchef).publishTokens(treasury, currentAmount));
+		IMasterChef(masterchef).publishTokens(treasury, currentAmount);
 		IVoting(votingCreditAddress()).addCredit(currentAmount, msg.sender); //in the votingCreditAddress regulate how much is credited, depending on where it's coming from (msg.sender)
     } 
 	
