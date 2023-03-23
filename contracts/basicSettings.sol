@@ -51,7 +51,6 @@ contract DTXbasics {
     
     ProposalStructure[] public minDepositProposals;
     ProposalStructure[] public delayProposals;
-    ProposalStructure[] public proposeDurationCalculation;
 	ProposalStructure[] public callFeeProposal;
 	RolloverBonusStructure[] public rolloverBonuses;
 	ProposalStructure[] public minThresholdFibonacceningProposal; 
@@ -60,8 +59,6 @@ contract DTXbasics {
 	event ProposeMinDeposit(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address enforcer, uint256 delay);
     
     event DelayBeforeEnforce(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address enforcer, uint256 delay);
-    
-    event InitiateProposalDurationForCalculation(uint256 proposalID, uint256 duration, uint256 tokensSacrificedForVoting, address enforcer, uint256 delay);
     
     event InitiateSetCallFee(uint256 proposalID, uint256 depositingTokens, uint256 newCallFee, address enforcer, uint256 delay);
     
@@ -217,72 +214,7 @@ contract DTXbasics {
 			vetoDelayBeforeEnforceProposal(proposalID);
 		}
     }
-    
-  /**
-     * Regulatory process for determining "durationForCalculation"
-     * Not of great Use (no use until the "grand fibonaccening
-     * Bitcoin difficulty adjusts to create new blocks every 10minutes
-     * Our inflation is tied to the block production of Polygon network
-     * In case the average block time changes significantly on the Polygon network  
-     * the durationForCalculation is a period that we use to calculate 
-     * average block time and consequentially use it to rebalance inflation
-    */
-    function initiateProposalDurationForCalculation(uint256 depositingTokens, uint256 duration, uint256 delay) external {
-		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");		
-    	require(depositingTokens >= IGovernor(owner()).costToVote(), "minimum cost to vote");
-		require(duration <= 7 * 24 * 3600, "less than 7 days");
-    
-		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
-    	proposeDurationCalculation.push(
-    	    ProposalStructure(true, block.timestamp, depositingTokens, 0, delay, duration)
-    	    );  
-    	    
-        emit InitiateProposalDurationForCalculation(proposeDurationCalculation.length - 1, duration,  depositingTokens, msg.sender, delay);
-    }
-	function voteProposalDurationForCalculationY(uint256 proposalID, uint256 withTokens) external {
-		require(proposeDurationCalculation[proposalID].valid, "invalid");
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
-		proposeDurationCalculation[proposalID].valueSacrificedForVote+= withTokens;
-
-		emit AddVotes(2, proposalID, msg.sender, withTokens, true);
-	}
-	function voteProposalDurationForCalculationN(uint256 proposalID, uint256 withTokens, bool withAction) external {
-		require(proposeDurationCalculation[proposalID].valid, "invalid");
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		proposeDurationCalculation[proposalID].valueSacrificedAgainst+= withTokens;
-		if(withAction) { vetoProposalDurationForCalculation(proposalID); }
-
-		emit AddVotes(2, proposalID, msg.sender, withTokens, false);
-	}
-    function vetoProposalDurationForCalculation(uint256 proposalID) public {
-    	require(proposeDurationCalculation[proposalID].valid, "already invalid"); 
-		require(proposeDurationCalculation[proposalID].firstCallTimestamp + proposeDurationCalculation[proposalID].delay < block.timestamp, "pending delay");
-		require(proposeDurationCalculation[proposalID].valueSacrificedForVote < proposeDurationCalculation[proposalID].valueSacrificedAgainst, "needs more votes");
-
-    	proposeDurationCalculation[proposalID].valid = false;  
-    	
-    	emit EnforceProposal(2, proposalID, msg.sender, false);
-    }
-
-    function executeProposalDurationForCalculation(uint256 proposalID) public {
-    	require(
-    	    proposeDurationCalculation[proposalID].valid &&
-    	    proposeDurationCalculation[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + proposeDurationCalculation[proposalID].delay < block.timestamp,
-    	    "conditions not met"
-    	);
-		if(proposeDurationCalculation[proposalID].valueSacrificedForVote >= proposeDurationCalculation[proposalID].valueSacrificedAgainst) {
-			IGovernor(owner()).updateDurationForCalculation(proposeDurationCalculation[proposalID].proposedValue); 
-			proposeDurationCalculation[proposalID].valid = false; 
-			
-			emit EnforceProposal(2, proposalID, msg.sender, true);
-		} else {
-			vetoProposalDurationForCalculation(proposalID);
-		}
-    }
     
   /**
      * Regulatory process for setting rollover bonuses
@@ -585,7 +517,7 @@ contract DTXbasics {
 	 * Can be used for building database from scratch (opposed to using event logs)
 	 * also to make sure all data and latest events are synced correctly
 	 */
-	function proposalLengths() external view returns(uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
-		return(minDepositProposals.length, delayProposals.length, proposeDurationCalculation.length, callFeeProposal.length, rolloverBonuses.length, minThresholdFibonacceningProposal.length, grandSettingProposal.length);
+	function proposalLengths() external view returns(uint256, uint256, uint256, uint256, uint256, uint256) {
+		return(minDepositProposals.length, delayProposals.length, callFeeProposal.length, rolloverBonuses.length, minThresholdFibonacceningProposal.length, grandSettingProposal.length);
 	}
 }
