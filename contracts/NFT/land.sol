@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 import "../interface/IDTX.sol";
 
-contract DecentralizeXland is ERC721URIStorage {
+contract PulseDAOLand is ERC721URIStorage {
     uint256 public tokenCount;
 	address public tokenAddress;
 	bool public allowMint = true;
@@ -15,7 +15,14 @@ contract DecentralizeXland is ERC721URIStorage {
     constructor(address _dtx) ERC721("DecentralizeX Virtual Land", "DTX LAND") {
 		tokenAddress = _dtx;
 	}
-
+	
+	
+	modifier decentralizedVoting {
+    	require(msg.sender == IDTX(tokenAddress).governor(), "Governor only, decentralized voting required");
+    	_;
+    }
+	
+	
     function mintLand(address mintTo) external {
 		require(allowMint, "minting has been renounced");
         require(msg.sender == IDTX(tokenAddress).governor(), "governor only");
@@ -34,4 +41,28 @@ contract DecentralizeXland is ERC721URIStorage {
 		require(msg.sender == IDTX(tokenAddress).governor(), "governor only");
 		allowMint = false;
 	}
+	
+	//Standard ERC20 makes name and symbol immutable
+	//We add potential to rebrand for full flexibility if stakers choose to do so through voting
+	function rebrandName(string memory _newName) external decentralizedVoting {
+		_name = _newName;
+	}
+	function rebrandSymbol(string memory _newSymbol) external decentralizedVoting {
+        _symbol = _newSymbol;
+	}
+	
+    /**
+     * @dev Returns the name of the token.
+     */
+    function name() public override view returns (string memory) {
+        return _name;
+    }
+
+    /**
+     * @dev Returns the symbol of the token, usually a shorter version of the
+     * name.
+     */
+    function symbol() public override view returns (string memory) {
+        return _symbol;
+    }
 }
