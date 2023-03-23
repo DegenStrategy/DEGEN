@@ -404,7 +404,7 @@ contract DTXconsensus {
      * Returns total DTX staked accross all pools.
      */
     function totalDTXStaked() public view returns(uint256) {
-    	return IacPool(acPool1).balanceOf(acPool1) + IacPool(acPool2).balanceOf() + IacPool(acPool3).balanceOf() +
+    	return IacPool(acPool1).balanceOf() + IacPool(acPool2).balanceOf() + IacPool(acPool3).balanceOf() +
                  IacPool(acPool4).balanceOf() + IacPool(acPool5).balanceOf() + IacPool(acPool6).balanceOf();
     }
 
