@@ -460,10 +460,12 @@ contract DTXrewardBoost {
     
     // this is unneccesary until the Grand Fibonaccening is actually to happen
     // Should perhaps add a proposal to regulate the length and delay
-    function updateDelayBetweenEvents(uint256 _delay) external onlyOwner {
+    function updateDelayBetweenEvents(uint256 _delay) external {
+        require(msg.sender == owner(), "decentralized voting only");
 		delayBetweenEvents = _delay;
     }
-    function updateGrandEventLength(uint256 _length) external onlyOwner {
+    function updateGrandEventLength(uint256 _length) external {
+         require(msg.sender == owner(), "decentralized voting only");
     	grandEventLength = _length;
     }
 
