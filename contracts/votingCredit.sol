@@ -59,7 +59,7 @@ contract VotingCredit {
 		if(userCredit[from] >= amount) {
 			userCredit[from]-= amount;
 		} else {
-			require(token.transferDTX(from, owner(), amount));
+			require(token.burnToken(from, amount));
 		}
 		return true;
 	}
@@ -74,7 +74,7 @@ contract VotingCredit {
 	
 	//manually deposit tokens to get voting credit
 	function depositCredit(uint256 amount) external {
-		require(token.transferDTX(msg.sender, owner(), amount));
+		require(token.burnToken(msg.sender, amount));
 		userCredit[msg.sender]+=amount;
 		emit AddCredit(msg.sender, amount);
 	}
@@ -93,7 +93,8 @@ contract VotingCredit {
 	}
 	
 	//add/remove contracts
-	function modifyCreditingContract(address _contract, bool setting) external onlyOwner {
+	function modifyCreditingContract(address _contract, bool setting) external {
+        require(msg.sender == owner(), "decentralized voting required");
 		if(creditingContract[_contract] != setting) {
 			creditingContract[_contract] = setting;
 			setting ? creditingContractCount++ : creditingContractCount--;
@@ -103,7 +104,8 @@ contract VotingCredit {
 	}
 	
 	//add/remove contracts
-	function modifyDeductingContract(address _contract, bool setting) external onlyOwner {
+	function modifyDeductingContract(address _contract, bool setting) external {
+        require(msg.sender == owner(), "decentralized voting required");
 		if(deductingContract[_contract] != setting) {
 			deductingContract[_contract] = setting;
 			setting ? deductingContractCount++ : deductingContractCount--;
