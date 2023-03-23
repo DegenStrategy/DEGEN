@@ -67,13 +67,7 @@ contract DTXfarms {
     
 	uint256 public maxLpAllocation = 1250;
 	uint256 public maxNftAllocation = 1000;
-	uint256 public maxMemeAllocation = 500;
 	
-    //farms and meme pools rewards have no lock 
-    //reduce the rewards during inflation boost
-    //to prevent tokens reaching the market
-    uint256 public farmMultiplierDuringBoost = 500;
-    uint256 public memeMultiplierDuringBoost = 500;
 	uint256 public maxPulseEcoAllocation = 2000; //max 20% per pool
 	uint256 public maxPulseEcoTotalAllocation = 5000; // max 50% total
     bool public isReductionEnforced; 
@@ -89,7 +83,9 @@ contract DTXfarms {
     event ProposeGovernorTransfer(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedAmount, address indexed enforcer, bool isBurn, uint256 startTimestamp, uint256 delay);
 
 	event ProposeGovTax(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedTax, address indexed enforcer, uint256 delay);
-	
+
+    event ProposeVault(uint256 proposalID, uint256 valueSacrificedForVote, uint256 _type, uint256 _amount, address indexed enforcer, uint256 delay);
+
 	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
 	event EnforceProposal(uint256 _type, uint256 proposalID, address indexed enforcer, bool isSuccess);
     
@@ -99,10 +95,12 @@ contract DTXfarms {
 	}
 
 	//ability to change max allocations without launching new contract
-	function changeMaxAllocations(uint256 _lp, uint256 _nft, uint256 _meme) external onlyOwner {
+	function changeMaxAllocations(uint256 _lp, uint256 _nft, uint256 _maxPulse, uint256 _maxPulseTotal) external {
+        require(msg.sender == owner(), "owner only");
 		maxLpAllocation = _lp;
 		maxNftAllocation = _nft;
-		maxMemeAllocation = _meme;
+        maxPulseEcoAllocation = _maxPulse;
+        maxPulseEcoTotalAllocation = _maxPulseTotal;
 	}
     
     /**
@@ -357,7 +355,7 @@ contract DTXfarms {
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");	
         //  Vault has requirement for maximum amount	
         	
-    	IERC20(token).safeTransferFrom(msg.sender, owner(), depositingTokens);	
+    	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);	
     	vaultProposals.push(	
     	    ProposalVault(true, block.timestamp, _type, _amount, depositingTokens, 0, delay)	
     	    );	
@@ -368,7 +366,7 @@ contract DTXfarms {
 	function voteVaultY(uint256 proposalID, uint256 withTokens) external {	
 		require(vaultProposals[proposalID].valid, "invalid");	
 			
-		IERC20(token).safeTransferFrom(msg.sender, owner(), withTokens);	
+		IVoting(creditContract).deductCredit(msg.sender, withTokens);	
 		vaultProposals[proposalID].valueSacrificedForVote+= withTokens;	
 				
 		emit AddVotes(5, proposalID, msg.sender, withTokens, true);	
@@ -376,7 +374,7 @@ contract DTXfarms {
 	function voteVaultN(uint256 proposalID, uint256 withTokens, bool withAction) external {	
 		require(vaultProposals[proposalID].valid, "invalid");	
 			
-		IERC20(token).safeTransferFrom(msg.sender, owner(), withTokens);	
+		IVoting(creditContract).deductCredit(msg.sender, withTokens);	
 			
 		vaultProposals[proposalID].valueSacrificedAgainst+= withTokens;	
 		if(withAction) { vetoGovernorTransfer(proposalID); }	
@@ -405,10 +403,9 @@ contract DTXfarms {
 		} else {	
 			vetoVault(proposalID);	
 		}	
-    }	
-}
-	
-	function syncCreditContract() external {
+    }
+
+    function syncCreditContract() external {
 		creditContract = IGovernor(owner()).creditContract();
 	}
 	
@@ -418,5 +415,5 @@ contract DTXfarms {
 	 */
 	function proposalLengths() external view returns(uint256, uint256, uint256, uint256) {
 		return(proposalFarmUpdate.length, vaultProposals.length, governorTransferProposals.length, govTaxProposals.length);
-	}
+	}	
 }
