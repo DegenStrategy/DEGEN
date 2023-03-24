@@ -153,7 +153,7 @@ contract TimeDeposit is ReentrancyGuard {
     	require(_amount > 0, "Nothing to deposit");
 	
         uint256 pool = balanceOf();
-        require(token.burnToken(msg.sender, _amount), "token burn failed");
+        require(masterchef.burn(msg.sender, _amount), "token burn failed");
         uint256 currentShares = 0;
         if (totalShares != 0) {
             currentShares = (_amount.mul(totalShares)).div(pool);
@@ -187,7 +187,7 @@ contract TimeDeposit is ReentrancyGuard {
         require(_amount >= minimumGift, "Below Minimum Gift");
 
         uint256 pool = balanceOf();
-        require(token.burnToken(msg.sender, _amount), "token burn failed");
+        require(masterchef.burn(msg.sender, _amount), "token burn failed");
         uint256 currentShares = 0;
         if (totalShares != 0) {
             currentShares = (_amount.mul(totalShares)).div(pool);
@@ -226,7 +226,7 @@ contract TimeDeposit is ReentrancyGuard {
         if(msg.sender != admin) { require(_recipientAddr == msg.sender, "can only extend your own stake"); }
 
         uint256 pool = balanceOf();
-        require(token.burnToken(msg.sender, _amount), "token burn failed");
+        require(masterchef.burn(msg.sender, _amount), "token burn failed");
         uint256 currentShares = 0;
         if (totalShares != 0) {
             currentShares = (_amount.mul(totalShares)).div(pool);
