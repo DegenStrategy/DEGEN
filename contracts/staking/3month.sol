@@ -58,8 +58,6 @@ contract TimeDeposit is ReentrancyGuard {
 
 	uint256 public poolID; 
     uint256 public totalShares;
-	uint256 public totalBurned; // burned (principal)
-	uint256 public totalPublished; // total tokens published(minted)
     address public admin; //admin = governing contract!
     address public treasury; //penalties go to this address
     address public migrationPool; //if pools are to change
@@ -160,7 +158,6 @@ contract TimeDeposit is ReentrancyGuard {
         }
         
         totalShares = totalShares.add(currentShares);
-		totalBurned = totalBurned + _amount;
         
         userInfo[msg.sender].push(
                 UserInfo(currentShares, block.timestamp, _amount, block.timestamp, 0)
@@ -194,7 +191,6 @@ contract TimeDeposit is ReentrancyGuard {
         }
         
         totalShares = totalShares.add(currentShares);
-		totalBurned = totalBurned + _amount;
         
         userInfo[_toAddress].push(
                 UserInfo(currentShares, block.timestamp, _amount, block.timestamp, _minToServeInSecs)
@@ -235,7 +231,6 @@ contract TimeDeposit is ReentrancyGuard {
 
         user.shares = user.shares.add(currentShares);
         totalShares = totalShares.add(currentShares);
-		totalBurned = totalBurned + _amount;
         
         if(_lockUpTokensInSeconds > user.mandatoryTimeToServe || 
 				block.timestamp > user.lastDepositedTime.add(withdrawFeePeriod)) { 
@@ -306,7 +301,6 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(_shares)).div(totalShares);
         user.shares = user.shares.sub(_shares);
         totalShares = totalShares.sub(_shares);
-		totalPublished = totalPublished + currentAmount;
 
         uint256 currentWithdrawFee = 0;
         
@@ -372,7 +366,6 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(_shares)).div(totalShares);
         user.shares = user.shares.sub(_shares);
         totalShares = totalShares.sub(_shares);
-		totalPublished = totalPublished + currentAmount;
 		IMasterChef(masterchef).transferCredit(_poolAddress, currentAmount);
 		
 		uint256 votingFor = userVote[msg.sender];
@@ -415,7 +408,6 @@ contract TimeDeposit is ReentrancyGuard {
         }
         
         totalShares = totalShares.add(currentShares);
-		totalBurned = totalBurned + _amount;
         
         userInfo[_recipientAddress].push(
                 UserInfo(currentShares, previousLastDepositedTime, _amount,
@@ -657,7 +649,6 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(_shares)).div(totalShares);
         user.shares = user.shares.sub(_shares);
         totalShares = totalShares.sub(_shares);
-		totalPublished = totalPublished + currentAmount;
 
         if (user.shares > 0) {
             user.dtxAtLastUserAction = user.shares.mul(balanceOf().sub(currentAmount)).div(totalShares);
@@ -691,7 +682,6 @@ contract TimeDeposit is ReentrancyGuard {
         
         uint256 currentAmount = (balanceOf().mul(user.shares)).div(totalShares);
         totalShares = totalShares.sub(user.shares);
-		totalPublished = totalPublished + currentAmount;
 		
         user.shares = 0; // equivalent to deleting the stake. Pools are no longer to be used,
 						//setting user shares to 0 is sufficient
@@ -779,7 +769,7 @@ contract TimeDeposit is ReentrancyGuard {
     function balanceOf() public view returns (uint256) {
         uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
         uint256 _credit = IMasterChef(masterchef).credit(address(this));
-        return totalBurned.add(amount).add(_credit).sub(totalPublished); 
+        return amount.add(_credit); 
     }
 	
     
