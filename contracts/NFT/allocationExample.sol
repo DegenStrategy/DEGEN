@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 contract NftAllocationSpecific {
-	address public constant landNftContract = 0xcD83B5B7870e58966152bDa0704C172ca8d62A86;
+	address public constant landNftContract = ;
 	
 	uint256 public baseAllocation = 25000000*1e18;
 	
