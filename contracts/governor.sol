@@ -200,12 +200,12 @@ contract DTXgovernor {
 	 * Could also make it changeable through voting
      */
     function rebalancePools() public {
-    	uint256 balancePool1 = IacPool(pool1).balanceOf();
-    	uint256 balancePool2 = IacPool(pool2).balanceOf();
-    	uint256 balancePool3 = IacPool(pool3).balanceOf();
-    	uint256 balancePool4 = IacPool(pool4).balanceOf();
-    	uint256 balancePool5 = IacPool(pool5).balanceOf();
-    	uint256 balancePool6 = IacPool(pool6).balanceOf();
+    	uint256 balancePool1 = IacPool(acPool1).balanceOf();
+    	uint256 balancePool2 = IacPool(acPool2).balanceOf();
+    	uint256 balancePool3 = IacPool(acPool3).balanceOf();
+    	uint256 balancePool4 = IacPool(acPool4).balanceOf();
+    	uint256 balancePool5 = IacPool(acPool5).balanceOf();
+    	uint256 balancePool6 = IacPool(acPool6).balanceOf();
     	
    	    uint256 total = balancePool1 + balancePool2 + balancePool3 + balancePool4 + balancePool5 + balancePool6;
     	
