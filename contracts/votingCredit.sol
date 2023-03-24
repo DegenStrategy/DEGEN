@@ -5,9 +5,11 @@ pragma solidity 0.8.0;
 import "@openzeppelin/contracts/utils/Context.sol";
 
 import "./interface/IDTX.sol";
+import "./interface/IMasterChef.sol";
 
 contract VotingCredit {
 	IDTX public immutable token;
+	IMasterChef public masterchef;
 	
 	address public immutable airdropContract = ;
 	address public immutable airdropContractFull = ; //no penalty
@@ -25,8 +27,9 @@ contract VotingCredit {
 	// allows for custom implementations
 	mapping(uint256 => uint256) public burnedForId;
 	
-	constructor(IDTX _token, uint256 _creditingContractCount, uint256 _deductingContractCount, address _airdropContract, address _airdropContractFull) {
+	constructor(IDTX _token, IMasterChef _masterchef, uint256 _creditingContractCount, uint256 _deductingContractCount, address _airdropContract, address _airdropContractFull) {
 		token = _token;
+		masterchef = _masterchef;
 		creditingContractCount = _creditingContractCount; //6
 		deductingContractCount = _deductingContractCount; //5
 		creditingContract[""] = true; // set for all crediting contracts (all staking pools)
@@ -57,7 +60,7 @@ contract VotingCredit {
 		if(userCredit[from] >= amount) {
 			userCredit[from]-= amount;
 		} else {
-			require(token.burnToken(from, amount));
+			require(masterchef.burn(from, amount));
 		}
 		return true;
 	}
@@ -72,7 +75,7 @@ contract VotingCredit {
 	
 	//manually deposit tokens to get voting credit
 	function depositCredit(uint256 amount) external {
-		require(token.burnToken(msg.sender, amount));
+		require(masterchef.burn(msg.sender, amount));
 		userCredit[msg.sender]+=amount;
 		emit AddCredit(msg.sender, amount);
 	}
@@ -112,6 +115,14 @@ contract VotingCredit {
 		}
 	}
 	
+	// publishes rightful tokens to governor contract
+	function redeemGovernor() external {
+		masterchef.publishToken(owner(), masterchef.credit(address(this)));
+	}
+	
+	function updateChef() external {
+		masterchef = IMasterChef(token.owner());
+	}
 	
 	function owner() public view returns (address) {
 		return token.governor();
