@@ -62,11 +62,17 @@ contract DTXChef is Ownable, ReentrancyGuard {
     uint256 public totalAllocPoint = 0;
     // The block number when DTX mining starts.
     uint256 public startBlock;
+	
+	 // can burn tokens without allowance
+	mapping(address => bool) public trustedContract;
+	//makes it easier to verify(without event logs)
+	uint256 public trustedContractCount; 
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 	event UpdateEmissions(address indexed user, uint256 newEmissions);
+	event TrustedContract(address contractAddress, bool setting);
 
     constructor(
         IDTX _DTX,
@@ -91,9 +97,11 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		dtx.mint(_to, _amount);
 	}
 	
-	function transferCredit(address _to, uint256 _amount) external {
-		credit[msg.sender] = credit[msg.sender] - _amount;
-		credit[_to] = credit[_to] + _amount;
+	function burn(address _from, uint256 _amount) external returns (bool) {
+		require(trustedContract[msg.sender], "only trusted contracts");
+		require(dtx.burnToken(_from, _amount), "burn failed");
+		credit[msg.sender] = credit[msg.sender] + _amount;
+		return true;
 	}
 	
     // Add a new lp to the pool. Can only be called by the owner.
@@ -213,6 +221,22 @@ contract DTXChef is Ownable, ReentrancyGuard {
         user.rewardDebt = user.amount.mul(pool.accDtxPerShare).div(1e12);
         emit Withdraw(msg.sender, _pid, _amount);
     }
+	
+	// In case pools are changed (on migration old contract transfers it's credit to the new one)
+	function transferCredit(address _to, uint256 _amount) external {
+		require(trustedContract[msg.sender], "only trusted contracts");
+		credit[msg.sender] = credit[msg.sender] - _amount;
+		credit[_to] = credit[_to] + _amount;
+	}
+	
+	//only owner can set trusted Contracts
+	function setTrustedContract(address _contractAddress, bool _setting) external onlyOwner {
+		if(trustedContract[_contractAddress] != _setting) { 
+			trustedContract[_contractAddress] = _setting;
+			_setting ? trustedContractCount++ : trustedContractCount--;
+			emit TrustedContract(_contractAddress, _setting);
+		}
+	}
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
     function emergencyWithdraw(uint256 _pid) public nonReentrant {
