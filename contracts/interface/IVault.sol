@@ -35,8 +35,6 @@ interface IVault {
         uint256 penalty
     );
 
-    fallback() external payable;
-
     function accDtxPerShare() external view returns (uint256);
 
     function admin() external view returns (address);
@@ -159,6 +157,4 @@ interface IVault {
     function withdrawDummy(uint256 _amount) external;
 
     function withdrawStuckTokens(address _tokenAddress) external;
-
-    receive() external payable;
 }
