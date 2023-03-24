@@ -27,8 +27,8 @@ contract VotingCredit {
 	
 	constructor(IDTX _token, uint256 _creditingContractCount, uint256 _deductingContractCount, address _airdropContract, address _airdropContractFull) {
 		token = _token;
-		creditingContractCount = _creditingContractCount;
-		deductingContractCount = _deductingContractCount;
+		creditingContractCount = _creditingContractCount; //6
+		deductingContractCount = _deductingContractCount; //5
 		creditingContract[""] = true; // set for all crediting contracts (all staking pools)
 		creditingContract[""] = true;
 		creditingContract[""] = true;
@@ -40,8 +40,6 @@ contract VotingCredit {
 		deductingContract[""] = true;
 		deductingContract[""] = true;
 		deductingContract[""] = true;
-		creditingContractCount = 6; // set the count(MANDATORY!)
-		deductingContractCount = 5;
 		airdropContract = _airdropContract; // With token penalty on deposit to lower timeframe stakes
 		airdropContractFull = _airdropContractFull; // No penalties for tokens (credit received is lesser on shorter timeframe stake)
 	}
