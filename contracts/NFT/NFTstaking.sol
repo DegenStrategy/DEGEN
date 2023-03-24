@@ -44,11 +44,11 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
         uint256 minServe;
     }
 
-    IERC20 public immutable token = IERC20(); // XPD token
+    IERC20 public immutable token; // XPD token
 	
-    IERC20 public immutable dummyToken = IERC20(); 
+    IERC20 public immutable dummyToken; 
 
-    IMasterChef public masterchef = IMasterChef();  
+    IMasterChef public masterchef;  
 
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
@@ -58,7 +58,7 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
     uint256 public accDtxPerShare;
     address public admin; //admin = governing contract!
     address public treasury; //penalties
-    address public allocationContract = ; // PROXY CONTRACT for looking up allocations
+    address public allocationContract = 0x2f2067044632B38a64C58b79c712e421b2f30682; // PROXY CONTRACT for looking up allocations
 
     uint256 public tokenDebt; //sum of allocations of all deposited NFTs
 
@@ -72,24 +72,21 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
     event EmergencyWithdraw(address indexed user, uint256 _stakeID, address indexed token, uint256 tokenID);
     event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
 
-    /**
-     * @notice Constructor
-     * @param _token: XPD token contract
-     * @param _dummyToken: Dummy token contract
-     * @param _masterchef: MasterChef contract
-     * @param _admin: address of the admin
-     * @param _treasury: address of the treasury (collects fees)
-     */
     constructor(
         address _admin,
-        address _treasury
+        address _treasury,
+        IERC20 _token,
+        IERC20 _dummyToken,
+        address _masterchef
     ) {
+        token = _token;
         admin = _admin;
         treasury = _treasury;
+        dummyToken = _dummyToken;
 
 		
-        IERC20(_dummyToken).safeApprove(address(_masterchef), type(uint256).max);
-		/*
+        IERC20(address(_dummyToken)).safeApprove(address(_masterchef), type(uint256).max);
+		
 		poolPayout[].amount = 750;
         poolPayout[].minServe = 864000;
 
@@ -107,7 +104,6 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
 
         poolPayout[].amount = 10000;
         poolPayout[].minServe = 31536000; 
-		*/
     }
     
     /**
@@ -184,15 +180,15 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
         if(_harvestInto == msg.sender) { 
             _toWithdraw = currentAmount * defaultDirectPayout / 10000;
             currentAmount = currentAmount - _toWithdraw;
-            IMasterChef(masterchef).publish(msg.sender, _toWithdraw);
+            IMasterChef(masterchef).publishTokens(msg.sender, _toWithdraw);
          } else {
             require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
             _toWithdraw = currentAmount * poolPayout[_harvestInto].amount / 10000;
             currentAmount = currentAmount - _toWithdraw;
-			IMasterChef(masterchef).publish(address(this), _toWithdraw);
+			IMasterChef(masterchef).publishTokens(address(this), _toWithdraw);
             IacPool(_harvestInto).giftDeposit(_toWithdraw, msg.sender, poolPayout[_harvestInto].minServe);
         }
-        IMasterChef(masterchef).publish(treasury, currentAmount); //penalty goes to governing contract
+        IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 
 		emit Withdraw(msg.sender, _stakeID, _tokenAddress, _tokenID, _toWithdraw, currentAmount);
 
@@ -217,15 +213,15 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
 
         if(_harvestInto == msg.sender) {
             _payout = _totalWithdraw * defaultDirectPayout / 10000;
-            IMasterChef(masterchef).publish(msg.sender, _payout); 
+            IMasterChef(masterchef).publishTokens(msg.sender, _payout); 
         } else {
             require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
             _payout = _totalWithdraw * poolPayout[_harvestInto].amount / 10000;
-			IMasterChef(masterchef).publish(address(this), _payout);
+			IMasterChef(masterchef).publishTokens(address(this), _payout);
             IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
         }
         uint256 _penalty = _totalWithdraw - _payout;
-        IMasterChef(masterchef).publish(treasury, _penalty); //penalty to treasury
+        IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
 
         emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);
     }
@@ -247,15 +243,15 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
 
         if(_harvestInto == msg.sender) {
             _payout = _totalWithdraw * defaultDirectPayout / 10000;
-            IMasterChef(masterchef).publish(msg.sender, _payout); 
+            IMasterChef(masterchef).publishTokens(msg.sender, _payout); 
         } else {
             require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
             _payout = _totalWithdraw * poolPayout[_harvestInto].amount / 10000;
-			IMasterChef(masterchef).publish(address(this), _payout);
+			IMasterChef(masterchef).publishTokens(address(this), _payout);
             IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
         }
         uint256 _penalty = _totalWithdraw - _payout;
-        IMasterChef(masterchef).publish(treasury, _penalty); //penalty to treasury
+        IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
 
         emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);
     }
@@ -313,7 +309,7 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
             
             _removeStake(_staker, _stakeID); //delete the stake
 
-            IMasterChef(masterchef).publish(treasury, currentAmount); //penalty goes to governing contract
+            IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 
             IERC721(_tokenAddress).safeTransferFrom(address(this), _staker, _tokenID); //withdraw NFT
         } else if(_alloc != user.allocation) { //change allocation
