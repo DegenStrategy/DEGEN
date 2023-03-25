@@ -73,6 +73,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 	event UpdateEmissions(address indexed user, uint256 newEmissions);
 	event TrustedContract(address contractAddress, bool setting);
+	event TransferCredit(address from, address to, uint256 amount);
 
     constructor(
         IDTX _DTX,
@@ -227,6 +228,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		require(trustedContract[msg.sender], "only trusted contracts");
 		credit[msg.sender] = credit[msg.sender] - _amount;
 		credit[_to] = credit[_to] + _amount;
+		emit TransferCredit(msg.sender, _to, _amount);
 	}
 	
 	//only owner can set trusted Contracts
