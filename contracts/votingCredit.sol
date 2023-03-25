@@ -117,7 +117,7 @@ contract VotingCredit {
 	
 	// publishes rightful tokens to governor contract
 	function redeemGovernor() external {
-		masterchef.publishToken(owner(), masterchef.credit(address(this)));
+		masterchef.publishTokens(owner(), masterchef.credit(address(this)));
 	}
 	
 	function updateChef() external {
