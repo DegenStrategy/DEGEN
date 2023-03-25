@@ -58,7 +58,7 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
     uint256 public accDtxPerShare;
     address public admin; //admin = governing contract!
     address public treasury; //penalties
-    address public allocationContract = 0x2f2067044632B38a64C58b79c712e421b2f30682; // PROXY CONTRACT for looking up allocations
+    address public allocationContract = ; // PROXY CONTRACT for looking up allocations
 
     uint256 public tokenDebt; //sum of allocations of all deposited NFTs
 
