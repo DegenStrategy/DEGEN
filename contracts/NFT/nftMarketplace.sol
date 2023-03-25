@@ -194,6 +194,6 @@ contract NFTmarketplace is ERC721Holder, ReentrancyGuard {
     }
 
     function getGovernor() public view returns(address) {
-        return IToken(dtxToken).governor();
+        return IDTX(dtxToken).governor();
     }
 }
