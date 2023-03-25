@@ -50,7 +50,7 @@ contract tokenVault is ReentrancyGuard {
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
     address public admin; //admin = governing contract!
-    address public treasury = 0xA2e4728c89D6dCFc93dF4b2b438E49da823Fe181; // buyback & burn contract
+    address public treasury = ; // buyback & burn contract
 
     uint256 public defaultDirectPayout = 500; //5% if withdrawn into wallet
 	
