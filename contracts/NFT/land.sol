@@ -6,14 +6,19 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "../interface/IDTX.sol";
 
 contract PulseDAOLand is ERC721URIStorage {
+	string private _name;
+    string private _symbol;
+
     uint256 public tokenCount;
 	address public tokenAddress;
 	bool public allowMint = true;
 	
 	event SetTokenURI(uint256 tokenID, string URI);
 
-    constructor(address _dtx) ERC721("PulseDAO Virtual Land", "XPD LAND") {
+    constructor(address _dtx, string memory _nameC, string memory _tickerC) ERC721("PulseDAO Virtual Land", "XPD LAND") {
 		tokenAddress = _dtx;
+		_name = _nameC;
+		_symbol = _tickerC;
 	}
 	
 	
