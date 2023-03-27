@@ -121,7 +121,7 @@ contract tshareVault is ReentrancyGuard {
 	 * threshold is the amount to allow another user to harvest 
 	 * fee is the amount paid to harvester
      */
-    function stakeHexShares(address _poolInto, uint256 _threshold, uint256 _fee) external nonReentrant {
+    function stakeHexShares(address _poolInto) external nonReentrant {
 		UserInfo storage user = userInfo[msg.sender];
 		require(user.amount == 0, "already have an active stake!");
         harvest();
