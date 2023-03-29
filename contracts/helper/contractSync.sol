@@ -4,7 +4,7 @@
 pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../interface/IGovernor.sol";;
+import "../interface/IGovernor.sol";
 import "../interface/IDTX.sol";
 import "../interface/IacPool.sol";
 import "../interface/IMasterChef.sol";
@@ -39,7 +39,6 @@ contract DTXsyncContracts {
 
     function updateAll() external {
         updatePoolsOwner();
-        updateSideContractsOwner();
         updatePoolsInSideContracts();
         updateMasterchef();
 		nftStaking();
