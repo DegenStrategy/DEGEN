@@ -153,7 +153,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
         updatePool(_pid);
         if(_amount > 0) {
             pool.participant = address(0);
-            poolInfo[_pid].allocPoint = 0;
+            pool.allocPoint = 0;
             totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
         }
         emit Withdraw(msg.sender, _pid, _amount);
@@ -161,7 +161,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 
     function stopPublishing(uint256 _pid) external onlyOwner {
         updatePool(_pid);
-        pool.participant = address(0);
+        poolInfo[_pid].participant = address(0);
         poolInfo[_pid].allocPoint = 0;
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
     }
