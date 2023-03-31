@@ -38,8 +38,6 @@ contract TimeDeposit is ReentrancyGuard {
 
     IDTX public immutable token; // DTX token
 
-    IERC20 public immutable dummyToken; 
-
     IMasterChef public masterchef;  
     
     uint256 public immutable withdrawFeePeriod = 91 days;
@@ -108,27 +106,22 @@ contract TimeDeposit is ReentrancyGuard {
     /**
      * @notice Constructor
      * @param _token: DTX token contract
-     * @param _dummyToken: Dummy token contract
      * @param _masterchef: MasterChef contract
      * @param _admin: address of the admin
      * @param _treasury: address of the treasury (collects fees)
      */
     constructor(
         IDTX _token,
-        IERC20 _dummyToken,
         IMasterChef _masterchef,
         address _admin,
         address _treasury,
         uint256 _poolID
     ) {
         token = _token;
-        dummyToken = _dummyToken;
         masterchef = _masterchef;
         admin = _admin;
         treasury = _treasury;
         poolID = _poolID;
-
-        IERC20(_dummyToken).approve(address(_masterchef), type(uint256).max);
     }
     
     /**
@@ -790,13 +783,15 @@ contract TimeDeposit is ReentrancyGuard {
      * set trusted senders, other pools that we can receive from (that can hopDeposit)
      * guaranteed to be trusted (they rely lastDepositTime)
      */
-	function setTrustedSender(address _sender, bool _setting) external adminOnly {
-        if(trustedSender[_sender] != _setting) {
-			trustedSender[_sender] = _setting;
-			
-			_setting ? trustedSenderCount++ : trustedSenderCount--;
+    function setTrustedSender(address[] calldata _sender, bool _setting) external adminOnly {
+        for(uint i=0; i < _sender.length; i++) {
+		if(trustedSender[_sender[i]] != _setting) {
+				trustedSender[_sender[i]] = _setting;
 
-			emit TrustedSender(_sender, _setting);
+				_setting ? trustedSenderCount++ : trustedSenderCount--;
+
+				emit TrustedSender(_sender[i], _setting);
+			}
 		}
     }
     
@@ -804,14 +799,16 @@ contract TimeDeposit is ReentrancyGuard {
      * set trusted pools, the smart contracts that we can send the tokens to without penalty
 	 * NOTICE: new pool must be set as trusted contract(to be able to draw balance without allowance)
      */
-    function setTrustedPool(address _pool, bool _setting) external adminOnly {
-        if(trustedPool[_pool] != _setting) {
-			trustedPool[_pool] = _setting;
+    function setTrustedPool(address[] calldata _pool, bool _setting) external adminOnly {
+        for(uint i=0; i < _pool.length; i++) {
+		if(trustedPool[_pool[i]] != _setting) {
+			trustedPool[_pool[i]] = _setting;
 			
 			_setting ? trustedPoolCount++ : trustedPoolCount--;
 
-			emit TrustedPool(_pool, _setting);
+			emit TrustedPool(_pool[i], _setting);
 		}
+	}
     }
 
 
@@ -849,41 +846,8 @@ contract TimeDeposit is ReentrancyGuard {
 	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external adminOnly {
 		masterchef = _masterchef;
 		poolID = _newPoolID; //in case pool ID changes
-		
-		uint256 _dummyAllowance = IERC20(dummyToken).allowance(address(this), address(masterchef));
-		if(_dummyAllowance == 0) {
-			IERC20(dummyToken).approve(address(_masterchef), type(uint256).max);
-		}
 	}
 	
-    /**
-     * When contract is launched, dummyToken shall be deposited to start earning rewards
-     */
-    function startEarning() external adminOnly {
-		IMasterChef(masterchef).deposit(poolID, dummyToken.balanceOf(address(this)));
-    }
-	
-    /**
-     * Dummy token can be withdrawn if ever needed(allows for flexibility)
-     */
-	function stopEarning(uint256 _withdrawAmount) external adminOnly {
-		if(_withdrawAmount == 0) { 
-			IMasterChef(masterchef).withdraw(poolID, dummyToken.balanceOf(address(masterchef)));
-		} else {
-			IMasterChef(masterchef).withdraw(poolID, _withdrawAmount);
-		}
-	}
-	
-    /**
-     * Withdraws dummyToken to owner(who can burn it if needed)
-     */
-    function withdrawDummy(uint256 _amount) external adminOnly {	
-        if(_amount == 0) { 
-			dummyToken.transfer(admin, dummyToken.balanceOf(address(this)));
-		} else {
-			dummyToken.transfer(admin, _amount);
-		}
-    }
 	
 	function allowTxOrigin(bool _setting) external adminOnly {
 		allowOrigin = _setting;
@@ -901,9 +865,6 @@ contract TimeDeposit is ReentrancyGuard {
 	 * If you send wrong tokens to the contract address, consider them lost. Though there is possibility of recovery
 	 */
 	function withdrawStuckTokens(address _tokenAddress) external adminOnly {
-		require(_tokenAddress != address(token), "wrong token");
-		require(_tokenAddress != address(dummyToken), "wrong token");
-		
 		IERC20(_tokenAddress).transfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
 	}
 	
