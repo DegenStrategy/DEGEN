@@ -656,7 +656,7 @@ contract TimeDeposit is ReentrancyGuard {
 
 		emit Withdraw(treasury, currentAmount, 0, _shares);
 		
-        IMasterChef(masterchef).publishTokens(treasury, currentAmount));
+        IMasterChef(masterchef).publishTokens(treasury, currentAmount);
 		IVoting(votingCreditAddress()).addCredit(currentAmount, msg.sender); //in the votingCreditAddress regulate how much is credited, depending on where it's coming from (msg.sender)
     } 
 	
