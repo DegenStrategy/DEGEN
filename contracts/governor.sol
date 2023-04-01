@@ -162,31 +162,7 @@ contract DTXgovernor {
         return _rollBonus[_bonusForPool];
     }
     
-    
-    /**
-     * Mass equivalent to massUpdatePools in masterchef, but only for relevant pools
-    */
-    function updateAllPools() external {
-        IMasterChef(masterchef).updatePool(0); // DTX-usdc and DTX-pls
-    	IMasterChef(masterchef).updatePool(1); 
-    	IMasterChef(masterchef).updatePool(8); //DTX-pls, DTX-hex
-    	IMasterChef(masterchef).updatePool(9);
-		IMasterChef(masterchef).updatePool(10); // NFT staking
-        IMasterChef(masterchef).updatePool(acPool1ID);
-    	IMasterChef(masterchef).updatePool(acPool2ID); 
-    	IMasterChef(masterchef).updatePool(acPool3ID); 
-    	IMasterChef(masterchef).updatePool(acPool4ID); 
-    	IMasterChef(masterchef).updatePool(acPool5ID); 
-    	IMasterChef(masterchef).updatePool(acPool6ID); 
-    }
-    
-     /**
-     * Rebalances farms in masterchef
-     */
-    function rebalanceFarms() external {
-    	IMasterChef(masterchef).updatePool(0);
-    	IMasterChef(masterchef).updatePool(1); 
-    }
+   
    
      /**
      * Rebalances Pools and allocates rewards in masterchef
