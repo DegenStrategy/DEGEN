@@ -208,6 +208,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
     //Only update before start of farm
     function updateStartBlock(uint256 _startBlock) public onlyOwner {
         require(block.number < startBlock, "already started");
+	require(_startBlock > startBlock, "can only delay");
 		startBlock = _startBlock;
     }
 	
