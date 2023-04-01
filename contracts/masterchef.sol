@@ -165,6 +165,14 @@ contract DTXChef is Ownable, ReentrancyGuard {
         poolInfo[_pid].allocPoint = 0;
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
     }
+
+	function startPublishing(uint256 _pid, address _participant, uint256 _alloc) external onlyOwner {
+		require(poolInfo[_pid].allocPoint = 0, "already earning");
+        updatePool(_pid);
+        poolInfo[_pid].participant = _participant;
+        poolInfo[_pid].allocPoint = _alloc;
+        totalAllocPoint = totalAllocPoint.add(_alloc);
+    }
 	
 	// In case pools are changed (on migration old contract transfers it's credit to the new one)
 	function transferCredit(address _to, uint256 _amount) external {
