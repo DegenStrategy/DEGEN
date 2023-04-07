@@ -60,12 +60,12 @@ contract AirDrop is ReentrancyGuard {
 			acPool5 = IGovernor(owner()).acPool5();
 			acPool6 = IGovernor(owner()).acPool6();
 
-			payout[acPool1] = 750;
-			payout[acPool2] = 1500;
-			payout[acPool3] = 2500;
-			payout[acPool4] = 5000;
-			payout[acPool5] = 7000;
-			payout[acPool6] = 10000;	
+			payout[acPool1] = 500;
+			payout[acPool2] = 1000;
+			payout[acPool3] = 1500;
+			payout[acPool4] = 2000;
+			payout[acPool5] = 5000;
+			payout[acPool6] = 10000;		
     }
 
 	function inititateBalances(uint256[] calldata amount, address[] calldata beneficiary) external {
