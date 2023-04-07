@@ -48,7 +48,7 @@ contract AirDrop is ReentrancyGuard {
 
 		amountRedeemed[msg.sender]+= _claimAmount;
 
-		emit RedeemCredit(amount, msg.sender, claimInto);
+		emit RedeemCredit(_claimAmount, msg.sender, claimInto);
 	}
   
     function isValid(address _user, uint256 amount, bytes32[] calldata merkleProof) public view returns(bool) {
