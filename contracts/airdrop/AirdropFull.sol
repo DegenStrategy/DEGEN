@@ -15,8 +15,6 @@ contract AirDrop is ReentrancyGuard {
 	IDTX public immutable DTX;
 	address public immutable initiatingAddress; // inititates balances
 
-    uint256 public startTime;
-    uint256 public directPayout = 500; // 95% penalty
 	uint256 public totalCredit;
 	bool public creditGiven = false;
 
