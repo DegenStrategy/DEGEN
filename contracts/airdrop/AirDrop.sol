@@ -4,10 +4,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./interface/IDTX.sol";
-import "./interface/IacPool.sol";
-import "./interface/IGovernor.sol";
-import "./interface/IVoting.sol";
+import "../interface/IDTX.sol";
+import "../interface/IacPool.sol";
+import "../interface/IGovernor.sol";
+import "../interface/IVoting.sol";
 
 // Seems more simple than a merkle-tree airdrop
 // if fees too high, do the merkle-tree style
