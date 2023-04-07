@@ -14,7 +14,7 @@ import "../interface/IVoting.sol";
 contract AirDrop is ReentrancyGuard {
 	uint256 public constant CLAIM_PERIOD_DAYS = 90;
 
-	address public immutable DTX;
+	IDTX public immutable DTX;
 	address public immutable initiatingAddress; // inititates balances
 
     uint256 public startTime;
@@ -38,7 +38,7 @@ contract AirDrop is ReentrancyGuard {
 	event AddCredit(uint256 credit, address user);
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(address _dtx, address initiator) {
+	constructor(IDTX _dtx, address initiator) {
 		DTX = _dtx;
 		initiatingAddress = initiator;
 		startTime = block.timestamp;
@@ -50,8 +50,7 @@ contract AirDrop is ReentrancyGuard {
 			IacPool(claimInto).giftDeposit((amount * payout[claimInto] / 10000), msg.sender, minToServe[claimInto]);
 			IVoting(votingCreditContract).airdropVotingCredit(amount * payout[claimInto] / 1000, msg.sender);
 		} else {
-			require(IDTX(DTX).transfer(msg.sender, (amount * directPayout / 10000)));
-			//IVoting(votingCreditContract).airdropVotingCredit(amount * directPayout / 10000, msg.sender); // No credit if withdrawn
+			require(DTX.transfer(msg.sender, (amount * directPayout / 10000)));
 		}
 
 		userCredit[msg.sender]-= amount;
@@ -62,7 +61,7 @@ contract AirDrop is ReentrancyGuard {
     // ends the airdrop by emptying token balance(sends tokens to governing contract)
 	function endAirdrop() external {
 		require(block.timestamp > startTime + CLAIM_PERIOD_DAYS * 86400, "airdrop still active");
-		IDTX(DTX).transfer(owner(), IDTX(DTX).balanceOf(address(this)));
+		DTX.transfer(owner(), DTX.balanceOf(address(this)));
 	}
 
 	function updatePools() external {
@@ -107,6 +106,6 @@ contract AirDrop is ReentrancyGuard {
 	}
 
 	function owner() public view returns(address) {
-		return IDTX(DTX).governor();
+		return DTX.governor();
 	}
 }
