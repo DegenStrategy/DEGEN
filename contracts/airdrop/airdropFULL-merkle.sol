@@ -38,7 +38,7 @@ contract AirDrop is ReentrancyGuard {
         require(_claimAmount + amountRedeemed[msg.sender] <= amount, "insufficient credit");
 		if(claimInto == acPool1 || claimInto == acPool2 || claimInto == acPool3 || claimInto == acPool4 || claimInto == acPool5 || claimInto == acPool6) {
 			IacPool(claimInto).giftDeposit(_claimAmount, msg.sender, 0);
-			IVoting(votingCreditContract).airdropVotingCredit(_claimAmount * payout[claimInto] / 1000, msg.sender);
+			IVoting(votingCreditContract).airdropVotingCredit(_claimAmount * payout[claimInto] / 10000, msg.sender);
 		} else {
 			require(DTX.transfer(msg.sender, _claimAmount));
 		}
