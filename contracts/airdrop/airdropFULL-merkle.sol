@@ -14,8 +14,6 @@ contract AirDrop is ReentrancyGuard {
   bytes32 public merkleRoot =; //root
 	IDTX public immutable DTX;
 
-    uint256 public startTime;
-    uint256 public directPayout = 500; // 95% penalty
 	uint256 public totalCredit;
 
     address public acPool1;
@@ -33,7 +31,6 @@ contract AirDrop is ReentrancyGuard {
 
 	constructor(IDTX _dtx) {
 		DTX = _dtx;
-		startTime = block.timestamp;
 	}
 
 	function claimAirdrop(uint256 _claimAmount, uint256 amount, address claimInto, bytes32[] calldata merkleProof) external nonReentrant {
@@ -63,13 +60,13 @@ contract AirDrop is ReentrancyGuard {
 			acPool4 = IGovernor(owner()).acPool4();
 			acPool5 = IGovernor(owner()).acPool5();
 			acPool6 = IGovernor(owner()).acPool6();
-
-			payout[acPool1] = 750;
-			payout[acPool2] = 1500;
-			payout[acPool3] = 2500;
-			payout[acPool4] = 5000;
-			payout[acPool5] = 7000;
-			payout[acPool6] = 10000;	
+			
+			payout[acPool1] = 500;
+			payout[acPool2] = 1000;
+			payout[acPool3] = 1500;
+			payout[acPool4] = 2000;
+			payout[acPool5] = 5000;
+			payout[acPool6] = 10000;		
     }
 
 
