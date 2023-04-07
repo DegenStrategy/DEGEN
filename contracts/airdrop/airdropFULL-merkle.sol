@@ -11,7 +11,7 @@ import "../interface/IGovernor.sol";
 import "../interface/IVoting.sol";
 
 contract AirDrop is ReentrancyGuard {
-  bytes32 public merkleRoot =; //root
+  bytes32 public immutable merkleRoot =; //root
 	IDTX public immutable DTX;
 
 	uint256 public totalCredit;
