@@ -9,8 +9,6 @@ import "../interface/IacPool.sol";
 import "../interface/IGovernor.sol";
 import "../interface/IVoting.sol";
 
-// Seems more simple than a merkle-tree airdrop
-// if fees too high, do the merkle-tree style
 contract AirDrop is ReentrancyGuard {
   bytes32 public merkleRoot =; //root
 	IDTX public immutable DTX;
