@@ -36,7 +36,6 @@ contract AirDrop is ReentrancyGuard {
 	constructor(IDTX _dtx, address initiator) {
 		DTX = _dtx;
 		initiatingAddress = initiator;
-		startTime = block.timestamp;
 	}
 
 	function claimAirdrop(uint256 amount, address claimInto) external nonReentrant {
