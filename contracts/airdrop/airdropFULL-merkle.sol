@@ -29,7 +29,6 @@ contract AirDrop is ReentrancyGuard {
 	address public votingCreditContract;
 
 	mapping(address => uint256) public amountRedeemed;
-	mapping(address => uint256) public minToServe;
 
 	event AddCredit(uint256 credit, address user);
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
@@ -66,13 +65,6 @@ contract AirDrop is ReentrancyGuard {
 			acPool4 = IGovernor(owner()).acPool4();
 			acPool5 = IGovernor(owner()).acPool5();
 			acPool6 = IGovernor(owner()).acPool6();
-
-			minToServe[acPool1] = 864000;
-			minToServe[acPool2] = 2592000;
-			minToServe[acPool3] = 5184000;
-			minToServe[acPool4] = 8640000;
-			minToServe[acPool5] = 20736000;
-			minToServe[acPool6] = 31536000;
 
 			payout[acPool1] = 750;
 			payout[acPool2] = 1500;
