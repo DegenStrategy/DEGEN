@@ -30,7 +30,6 @@ contract AirDrop is ReentrancyGuard {
 	address public votingCreditContract;
 
 	mapping(address => uint256) public userCredit;
-	mapping(address => uint256) public minToServe;
     mapping(address => uint256) public payout;
 
 	event AddCredit(uint256 credit, address user);
@@ -45,7 +44,7 @@ contract AirDrop is ReentrancyGuard {
 	function claimAirdrop(uint256 amount, address claimInto) external nonReentrant {
 		require(amount <= userCredit[msg.sender], "insufficient credit");
 		if(claimInto == acPool1 || claimInto == acPool2 || claimInto == acPool3 || claimInto == acPool4 || claimInto == acPool5 || claimInto == acPool6) {
-			IacPool(claimInto).giftDeposit(amount, msg.sender, minToServe[claimInto]);
+			IacPool(claimInto).giftDeposit(amount, msg.sender, 0);
 			IVoting(votingCreditContract).airdropVotingCredit(amount * payout[claimInto] / 1000, msg.sender);
 		} else {
 			require(DTX.transfer(msg.sender, amount));
@@ -63,13 +62,6 @@ contract AirDrop is ReentrancyGuard {
 			acPool4 = IGovernor(owner()).acPool4();
 			acPool5 = IGovernor(owner()).acPool5();
 			acPool6 = IGovernor(owner()).acPool6();
-
-			minToServe[acPool1] = 864000;
-			minToServe[acPool2] = 2592000;
-			minToServe[acPool3] = 5184000;
-			minToServe[acPool4] = 8640000;
-			minToServe[acPool5] = 20736000;
-			minToServe[acPool6] = 31536000;
 
 			payout[acPool1] = 750;
 			payout[acPool2] = 1500;
