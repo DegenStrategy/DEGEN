@@ -30,6 +30,7 @@ contract AirDrop is ReentrancyGuard {
 
 	mapping(address => uint256) public amountRedeemed;
 	mapping(address => uint256) public minToServe;
+	mapping(address => uint256) public payout;
 
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
