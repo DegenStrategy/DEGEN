@@ -61,7 +61,7 @@ contract AirDrop is ReentrancyGuard {
 			acPool4 = IGovernor(owner()).acPool4();
 			acPool5 = IGovernor(owner()).acPool5();
 			acPool6 = IGovernor(owner()).acPool6();
-			votingCreditContract = IGovernor(owner()).creditContract;
+			votingCreditContract = IGovernor(owner()).creditContract();
 			
 			payout[acPool1] = 500;
 			payout[acPool2] = 1000;
