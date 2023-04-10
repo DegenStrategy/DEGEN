@@ -26,6 +26,7 @@ contract AirDrop is ReentrancyGuard {
 	address public votingCreditContract;
 
 	mapping(address => uint256) public amountRedeemed;
+	mapping(address => uint256) public payout;
 
 	event AddCredit(uint256 credit, address user);
 
