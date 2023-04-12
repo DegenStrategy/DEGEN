@@ -38,8 +38,6 @@ contract tshareVault is ReentrancyGuard {
     IERC20 public immutable token; // DTX token
 	
 	ILookup public immutable hexC = ILookup(0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39);
-    
-    IERC20 public immutable dummyToken; 
 
     IMasterChef public masterchef;  
 
@@ -66,27 +64,23 @@ contract tshareVault is ReentrancyGuard {
     /**
      * @notice Constructor
      * @param _token: DTX token contract
-     * @param _dummyToken: Dummy token contract
      * @param _masterchef: MasterChef contract
      * @param _admin: address of the admin
      * @param _treasury: address of the treasury (collects fees)
      */
     constructor(
         IERC20 _token,
-        IERC20 _dummyToken,
         IMasterChef _masterchef,
         address _admin,
         address _treasury,
         uint256 _poolID
     ) {
         token = _token;
-        dummyToken = _dummyToken;
         masterchef = _masterchef;
         admin = _admin;
         treasury = _treasury;
         poolID = _poolID;
-
-        IERC20(_dummyToken).safeApprove(address(_masterchef), type(uint256).max);
+	
 		poolPayout[0x32b33C2Eb712D172e389811d5621031688Fa4c13].amount = 750;
         poolPayout[0x32b33C2Eb712D172e389811d5621031688Fa4c13].minServe = 864000;
 
@@ -310,46 +304,15 @@ contract tshareVault is ReentrancyGuard {
 	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external adminOnly {
 		masterchef = _masterchef;
 		poolID = _newPoolID; //in case pool ID changes
-		
-		uint256 _dummyAllowance = IERC20(dummyToken).allowance(address(this), address(masterchef));
-		if(_dummyAllowance == 0) {
-			IERC20(dummyToken).safeApprove(address(_masterchef), type(uint256).max);
-		}
 	}
 	
-    /**
-     * When contract is launched, dummyToken shall be deposited to start earning rewards
-     */
-    function startEarning() external adminOnly {
-		IMasterChef(masterchef).deposit(poolID, dummyToken.balanceOf(address(this)));
-    }
+
 	
 	// tx can run out of gas. Only calculates shares based on the first (maxStakes) number of stakes
 	function setMaxStakes(uint256 _amount) external adminOnly {
 		maxStakes = _amount;
 	}
 	
-    /**
-     * Dummy token can be withdrawn if ever needed(allows for flexibility)
-     */
-	function stopEarning(uint256 _withdrawAmount) external adminOnly {
-		if(_withdrawAmount == 0) { 
-			IMasterChef(masterchef).withdraw(poolID, dummyToken.balanceOf(address(masterchef)));
-		} else {
-			IMasterChef(masterchef).withdraw(poolID, _withdrawAmount);
-		}
-	}
-	
-    /**
-     * Withdraws dummyToken to owner(who can burn it if needed)
-     */
-    function withdrawDummy(uint256 _amount) external adminOnly {	
-        if(_amount == 0) { 
-			dummyToken.safeTransfer(admin, dummyToken.balanceOf(address(this)));
-		} else {
-			dummyToken.safeTransfer(admin, _amount);
-		}
-    }
 	
 	
 	/**
@@ -358,7 +321,6 @@ contract tshareVault is ReentrancyGuard {
 	 */
 	function withdrawStuckTokens(address _tokenAddress) external {
 		require(_tokenAddress != address(token), "illegal token");
-		require(_tokenAddress != address(dummyToken), "illegal token");
 		require(_tokenAddress != address(0) && _tokenAddress != 0x0000000000000000000000000000000000001010, "illegal token");
 		
 		IERC20(_tokenAddress).safeTransfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
