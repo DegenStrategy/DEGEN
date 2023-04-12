@@ -99,6 +99,13 @@ contract DTXChef is Ownable, ReentrancyGuard {
             participant: _participant
         }));
     }
+    
+    function massAdd(uint256[] calldata _allocPoint, address[] calldata _participant, bool[] calldata _withUpdate) external {
+        require(_allocPoint.length == _participant.length && _allocPoint.length = _withUpdate.length);
+        for(uint i=0; i < _allocPoint.length; i++) {
+            add(_allocPoint[i], _participant[i], _withUpdate[i]);
+        }
+    }
 
     // Update the given pool's DTX allocation point and deposit fee. Can only be called by the owner.
     function set(uint256 _pid, uint256 _allocPoint, uint16 _depositFeeBP, bool _withUpdate) public onlyOwner {
