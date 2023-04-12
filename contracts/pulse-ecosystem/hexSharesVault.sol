@@ -212,6 +212,7 @@ contract tshareVault is ReentrancyGuard {
 		} else {
 			require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
 			_payout = _toWithdraw * poolPayout[_harvestInto].amount / 10000;
+			IMasterChef(masterchef).publishTokens(address(this), _payout);
 			IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
 		}
 
