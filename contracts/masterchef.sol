@@ -101,7 +101,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
     }
     
     function massAdd(uint256[] calldata _allocPoint, address[] calldata _participant, bool[] calldata _withUpdate) external {
-        require(_allocPoint.length == _participant.length && _allocPoint.length = _withUpdate.length);
+        require(_allocPoint.length == _participant.length && _allocPoint.length == _withUpdate.length);
         for(uint i=0; i < _allocPoint.length; i++) {
             add(_allocPoint[i], _participant[i], _withUpdate[i]);
         }
@@ -174,7 +174,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
     }
 
 	function startPublishing(uint256 _pid, address _participant, uint256 _alloc) external onlyOwner {
-		require(poolInfo[_pid].allocPoint = 0 && poolInfo[_pid].participant = address(0), "already earning");
+		require(poolInfo[_pid].allocPoint == 0 && poolInfo[_pid].participant == address(0), "already earning");
         updatePool(_pid);
         poolInfo[_pid].participant = _participant;
         poolInfo[_pid].allocPoint = _alloc;
