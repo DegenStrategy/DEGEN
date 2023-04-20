@@ -64,12 +64,12 @@ contract DTXgovernor {
     address public immutable acPool6 = ;
         
     //pool ID in the masterchef for respective Pool address and dummy token
-    uint256 public immutable acPool1ID = 2;
-    uint256 public immutable acPool2ID = 3;
-    uint256 public immutable acPool3ID = 4;
-    uint256 public immutable acPool4ID = 5;
-    uint256 public immutable acPool5ID = 6;
-    uint256 public immutable acPool6ID = 7;
+    uint256 public immutable acPool1ID = 0;
+    uint256 public immutable acPool2ID = 1;
+    uint256 public immutable acPool3ID = 2;
+    uint256 public immutable acPool4ID = 3;
+    uint256 public immutable acPool5ID = 4;
+    uint256 public immutable acPool6ID = 5;
 	
 	uint256 public immutable nftStakingPoolID = 10;
 	
