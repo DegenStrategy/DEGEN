@@ -77,7 +77,7 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
         address _treasury,
         IERC20 _token,
         IERC20 _dummyToken,
-        address _masterchef
+        IMasterChef _masterchef
     ) {
         token = _token;
         admin = _admin;
