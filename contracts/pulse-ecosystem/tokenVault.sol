@@ -37,8 +37,6 @@ contract tokenVault is ReentrancyGuard {
 	uint256 public constant maxFundingFee = 250; // max 0.025% per hour
 	
     IERC20 public immutable token; //  token
-    
-    IERC20 public immutable dummyToken; 
 
     IERC20 public immutable stakeToken; // plsx, inc, hex
 
@@ -73,24 +71,20 @@ contract tokenVault is ReentrancyGuard {
 
     /**
      * @notice Constructor
-     * @param _dummyToken: Dummy token contract
      * @param _masterchef: MasterChef contract
      */
     constructor(
         IERC20 _stakeToken,
-        IERC20 _dummyToken,
         IMasterChef _masterchef,
         uint256 _poolId,
 	IERC20 _token
     ) {
         stakeToken = _stakeToken;
-        dummyToken = _dummyToken;
         masterchef = _masterchef;
         admin = msg.sender;
         poolID = _poolId;
 	token = _token;
 
-        IERC20(_dummyToken).safeApprove(address(_masterchef), type(uint256).max);
 		poolPayout[].amount = 750;
         poolPayout[].minServe = 864000;
 
@@ -329,41 +323,7 @@ contract tokenVault is ReentrancyGuard {
 	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external adminOnly {
 		masterchef = _masterchef;
 		poolID = _newPoolID; //in case pool ID changes
-		
-		uint256 _dummyAllowance = IERC20(dummyToken).allowance(address(this), address(masterchef));
-		if(_dummyAllowance == 0) {
-			IERC20(dummyToken).safeApprove(address(_masterchef), type(uint256).max);
-		}
 	}
-	
-    /**
-     * When contract is launched, dummyToken shall be deposited to start earning rewards
-     */
-    function startEarning() external adminOnly {
-		IMasterChef(masterchef).deposit(poolID, dummyToken.balanceOf(address(this)));
-    }
-	
-    /**
-     * Dummy token can be withdrawn if ever needed(allows for flexibility)
-     */
-	function stopEarning(uint256 _withdrawAmount) external adminOnly {
-		if(_withdrawAmount == 0) { 
-			IMasterChef(masterchef).withdraw(poolID, dummyToken.balanceOf(address(masterchef)));
-		} else {
-			IMasterChef(masterchef).withdraw(poolID, _withdrawAmount);
-		}
-	}
-	
-    /**
-     * Withdraws dummyToken to owner(who can burn it if needed)
-     */
-    function withdrawDummy(uint256 _amount) external adminOnly {	
-        if(_amount == 0) { 
-			dummyToken.safeTransfer(admin, dummyToken.balanceOf(address(this)));
-		} else {
-			dummyToken.safeTransfer(admin, _amount);
-		}
-    }
 	
 	
 	/**
@@ -372,7 +332,6 @@ contract tokenVault is ReentrancyGuard {
 	 */
 	function withdrawStuckTokens(address _tokenAddress) external {
 		require(_tokenAddress != address(token), "illegal token");
-		require(_tokenAddress != address(dummyToken), "illegal token");
         require(_tokenAddress != address(stakeToken), "illegal token");
 		
 		IERC20(_tokenAddress).safeTransfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
