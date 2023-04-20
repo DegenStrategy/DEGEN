@@ -390,7 +390,7 @@ contract TimeDeposit is ReentrancyGuard {
         require(trustedSender[msg.sender] || trustedPool[msg.sender], "only trusted senders(other pools)");
 		//only trustedSenders allowed. TrustedPools are under condition that the stake has matured(hopStake checks condition)
         
-        uint256 pool = balanceOf();
+        uint256 pool = balanceOf().sub(_amount); // Deduct transferred credit
 		
         uint256 currentShares = 0;
         if (totalShares != 0) {
