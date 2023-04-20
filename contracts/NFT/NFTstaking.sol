@@ -86,8 +86,6 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
 		masterchef = _masterchef;
 
 		
-        IERC20(address(_dummyToken)).safeApprove(address(_masterchef), type(uint256).max);
-		
 		poolPayout[].amount = 750;
         poolPayout[].minServe = 864000;
 
