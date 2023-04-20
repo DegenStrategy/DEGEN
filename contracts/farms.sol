@@ -114,9 +114,9 @@ contract DTXfarms {
     	require(depositingTokens >= IGovernor(owner()).costToVote(), "there is a minimum cost to vote");
     	require(poolid == 0 || poolid == 1 || poolid >= 8 && poolid <= 15, "only allowed for these pools"); 
 		
-		//0,1,8,9 are  DTX lp pools
+		//6,7,8,9 are  DTX lp pools
 		//10 is for NFT staking(nfts and virtual land)
-    	if(poolid == 0 || poolid == 1) {
+    	if(poolid >= 0 && poolid <= 9) {
     	    require(
     	        newAllocation <= (IMasterChef(masterchef).totalAllocPoint() * maxLpAllocation / 10000),
     	        "exceeds max allocation"
