@@ -359,7 +359,6 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(_shares)).div(totalShares);
         user.shares = user.shares.sub(_shares);
         totalShares = totalShares.sub(_shares);
-		IMasterChef(masterchef).transferCredit(_poolAddress, currentAmount);
 		
 		uint256 votingFor = userVote[msg.sender];
         if(votingFor != 0) {
@@ -367,7 +366,7 @@ contract TimeDeposit is ReentrancyGuard {
         }
 		
 		IacPool(_poolAddress).hopDeposit(currentAmount, msg.sender, _lastDepositedTime, user.mandatoryTimeToServe);
-		//_poolAddress can only be trusted pool(contract)
+		IMasterChef(masterchef).transferCredit(_poolAddress, currentAmount);
 
         if (user.shares > 0) {
             user.dtxAtLastUserAction = user.shares.mul(balanceOf()).div(totalShares);
@@ -680,6 +679,7 @@ contract TimeDeposit is ReentrancyGuard {
 						//setting user shares to 0 is sufficient
 		
 		IacPool(migrationPool).hopDeposit(currentAmount, _staker, user.lastDepositedTime, user.mandatoryTimeToServe);
+		IMasterChef(masterchef).transferCredit(migrationPool, currentAmount);
 
         emit MigrateStake(msg.sender, currentAmount, user.shares, _staker);
     }
@@ -819,8 +819,6 @@ contract TimeDeposit is ReentrancyGuard {
      */
     function setMigrationPool(address _newPool) external adminOnly {
 		migrationPool = _newPool;
-		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
-		IMasterChef(masterchef).transferCredit(_newPool, _currentCredit);
     }
     
      /**
