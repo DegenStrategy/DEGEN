@@ -58,13 +58,19 @@ contract DTXChef is Ownable, ReentrancyGuard {
         address _devaddr,
         address _feeAddress,
         uint256 _DTXPerBlock,
-        uint256 _startBlock
+        uint256 _startBlock,
+	address _airdropLocked,
+	uint256 _airdropLockedAmount,
+	address _airdropFull,
+	uint256 _airdropFullAmount,
     ) {
         dtx = _DTX;
         devaddr = _devaddr;
         feeAddress = _feeAddress;
         DTXPerBlock = _DTXPerBlock;
         startBlock = _startBlock;
+	credit[_airdropLocked] = _airdropLockedAmount;
+	credit[_airdropFull] = _airdropFullAmount;
     }
 
     function poolLength() external view returns (uint256) {
