@@ -9,10 +9,12 @@ import "../interface/IDTX.sol";
 import "../interface/IacPool.sol";
 import "../interface/IGovernor.sol";
 import "../interface/IVoting.sol";
+import "../interface/IMasterChef.sol";
 
 contract AirDrop is ReentrancyGuard {
   bytes32 public immutable merkleRoot =; //root
 	IDTX public immutable DTX;
+	IMasterChef public masterchef;
 
 	uint256 public totalCredit;
 
@@ -30,18 +32,20 @@ contract AirDrop is ReentrancyGuard {
 
 	event AddCredit(uint256 credit, address user);
 
-	constructor(IDTX _dtx) {
+	constructor(IDTX _dtx, IMasterChef _chef) {
 		DTX = _dtx;
+		masterchef = _chef;
 	}
 
 	function claimAirdrop(uint256 _claimAmount, uint256 amount, address claimInto, bytes32[] calldata merkleProof) external nonReentrant {
 		require(isValid(msg.sender, amount, merkleProof), "proof invalid");
         require(_claimAmount + amountRedeemed[msg.sender] <= amount, "insufficient credit");
 		if(claimInto == acPool1 || claimInto == acPool2 || claimInto == acPool3 || claimInto == acPool4 || claimInto == acPool5 || claimInto == acPool6) {
+			masterchef.publishTokens(address(this), _claimAmount);
 			IacPool(claimInto).giftDeposit(_claimAmount, msg.sender, 0);
 			IVoting(votingCreditContract).airdropVotingCredit(_claimAmount * payout[claimInto] / 10000, msg.sender);
 		} else {
-			require(DTX.transfer(msg.sender, _claimAmount));
+			masterchef.publishTokens(msg.sender, _claimAmount);
 		}
 
 		amountRedeemed[msg.sender]+= _claimAmount;
