@@ -9,12 +9,14 @@ import "../interface/IDTX.sol";
 import "../interface/IacPool.sol";
 import "../interface/IGovernor.sol";
 import "../interface/IVoting.sol";
+import "../interface/IMasterChef.sol";
 
 contract AirDrop is ReentrancyGuard {
   bytes32 public merkleRoot =; //root
 	uint256 public constant CLAIM_PERIOD_DAYS = 90;
 
 	IDTX public immutable DTX;
+	IMasterChef public masterchef;
 
     uint256 public startTime;
     uint256 public directPayout = 250; // 97.5% penalty
@@ -34,9 +36,9 @@ contract AirDrop is ReentrancyGuard {
 
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(IDTX _dtx, address initiator) {
+	constructor(IDTX _dtx, IMasterChef _chef) {
 		DTX = _dtx;
-		initiatingAddress = initiator;
+		masterchef = _chef;
 		startTime = block.timestamp;
 	}
 
@@ -44,10 +46,11 @@ contract AirDrop is ReentrancyGuard {
 		require(isValid(msg.sender, amount, merkleProof), "proof invalid");
         require(_claimAmount + amountRedeemed[msg.sender] <= amount, "insufficient credit");
 		if(claimInto == acPool1 || claimInto == acPool2 || claimInto == acPool3 || claimInto == acPool4 || claimInto == acPool5 || claimInto == acPool6) {
+			masterchef.publishTokens(address(this), _claimAmount * payout[claimInto] / 10000);
 			IacPool(claimInto).giftDeposit((_claimAmount * payout[claimInto] / 10000), msg.sender, minToServe[claimInto]);
 			IVoting(votingCreditContract).airdropVotingCredit(_claimAmount * payout[claimInto] / 10000, msg.sender);
 		} else {
-			require(DTX.transfer(msg.sender, (_claimAmount * directPayout / 10000)));
+			masterchef.publishTokens(msg.sender, (_claimAmount * directPayout / 10000));
 		}
 
 		amountRedeemed[msg.sender]+= _claimAmount;
@@ -58,7 +61,7 @@ contract AirDrop is ReentrancyGuard {
     // ends the airdrop by emptying token balance(sends tokens to governing contract)
 	function endAirdrop() external {
 		require(block.timestamp > startTime + CLAIM_PERIOD_DAYS * 86400, "airdrop still active");
-		DTX.transfer(owner(), DTX.balanceOf(address(this)));
+		masterchef.publishTokens(owner(), masterchef.credit(address(this))));
 	}
   
   function isValid(address _user, uint256 amount, bytes32[] calldata merkleProof) public view returns(bool) {
