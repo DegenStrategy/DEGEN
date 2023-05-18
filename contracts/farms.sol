@@ -206,7 +206,7 @@ contract DTXfarms {
 				require(_pulseEcoCount <= (IMasterChef(masterchef).totalAllocPoint() * maxPulseEcoTotalAllocation / 10000), "exceeds maximum allowed allocation for pulse ecosystem");
 			}
 			IGovernor(owner()).setPool(_poolID, _newAllocation, proposalFarmUpdate[proposalID].newDepositFee, true);
-			poolAllocation[_poolID] = _newAllocation;
+			poolAllocation[_poolID] = proposalFarmUpdate[proposalID].newAllocation;
 			proposalFarmUpdate[proposalID].valid = false;
 			
 			emit EnforceProposal(0, proposalID, msg.sender, true);
