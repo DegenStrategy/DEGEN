@@ -82,6 +82,7 @@ contract DTXNFTallocationProxy is Ownable {
 
     // notify "start of voting" on the frontend
     function notifyVote(address _contract) external {
+    	require(isContract(_contract), "Address must be a contract!");
         emit NotifyVote(_contract, addressToUint256(_contract), msg.sender);
     }
 
@@ -261,5 +262,13 @@ contract DTXNFTallocationProxy is Ownable {
 	 */
 	function proposalLengths() external view returns(uint256) {
 		return(payoutProposal.length);
+	}
+	
+	function isContract(address _address) public view returns (bool) {
+	    uint256 codeSize;
+	    assembly {
+		codeSize := extcodesize(_address)
+	    }
+	    return (codeSize > 0);
 	}
 }
