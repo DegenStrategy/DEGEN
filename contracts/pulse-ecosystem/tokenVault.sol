@@ -47,7 +47,6 @@ contract tokenVault is ReentrancyGuard {
  
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
-    address public admin; //admin = governing contract!
     address public treasury = ; // buyback & burn contract
 
     uint256 public defaultDirectPayout = 500; //5% if withdrawn into wallet
@@ -81,7 +80,6 @@ contract tokenVault is ReentrancyGuard {
     ) {
         stakeToken = _stakeToken;
         masterchef = _masterchef;
-        admin = msg.sender;
         poolID = _poolId;
 	token = _token;
 
@@ -108,7 +106,7 @@ contract tokenVault is ReentrancyGuard {
      * @notice Checks if the msg.sender is the admin
      */
     modifier adminOnly() {
-        require(msg.sender == admin, "admin: wut?");
+        require(msg.sender == IMasterChef(masterchef).owner(), "admin: wut?");
         _;
     }
 
@@ -334,7 +332,7 @@ contract tokenVault is ReentrancyGuard {
 		require(_tokenAddress != address(token), "illegal token");
         require(_tokenAddress != address(stakeToken), "illegal token");
 		
-		IERC20(_tokenAddress).safeTransfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
+		IERC20(_tokenAddress).safeTransfer(IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
 	}
 
     //need to set pools before launch or perhaps during contract launch
@@ -355,12 +353,6 @@ contract tokenVault is ReentrancyGuard {
         defaultDirectPayout = _defaultDirectHarvest;
     }
 
-    /**
-    *
-    */
-    function setAdmin() external {
-        admin = IMasterChef(masterchef).owner();
-    }
 	
 	function setTreasury(address _newTreasury) external adminOnly {
 		treasury = _newTreasury;
