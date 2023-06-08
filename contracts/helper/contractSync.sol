@@ -91,10 +91,4 @@ contract DTXsyncContracts {
         IChange(IGovernor(governor).farmContract()).setMasterchef();
         IChange(IGovernor(governor).fibonacceningContract()).setMasterchef();
     }
-	
-	function updateVaults(address[] calldata _vault) public {
-		for(uint i=0; i<_vault.length; i++) {
-			IacPool(_vault[i]).setAdmin();
-		}
-	}
 }
