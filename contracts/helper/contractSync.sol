@@ -75,13 +75,6 @@ contract DTXsyncContracts {
         IChange(IGovernor(governor).basicContract()).syncCreditContract();
     }
 
-    function updatePoolsInSideContracts() public {
-        address governor = IDTX(tokenDTX).governor();
-
-        IChange(IGovernor(governor).consensusContract()).updatePools();
-        IChange(IGovernor(governor).basicContract()).updatePools();
-    }
-
     //updates allocation contract owner, nft staking(admin)
     function nftStaking() public {
         address governor = IDTX(tokenDTX).governor();
