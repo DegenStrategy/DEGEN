@@ -45,14 +45,6 @@ contract DTXconsensus {
 	uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
     address public immutable token; //DTX token (address)
 	uint256 public governorCount; //count number of proposals
-	
-    //addresses for time-locked deposits(autocompounding pools)
-    address public acPool1;
-    address public acPool2;
-    address public acPool3;
-    address public acPool4;
-    address public acPool5;
-    address public acPool6;
 
 	address public creditContract;
 
@@ -376,18 +368,6 @@ contract DTXconsensus {
 	  
         isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
     }
-
-    /**
-     * Updates pool addresses and token addresses from the governor
-     */
-    function updatePools() external {
-        acPool1 = IGovernor(owner()).acPool1();
-        acPool2 = IGovernor(owner()).acPool2();
-        acPool3 = IGovernor(owner()).acPool3();
-        acPool4 = IGovernor(owner()).acPool4();
-        acPool5 = IGovernor(owner()).acPool5();
-        acPool6 = IGovernor(owner()).acPool6();
-    }
    
     
     //transfers ownership of this contract to new governor
@@ -404,8 +384,8 @@ contract DTXconsensus {
      * Returns total DTX staked accross all pools.
      */
     function totalDTXStaked() public view returns(uint256) {
-    	return IacPool(acPool1).balanceOf() + IacPool(acPool2).balanceOf() + IacPool(acPool3).balanceOf() +
-                 IacPool(acPool4).balanceOf() + IacPool(acPool5).balanceOf() + IacPool(acPool6).balanceOf();
+    	return IacPool(IGovernor(owner()).acPool1()).balanceOf() + IacPool(IGovernor(owner()).acPool2()).balanceOf() + IacPool(IGovernor(owner()).acPool3()).balanceOf() +
+                 IacPool(IGovernor(owner()).acPool4()).balanceOf() + IacPool(IGovernor(owner()).acPool5()).balanceOf() + IacPool(IGovernor(owner()).acPool6()).balanceOf();
     }
 
     /**
@@ -417,12 +397,12 @@ contract DTXconsensus {
      */
     function tokensCastedPerVote(uint256 _forID) public view returns(uint256) {
         return (
-            IacPool(acPool1).totalVotesForID(_forID) * IacPool(acPool1).getPricePerFullShare() / 1e19 * 2 + 
-                IacPool(acPool2).totalVotesForID(_forID) * IacPool(acPool2).getPricePerFullShare() / 1e19 * 3 +
-                    IacPool(acPool3).totalVotesForID(_forID) * IacPool(acPool3).getPricePerFullShare() / 1e19 * 5 +
-                        IacPool(acPool4).totalVotesForID(_forID) * IacPool(acPool4).getPricePerFullShare() / 1e20 * 75 +
-                            IacPool(acPool5).totalVotesForID(_forID) * IacPool(acPool5).getPricePerFullShare() / 1e20 * 115 +
-                                IacPool(acPool6).totalVotesForID(_forID) * IacPool(acPool6).getPricePerFullShare() / 1e19 * 15
+            IacPool(IGovernor(owner()).acPool1()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool1()).getPricePerFullShare() / 1e19 * 2 + 
+                IacPool(IGovernor(owner()).acPool2()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool2()).getPricePerFullShare() / 1e19 * 3 +
+                    IacPool(IGovernor(owner()).acPool3()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool3()).getPricePerFullShare() / 1e19 * 5 +
+                        IacPool(IGovernor(owner()).acPool4()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool4()).getPricePerFullShare() / 1e20 * 75 +
+                            IacPool(IGovernor(owner()).acPool5()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool5()).getPricePerFullShare() / 1e20 * 115 +
+                                IacPool(IGovernor(owner()).acPool6()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool6()).getPricePerFullShare() / 1e19 * 15
         );
     }
 	
