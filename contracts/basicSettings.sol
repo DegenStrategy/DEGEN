@@ -11,14 +11,6 @@ import "./interface/IVoting.sol";
 //compile with optimization enabled(60runs)
 contract DTXbasics {
     address public immutable token; //DTX token (address)
-    
-    //addresses for time-locked deposits(autocompounding pools)
-    address public acPool1;
-    address public acPool2;
-    address public acPool3;
-    address public acPool4;
-    address public acPool5;
-    address public acPool6;
 	
 	address public creditContract;
     
@@ -336,12 +328,12 @@ contract DTXbasics {
         
 		if(callFeeProposal[proposalID].valueSacrificedForVote >= callFeeProposal[proposalID].valueSacrificedAgainst) {
 
-			IGovernor(owner()).setCallFee(acPool1, callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(acPool2, callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(acPool3, callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(acPool4, callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(acPool5, callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(acPool6, callFeeProposal[proposalID].proposedValue);
+			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool1(), callFeeProposal[proposalID].proposedValue);
+			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool2(), callFeeProposal[proposalID].proposedValue);
+			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool3(), callFeeProposal[proposalID].proposedValue);
+			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool4(), callFeeProposal[proposalID].proposedValue);
+			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool5(), callFeeProposal[proposalID].proposedValue);
+			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool6(), callFeeProposal[proposalID].proposedValue);
 			
 			callFeeProposal[proposalID].valid = false;
 			
@@ -499,14 +491,6 @@ contract DTXbasics {
 		return (IDTX(token).governor());
     }
 
-    function updatePools() external {
-        acPool1 = IGovernor(owner()).acPool1();
-        acPool2 = IGovernor(owner()).acPool2();
-        acPool3 = IGovernor(owner()).acPool3();
-        acPool4 = IGovernor(owner()).acPool4();
-        acPool5 = IGovernor(owner()).acPool5();
-        acPool6 = IGovernor(owner()).acPool6();
-    }
 	
 	function syncCreditContract() external {
 		creditContract = IGovernor(owner()).creditContract();
