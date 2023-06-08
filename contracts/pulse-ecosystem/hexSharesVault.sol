@@ -65,19 +65,16 @@ contract tshareVault is ReentrancyGuard {
      * @notice Constructor
      * @param _token: DTX token contract
      * @param _masterchef: MasterChef contract
-     * @param _admin: address of the admin
      * @param _treasury: address of the treasury (collects fees)
      */
     constructor(
         IERC20 _token,
         IMasterChef _masterchef,
-        address _admin,
         address _treasury,
         uint256 _poolID
     ) {
         token = _token;
         masterchef = _masterchef;
-        admin = _admin;
         treasury = _treasury;
         poolID = _poolID;
 	
@@ -104,7 +101,7 @@ contract tshareVault is ReentrancyGuard {
      * @notice Checks if the msg.sender is the admin
      */
     modifier adminOnly() {
-        require(msg.sender == admin, "admin: wut?");
+        require(msg.sender == IMasterChef(masterchef).owner(), "admin: wut?");
         _;
     }
 
@@ -148,8 +145,7 @@ contract tshareVault is ReentrancyGuard {
     /**
     *
     */
-    function setAdmin() external {
-        admin = IMasterChef(masterchef).owner();
+    function updateTreasury() external {
         treasury = IMasterChef(masterchef).feeAddress();
     }
 
@@ -265,7 +261,7 @@ contract tshareVault is ReentrancyGuard {
     //determines the payout depending on the pool. could set a governance process for it(determining amounts for pools)
 	//allocation contract contains the decentralized proccess for updating setting, but so does the admin(governor)
     function setPoolPayout(address _poolAddress, uint256 _amount, uint256 _minServe) external {
-        require(msg.sender == admin, "must be set by allocation contract or admin");
+        require(msg.sender == IMasterChef(masterchef).owner(), "must be set by allocation contract or admin");
 		if(_poolAddress == address(0)) {
 			require(_amount <= 10000, "out of range");
 			defaultDirectPayout = _amount;
@@ -323,6 +319,6 @@ contract tshareVault is ReentrancyGuard {
 		require(_tokenAddress != address(token), "illegal token");
 		require(_tokenAddress != address(0) && _tokenAddress != 0x0000000000000000000000000000000000001010, "illegal token");
 		
-		IERC20(_tokenAddress).safeTransfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
+		IERC20(_tokenAddress).safeTransfer(IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
 	}
 }
