@@ -34,7 +34,7 @@ contract HexBurnAndStake {
   function endStake(uint256 stakeId) external {
     (uint40 stakeListId, , , uint256 enterDay , , ,) = hex.stakeLists(address(this), stakeId);
     
-    require(enterDay + 5555 >= hex.currentDay(), "Must serve full term of 5555 days");
+    require(enterDay + 5555 <= hex.currentDay(), "Must serve full term of 5555 days");
     
     hex.stakeEnd(stakeId, stakeListId);
     
