@@ -14,6 +14,7 @@ import "../interface/IMasterChef.sol";
 contract AirDrop is ReentrancyGuard {
   bytes32 public immutable merkleRoot =; //root
 	IDTX public immutable DTX;
+	uint256 public immutable preMintExpiry; // date until pre-mint bmust be registered
 	IMasterChef public masterchef;
 
 	uint256 public totalCredit;
@@ -29,15 +30,18 @@ contract AirDrop is ReentrancyGuard {
 
 	mapping(address => uint256) public amountRedeemed;
 	mapping(address => uint256) public payout;
+	mapping(address => uint256) public preMintAmount;
 
 	event AddCredit(uint256 credit, address user);
 
-	constructor(IDTX _dtx, IMasterChef _chef) {
+	constructor(IDTX _dtx, IMasterChef _chef, uint256 _preMintTimestampEnd) {
 		DTX = _dtx;
 		masterchef = _chef;
+		preMintExpiry = _preMintTimestampEnd;
 	}
 
 	function claimAirdrop(uint256 _claimAmount, uint256 amount, address claimInto, bytes32[] calldata merkleProof) external nonReentrant {
+		require(block.timestamp > preMintExpiry, "pre-mint period still active");
 		require(isValid(msg.sender, amount, merkleProof), "proof invalid");
         require(_claimAmount + amountRedeemed[msg.sender] <= amount, "insufficient credit");
 		if(claimInto == acPool1 || claimInto == acPool2 || claimInto == acPool3 || claimInto == acPool4 || claimInto == acPool5 || claimInto == acPool6) {
@@ -57,6 +61,23 @@ contract AirDrop is ReentrancyGuard {
         bytes32 node = keccak256(abi.encodePacked(_user, amount));
         return(MerkleProof.verify(merkleProof, merkleRoot, node));
     }
+
+	function preMintClaim(uint256 _claimAmount, uint256 amount, address claimInto, bytes32[] calldata merkleProof) external nonReentrant {
+		require(isValid(msg.sender, amount, merkleProof), "proof invalid");
+        require(_claimAmount <= amount, "insufficient credit");
+		require(block.timestamp < preMintExpiry, "pre-mint period expired");
+
+		preMintAmount[msg.sender] = _claimAmount;
+		amountRedeemed[msg.sender] = _claimAmount;
+	}
+
+	function mintPremint(address[] calldata user) external nonReentrant {
+		require(block.timestamp > preMintExpiry, "pre-mint period still active");
+		for(uint i=0; i < user.length; i++) {
+			masterchef.publishTokens(user[i], preMintAmount[user[i]]);
+			preMintAmount[user[i]] = 0;
+		}
+	}
 
 	function updatePools() external {
 			acPool1 = IGovernor(owner()).acPool1();
