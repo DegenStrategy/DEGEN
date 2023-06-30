@@ -339,14 +339,9 @@ contract tokenVault is ReentrancyGuard {
     //determines the payout depending on the pool. could set a governance process for it(determining amounts for pools)
 	//allocation contract contains the decentralized proccess for updating setting, but so does the admin(governor)
     function setPoolPayout(address _poolAddress, uint256 _amount, uint256 _minServe) external adminOnly {
-		if(_poolAddress == address(0)) {
-			require(_amount <= 10000, "out of range");
-			defaultDirectPayout = _amount;
-		} else {
-			require(_amount <= 10000, "out of range"); 
-			poolPayout[_poolAddress].amount = _amount;
-        	poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
-		}
+		require(_amount <= 10000, "out of range"); 
+		poolPayout[_poolAddress].amount = _amount;
+		poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
     }
     
     function updateSettings(uint256 _defaultDirectHarvest) external adminOnly {
