@@ -15,7 +15,6 @@ import "../interface/IVoting.sol";
 
 /**
  * PLS vault
- * !!! Warning: !!! Licensed under Business Source License 1.1 (BSL 1.1)
  */
 contract pulseVault is ReentrancyGuard {
     using SafeERC20 for IERC20;
