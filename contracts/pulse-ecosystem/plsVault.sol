@@ -45,7 +45,7 @@ contract pulseVault is ReentrancyGuard {
  
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
-    address public treasury; // buyback & burn contract
+    address public treasury;
 
     uint256 public defaultDirectPayout = 500; //5% if withdrawn into wallet
 	
@@ -53,8 +53,8 @@ contract pulseVault is ReentrancyGuard {
 	uint256 public fundingRate = 0;// 0
 	
 	
-	uint256 public refShare1 = 5000; // 50% ; initial deposit 
-	uint256 public refShare2 = 4000; // 40% ; recurring fee
+	uint256 public refShare1 = 2000; // 20% ; initial deposit 
+	uint256 public refShare2 = 2000; // 20% ; recurring fee
 	
 
     event Deposit(address indexed sender, uint256 amount, uint256 debt, uint256 depositFee, address referral);
@@ -69,13 +69,13 @@ contract pulseVault is ReentrancyGuard {
     constructor(
         IMasterChef _masterchef,
 		IERC20 _token,
-		address _buybackContract,
+		address _feeAddress,
 		uint256 _poolID
     ) {
         masterchef = _masterchef;
 		token = _token;
 		poolID = _poolID;
-		treasury = _buybackContract;
+		treasury = _feeAddress;
 		
 
 		poolPayout[].amount = 750;
