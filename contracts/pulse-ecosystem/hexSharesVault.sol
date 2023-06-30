@@ -70,12 +70,12 @@ contract tshareVault is ReentrancyGuard {
     constructor(
         IERC20 _token,
         IMasterChef _masterchef,
-        address _treasury,
+        address _feeAddress,
         uint256 _poolID
     ) {
         token = _token;
         masterchef = _masterchef;
-        treasury = _treasury;
+        treasury = _feeAddress;
         poolID = _poolID;
 	
 		poolPayout[0x32b33C2Eb712D172e389811d5621031688Fa4c13].amount = 750;
