@@ -15,7 +15,6 @@ import "../interface/IVoting.sol";
 
 /**
  * Token vault (hex, inc, plsx)
- * !!! Warning: !!! Licensed under Business Source License 1.1 (BSL 1.1)
  */
 contract tokenVault is ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -47,7 +46,7 @@ contract tokenVault is ReentrancyGuard {
  
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
-    address public treasury = ; // buyback & burn contract
+    address public treasury; 
 
     uint256 public defaultDirectPayout = 500; //5% if withdrawn into wallet
 	
@@ -55,8 +54,8 @@ contract tokenVault is ReentrancyGuard {
 	uint256 public fundingRate = 0;// 0
 	
 	
-	uint256 public refShare1 = 5000; // 50% ; initial deposit 
-	uint256 public refShare2 = 4000; // 40% ; recurring fee
+	uint256 public refShare1 = 2000; // 20% ; initial deposit 
+	uint256 public refShare2 = 2000; // 20% ; recurring fee
 	
 
     event Deposit(address indexed sender, uint256 amount, uint256 debt, uint256 depositFee, address referral);
@@ -76,12 +75,14 @@ contract tokenVault is ReentrancyGuard {
         IERC20 _stakeToken,
         IMasterChef _masterchef,
         uint256 _poolId,
-	IERC20 _token
+	IERC20 _token,
+	address _feeAddress
     ) {
         stakeToken = _stakeToken;
         masterchef = _masterchef;
         poolID = _poolId;
 	token = _token;
+	treasury = _feeAddress;
 
 		poolPayout[].amount = 750;
         poolPayout[].minServe = 864000;
