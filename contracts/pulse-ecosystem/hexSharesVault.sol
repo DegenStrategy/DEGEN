@@ -20,7 +20,6 @@ interface ILookup {
 
 /**
  * tshare Vault
- * !!! Warning: !!! Licensed under Business Source License 1.1 (BSL 1.1)
  */
 contract tshareVault is ReentrancyGuard {
     using SafeERC20 for IERC20;
