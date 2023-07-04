@@ -50,7 +50,6 @@ contract DTXconsensus {
     }
     
 	
-	event ProposalAgainstCommonEnemy(uint256 HaltID, uint256 consensusProposalID, uint256 startTimestamp, uint256 delayInSeconds, address indexed enforcer);
 	event EnforceDelay(uint256 consensusProposalID, address indexed enforcer);
 	event RemoveDelay(uint256 consensusProposalID, address indexed enforcer);
 	
