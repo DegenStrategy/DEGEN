@@ -10,13 +10,6 @@ import "./interface/IVoting.sol";
 
 
 contract DTXconsensus {
-	struct HaltFibonacci {
-		bool valid;
-		bool enforced;
-		uint256 consensusVoteID;
-		uint256 startTimestamp;
-		uint256 delayInSeconds;
-	}
     struct TreasuryTransfer {
         bool valid;
         uint256 firstCallTimestamp;
@@ -38,7 +31,6 @@ contract DTXconsensus {
         bool hasPassed;
     }
 
-	HaltFibonacci[] public haltProposal;
 	TreasuryTransfer[] public treasuryProposal;
 	ConsensusVote[] public consensusProposal;
 	
@@ -70,68 +62,6 @@ contract DTXconsensus {
 	
 	event AddVotes(uint256 _type, uint256 proposalID,  address indexed voter, uint256 tokensSacrificed, bool _for);
     
-	
-	/*
-	* If DTX is to be listed on margin trading exchanges
-	* As a lot of supply is printed during Fibonaccening events
-	* It could provide "free revenue" for traders shorting DTX
-	* This is a mechanism meant to give DTX holders an opportunity
-	* to unite against the common enemy(shorters).
-	* The function effectively delays the fibonaccening event
-	* Requires atleast 15% votes, with less than 50% voting against
-	*/
-	function uniteAgainstTheCommonEnemy(uint256 startTimestamp, uint256 delayInSeconds) external {
-		require(startTimestamp >= (block.timestamp + 3600) && delayInSeconds <= 72 * 3600); //no less than an hour before the event and can't last more than 3 days
-		
-		IVoting(creditContract).deductCredit(msg.sender, 50 * IGovernor(owner()).costToVote());
-		
-		uint256 _consensusID = consensusProposal.length;
-		
-		//need to create consensus proposal because the voting is done by voting for a proposal ID(inside pool contracts)
-		consensusProposal.push(
-		    ConsensusVote(2, address(this), block.timestamp)
-		    ); // vote for
-    	consensusProposal.push(
-    	    ConsensusVote(2, address(this), block.timestamp)
-    	    ); // vote against
-		
-		 haltProposal.push(
-    	    HaltFibonacci(true, false, _consensusID, startTimestamp, delayInSeconds)
-    	   );  
-	
-        emit ProposalAgainstCommonEnemy(haltProposal.length - 1, _consensusID, startTimestamp, delayInSeconds, msg.sender);
-	}
-    function enforceDelay(uint256 fibonacciHaltID) external {
-		require(haltProposal[fibonacciHaltID].valid && !haltProposal[fibonacciHaltID].enforced &&
-		    haltProposal[fibonacciHaltID].startTimestamp <= block.timestamp &&
-		    block.timestamp < haltProposal[fibonacciHaltID].startTimestamp + haltProposal[fibonacciHaltID].delayInSeconds);
-		uint256 consensusID = haltProposal[fibonacciHaltID].consensusVoteID;
-
-        uint256 _tokensCasted = tokensCastedPerVote(consensusID);
-		 require(
-            _tokensCasted >= totalDTXStaked() * 15 / 100,
-				"Atleast 15% of staked(weighted) tokens required"
-        );
-		
-        require(
-            tokensCastedPerVote(consensusID + 1) <= _tokensCasted / 2,
-				"More than 50% are voting against!"
-        );
-		
-		haltProposal[fibonacciHaltID].enforced = true;
-		IGovernor(owner()).delayFibonacci(true);
-		
-		emit EnforceDelay(consensusID, msg.sender);
-	}
-	function removeDelay(uint256 haltProposalID) external {
-		require(IGovernor(owner()).fibonacciDelayed() && haltProposal[haltProposalID].enforced && haltProposal[haltProposalID].valid);
-		require(block.timestamp >= haltProposal[haltProposalID].startTimestamp + haltProposal[haltProposalID].delayInSeconds, "not yet expired");
-		
-		haltProposal[haltProposalID].valid = false;
-		IGovernor(owner()).delayFibonacci(false);
-		
-		emit RemoveDelay(haltProposalID, msg.sender);
-	}	
 
      /**
      * Initiates a request to transfer tokens from the treasury wallet
