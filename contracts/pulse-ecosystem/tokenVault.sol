@@ -52,6 +52,7 @@ contract tokenVault is ReentrancyGuard {
 	
 	uint256 public depositFee = 0; // 0
 	uint256 public fundingRate = 0;// 0
+	uint256 public lastFundingChangeTimestamp; // save block.timestamp when funding rate is changed
 	
 	
 	uint256 public refShare1 = 2000; // 20% ; initial deposit 
@@ -362,6 +363,7 @@ contract tokenVault is ReentrancyGuard {
     function setFundingRate(uint256 _fundingRate) external adminOnly {
         require(_fundingRate <= maxFundingFee, "out of limit");
 		fundingRate = _fundingRate;
+		lastFundingChangeTimestamp = block.timestamp;
 	}
 
     function setRefShare1(uint256 _refShare1) external adminOnly {
@@ -377,6 +379,14 @@ contract tokenVault is ReentrancyGuard {
 
     function payFee(UserInfo storage user) private {
 		uint256 _lastAction = user.lastAction;
+
+		// Prevents charging new funding fee for the past (in case funding fee changes)
+		// Before funding fee is changed, commissions must be manually collected
+		if(lastFundingChangeTimestamp > _lastAction) {
+			user.lastAction = lastFundingChangeTimestamp;
+			_lastAction = lastFundingChangeTimestamp;
+		}
+
         uint256 secondsSinceLastaction = block.timestamp - _lastAction;
 				
 		if(secondsSinceLastaction >= 3600  && fundingRate > 0) {
