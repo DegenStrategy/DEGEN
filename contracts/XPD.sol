@@ -14,7 +14,7 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	string private _name;
     string private _symbol;
     
-	constructor() ERC20("PulseDAO", "XPD") {
+	constructor() ERC20("PulseDAO Currency", "XPD") {
 		_name = string("PulseDAO");
 		_symbol = string("XPD");
 	}
