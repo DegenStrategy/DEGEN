@@ -178,6 +178,7 @@ contract tokenVault is ReentrancyGuard {
             require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
             _toWithdraw = currentAmount * poolPayout[_harvestInto].amount / 10000;
             currentAmount = currentAmount - _toWithdraw;
+			IMasterChef(masterchef).publishTokens(address(this), _toWithdraw);
             IacPool(_harvestInto).giftDeposit(_toWithdraw, msg.sender, poolPayout[_harvestInto].minServe);
         }
         IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
