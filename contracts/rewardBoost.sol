@@ -28,18 +28,8 @@ contract DTXrewardBoost {
         uint256 duration;
         uint256 startTime;
     }
-    struct ProposeGrandFibonaccening{
-        bool valid;
-        uint256 eventDate; 
-        uint256 firstCallTimestamp;
-        uint256 valueSacrificedForVote;
-		uint256 valueSacrificedAgainst;
-		uint256 delay;
-        uint256 finalSupply;
-    }
     
     FibonacceningProposal[] public fibonacceningProposals;
-    ProposeGrandFibonaccening[] public grandFibonacceningProposals;
 
     //WARNING: careful where we are using 1e18 and where not
     uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
@@ -53,22 +43,15 @@ contract DTXrewardBoost {
     
     uint256 public lastCallFibonaccening; //stores timestamp of last grand fibonaccening event
     
-    bool public eligibleGrandFibonaccening; // when big event is ready
-    bool public grandFibonacceningActivated; // if upgrading the contract after event, watch out this must be true
-    uint256 public desiredSupplyAfterGrandFibonaccening; // Desired supply to reach for Grand Fib Event
-    
     uint256 public targetBlock; // used for calculating target block
-    bool public isRunningGrand; //we use this during Grand Fib Event
 
     uint256 public fibonacceningActiveID;
     uint256 public fibonacceningActivatedBlock;
     
-    bool public expiredGrandFibonaccening;
-    
     uint256 public tokensForBurn; //tokens we draw from governor to burn for fib event
+	
+	bool public expiredGrandFibonaccening;
 
-	uint256 public grandEventLength = 14 * 24 * 3600; // default Duration for the Grand Fibonaccening(the time in which 61.8% of the supply is printed)
-	uint256 public delayBetweenEvents = 48 * 3600; // delay between when grand events can be triggered(default 48hrs)
 
     event ProposeFibonaccening(uint256 proposalID, uint256 valueSacrificedForVote, uint256 startTime, uint256 durationInBlocks, uint256 newRewardPerBlock , address indexed enforcer, uint256 delay);
 
@@ -77,8 +60,6 @@ contract DTXrewardBoost {
     
     event RebalanceInflation(uint256 newRewardPerBlock);
     
-    event InitiateProposeGrandFibonaccening(uint256 proposalID, uint256 depositingTokens, uint256 eventDate, uint256 finalSupply, address indexed enforcer, uint256 delay);
-	
 	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
 	event EnforceProposal(uint256 _type, uint256 proposalID, address indexed enforcer, bool isSuccess);
     
@@ -87,10 +68,6 @@ contract DTXrewardBoost {
 	constructor (IERC20 _DTX, address _masterchef) {
 		token = _DTX;
 		masterchef = _masterchef;
-		
-		fibonacceningProposals.push(
-		    FibonacceningProposal(true, 0, 1e40, 0, 0, 169*1e21, 185000, 1654097100)
-		    );
 	}
     
     
@@ -105,12 +82,17 @@ contract DTXrewardBoost {
         require(
             startTimestamp > block.timestamp + delay + (24*3600) + IGovernor(owner()).delayBeforeEnforce() && 
             startTimestamp - block.timestamp <= 21 days, "max 21 days"); 
-        require(
-            (newRewardPerBlock * durationInBlocks) < (IERC20(token).totalSupply() * 23 / 100),
-            "Safeguard: Can't print more than 23% of tokens in single event"
-        );
-		require(newRewardPerBlock > goldenRatio || (!isRunningGrand && expiredGrandFibonaccening),
-					"can't go below goldenratio"); //would enable grand fibonaccening
+		if(!isGrandFibonacceningReady()) {
+			require(
+				(newRewardPerBlock * durationInBlocks) < (IERC20(token).totalSupply() * 23 / 100),
+				"Safeguard: Can't print more than 23% of tokens in single event"
+			);
+		} else {
+			require(
+				(newRewardPerBlock * durationInBlocks) < (IERC20(token).totalSupply() * 618 / 1000),
+				"Safeguard: max 61.8% during Major event"
+			);
+		}
 		//duration(in blocks) must be lower than amount of blocks mined in 30days(can't last more than roughly 30days)
 		//30(days)*24(hours)*3600(seconds)  = 2592000
 		uint256 amountOfBlocksIn30Days = 2592 * IGovernor(owner()).blocksPerSecond() / 1000;
@@ -159,14 +141,12 @@ contract DTXrewardBoost {
      * 
     */
     function leverPullFibonaccening(uint256 proposalID) public {
-		require(!(IGovernor(owner()).fibonacciDelayed()), "event has been delayed");
         require(
             IERC20(token).balanceOf(owner()) >= IGovernor(owner()).thresholdFibonaccening(),
             "needa collect penalties");
     	require(fibonacceningProposals[proposalID].valid == true, "invalid proposal");
     	require(block.timestamp >= fibonacceningProposals[proposalID].startTime, "can only start when set");
     	require(!(IGovernor(owner()).eventFibonacceningActive()), "already active");
-		require(!grandFibonacceningActivated || (expiredGrandFibonaccening && !isRunningGrand), "not available during the grand boost event");
     	
     	if(fibonacceningProposals[proposalID].valueSacrificedForVote >= fibonacceningProposals[proposalID].valueSacrificedAgainst) {
 			tokensForBurn = IGovernor(owner()).thresholdFibonaccening();
@@ -179,6 +159,11 @@ contract DTXrewardBoost {
 			fibonacceningActiveID = proposalID;
 			fibonacceningActivatedBlock = block.number;
 			IGovernor(owner()).setActivateFibonaccening(true);
+			
+			if(isGrandFibonacceningReady()) {
+				expiredGrandFibonaccening = true;
+			}
+			
 			
 			emit EnforceProposal(0, proposalID, msg.sender, true);
 		} else {
@@ -193,6 +178,7 @@ contract DTXrewardBoost {
     */
     function endFibonaccening() external {
         require(IGovernor(owner()).eventFibonacceningActive(), "no active event");
+		require(fibonacceningActivatedBlock > 0, "invalid"); // on contract launch activatedBlock = 0;
         require(
             block.number >= fibonacceningActivatedBlock + fibonacceningProposals[fibonacceningActiveID].duration, 
             "not yet expired"
@@ -206,7 +192,7 @@ contract DTXrewardBoost {
     	IDTX(address(token)).burn(tokensForBurn); // burns the tokens - "fibonaccening" sacrifice
 		
 		//if past 'grand fibonaccening' increase event count
-		if(!isRunningGrand && expiredGrandFibonaccening) {
+		if(expiredGrandFibonaccening) {
 			IGovernor(owner()).postGrandFibIncreaseCount();
 		}
 		
@@ -261,188 +247,16 @@ contract DTXrewardBoost {
     
      /**
      * If inflation is to drop below golden ratio, the grand fibonaccening event is ready
-	 * IMPORTANT NOTE: the math for the grand fibonaccening needs a lot of additional checks
-	 * It is almost certain that fixes will be required. The event won't happen for quite some time.
-	 * Giving enough time for additional fixes and changes to be adapted
      */
-    function isGrandFibonacceningReady() external {
-		require(!eligibleGrandFibonaccening);
-        if((IMasterChef(masterchef).DTXPerBlock() - goldenRatio * 1e18) <= goldenRatio * 1e18) { //we x1000'd the supply so 1e18
-            eligibleGrandFibonaccening = true;
-        }
+    function isGrandFibonacceningReady() public view returns (bool) {
+        if(!(IGovernor(owner()).eventFibonacceningActive())) { //we x1000'd the supply so 1e18
+            if((IMasterChef(masterchef).DTXPerBlock() - goldenRatio * 1e18) <= goldenRatio * 1e18) {
+				return true;
+			}
+        } 
+		return false;
     }
 
-    /**
-     * The Grand Fibonaccening Event, only happens once
-	 * A lot of Supply is printed (x1.618 - x1,000,000)
-	 * People like to buy on the way down
-	 * People like high APYs
-	 * People like to buy cheap coins
-	 * Grand Fibonaccening ain't happening for quite some time... 
-	 * We could add a requirement to vote through consensus for the "Grand Fibonaccening" to be enforced
-     */    
-    function initiateProposeGrandFibonaccening(uint256 depositingTokens, uint256 eventDate, uint256 finalSupply, uint256 delay) external {
-    	require(eligibleGrandFibonaccening && !grandFibonacceningActivated);
-		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-    	require(depositingTokens >= IGovernor(owner()).costToVote(), "there is a minimum cost to vote");
-		uint256 _totalSupply = IERC20(token).totalSupply();
-    	require(finalSupply >= (_totalSupply * 1618 / 1000) && finalSupply <= (_totalSupply * 1000000));
-    	require(eventDate > block.timestamp + delay + (7*24*3600) + IGovernor(owner()).delayBeforeEnforce());
-    	
-    	
-    	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
-    	grandFibonacceningProposals.push(
-    	    ProposeGrandFibonaccening(true, eventDate, block.timestamp, depositingTokens, 0, delay, finalSupply)
-    	    );
-    
-        emit EnforceProposal(1, grandFibonacceningProposals.length - 1, msg.sender, true);
-    }
-	function voteGrandFibonacceningY(uint256 proposalID, uint256 withTokens) external {
-		require(grandFibonacceningProposals[proposalID].valid, "invalid");
-		require(grandFibonacceningProposals[proposalID].eventDate - (7*24*3600) > block.timestamp, "past the point of no return"); //can only be cancled up until 7days before event
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		grandFibonacceningProposals[proposalID].valueSacrificedForVote+= withTokens;
-
-		emit AddVotes(1, proposalID, msg.sender, withTokens, true);
-	}
-	function voteGrandFibonacceningN(uint256 proposalID, uint256 withTokens, bool withAction) external {
-		require(grandFibonacceningProposals[proposalID].valid, "invalid");
-		require(grandFibonacceningProposals[proposalID].eventDate - (7*24*3600) > block.timestamp, "past the point of no return"); //can only be cancled up until 7days before event
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		grandFibonacceningProposals[proposalID].valueSacrificedAgainst+= withTokens;
-		if(withAction) { vetoProposeGrandFibonaccening(proposalID); }
-
-		emit AddVotes(1, proposalID, msg.sender, withTokens, false);
-	}
-	/*
-	* can be vetto'd during delayBeforeEnforce period.
-	* afterwards it can not be cancled anymore
-	* but it can still be front-ran by earlier event
-	*/
-    function vetoProposeGrandFibonaccening(uint256 proposalID) public {
-    	require(grandFibonacceningProposals[proposalID].valid, "already invalid");
-		require(grandFibonacceningProposals[proposalID].firstCallTimestamp + grandFibonacceningProposals[proposalID].delay + IGovernor(owner()).delayBeforeEnforce() <= block.timestamp, "pending delay");
-		require(grandFibonacceningProposals[proposalID].valueSacrificedForVote < grandFibonacceningProposals[proposalID].valueSacrificedAgainst, "needs more votes");
-
-    	grandFibonacceningProposals[proposalID].valid = false;  
-    	
-    	emit EnforceProposal(1, proposalID, msg.sender, false);
-    }
-    
-	
-    function grandFibonacceningEnforce(uint256 proposalID) public {
-        require(!grandFibonacceningActivated, "already called");
-        require(grandFibonacceningProposals[proposalID].valid && grandFibonacceningProposals[proposalID].eventDate <= block.timestamp, "not yet valid");
-		
-		address _consensusContract = IGovernor(owner()).consensusContract();
-		
-		uint256 _totalStaked = IConsensus(_consensusContract).totalDTXStaked();
-		
-		//to approve grand fibonaccening, more tokens have to be sacrificed for vote ++
-		// more stakes(locked shares) need to vote in favor than against it
-		//to vote in favor, simply vote for proposal ID of maximum uint256 number - 1
-		uint256 _totalVotedInFavor = IConsensus(_consensusContract).tokensCastedPerVote(type(uint256).max - 1);
-		uint256 _totalVotedAgainst= IConsensus(_consensusContract).tokensCastedPerVote(type(uint256).max);
-		
-        require(_totalVotedInFavor >= _totalStaked * 25 / 100
-                    || _totalVotedAgainst >= _totalStaked * 25 / 100,
-                             "minimum 25% weighted vote required");
-
-		if(grandFibonacceningProposals[proposalID].valueSacrificedForVote >= grandFibonacceningProposals[proposalID].valueSacrificedAgainst
-				&& _totalVotedInFavor > _totalVotedAgainst) {
-			grandFibonacceningActivated = true;
-			grandFibonacceningProposals[proposalID].valid = false;
-			desiredSupplyAfterGrandFibonaccening = grandFibonacceningProposals[proposalID].finalSupply;
-			
-			emit EnforceProposal(1, proposalID, msg.sender, true);
-		} else {
-			grandFibonacceningProposals[proposalID].valid = false;  
-    	
-			emit EnforceProposal(1, proposalID, msg.sender, false);
-		}
-    }
-    
-    /**
-     * Function handling The Grand Fibonaccening
-	 *
-     */
-    function grandFibonacceningRunning() external {
-        require(grandFibonacceningActivated && !expiredGrandFibonaccening);
-        
-        if(isRunningGrand){
-            require(block.number >= targetBlock, "target block not yet reached");
-            IGovernor(owner()).setInflation(0);
-            isRunningGrand = false;
-        } else {
-			require(!(IGovernor(owner()).fibonacciDelayed()), "event has been delayed");
-			uint256 _totalSupply = IERC20(token).totalSupply();
-            require(
-                ( _totalSupply * goldenRatio * goldenRatio / 1000000) < desiredSupplyAfterGrandFibonaccening, 
-                "Last 2 events happen at once"
-                );
-			// Just a simple implementation that allows max once per day at a certain time
-            require(
-                (block.timestamp % 86400) / 3600 >= 16 && (block.timestamp % 86400) / 3600 <= 18,
-                "can only call between 16-18 UTC"
-            );
-			require(block.timestamp - lastCallFibonaccening > delayBetweenEvents);
-			
-			lastCallFibonaccening = block.timestamp;
-            uint256 targetedSupply =  _totalSupply * goldenRatio / 1000;
-			uint256 amountToPrint = targetedSupply - _totalSupply; // (+61.8%)
-            
-			//printing the amount(61.8% of supply) in uint256(grandEventLength) seconds ( blocks in second are x100 )
-            uint256 rewardPerBlock = amountToPrint / (grandEventLength * IGovernor(owner()).blocksPerSecond() / 1000000); 
-			targetBlock = block.number + (amountToPrint / rewardPerBlock);
-            IGovernor(owner()).setInflation(rewardPerBlock);
-			
-            isRunningGrand = true;
-        }
-    
-    }
-    
-    /**
-     * During the last print of the Grand Fibonaccening
-     * It prints up to "double the dose" in order to reach the desired supply
-     * Why? to create a big decrease in the price, moving away from everyone's 
-     * buy point. It creates a big gap with no overhead resistance, creating the potential for
-     * the price to move back up effortlessly
-     */
-    function startLastPrintGrandFibonaccening() external {
-        require(!(IGovernor(owner()).fibonacciDelayed()), "event has been delayed");
-        require(grandFibonacceningActivated && !expiredGrandFibonaccening && !isRunningGrand);
-		uint256 _totalSupply = IERC20(token).totalSupply();
-        require(
-             _totalSupply * goldenRatio * goldenRatio / 1000000 >= desiredSupplyAfterGrandFibonaccening,
-            "on the last 2 we do it in one, call lastprint"
-            );
-        
-		require(block.timestamp - lastCallFibonaccening > delayBetweenEvents, "pending delay");
-        require((block.timestamp % 86400) / 3600 >= 16, "only after 16:00 UTC");
-        
-        uint256 rewardPerBlock = ( desiredSupplyAfterGrandFibonaccening -  _totalSupply ) / (grandEventLength * IGovernor(owner()).blocksPerSecond() / 1000000); //prints in desired time
-		targetBlock = (desiredSupplyAfterGrandFibonaccening -  _totalSupply) / rewardPerBlock;
-        IGovernor(owner()).setInflation(rewardPerBlock);
-                
-        isRunningGrand = true;
-        expiredGrandFibonaccening = true;
-    }
-    function expireLastPrintGrandFibonaccening() external {
-        require(isRunningGrand && expiredGrandFibonaccening);
-        require(block.number >= (targetBlock-7));
-        
-		uint256 _totalSupply = IERC20(token).totalSupply();
-		uint256 tokensToPrint = (_totalSupply * goldenRatio) / 100000; // 1618 => 1.618 (/1000), 1.618 => 1.618% (/100)
-		
-        uint256 newEmissions =  tokensToPrint / (365 * 24 * 36 * IGovernor(owner()).blocksPerSecond() / 10000); 
-		
-        IGovernor(owner()).setInflation(newEmissions);
-        isRunningGrand = false;
-    }
 	
   function setMasterchef() external {
 		masterchef = IMasterChef(address(token)).owner();
@@ -457,17 +271,6 @@ contract DTXrewardBoost {
 	function syncCreditContract() external {
 		creditContract = IGovernor(owner()).creditContract();
 	}
-    
-    // this is unneccesary until the Grand Fibonaccening is actually to happen
-    // Should perhaps add a proposal to regulate the length and delay
-    function updateDelayBetweenEvents(uint256 _delay) external {
-        require(msg.sender == owner(), "decentralized voting only");
-		delayBetweenEvents = _delay;
-    }
-    function updateGrandEventLength(uint256 _length) external {
-         require(msg.sender == owner(), "decentralized voting only");
-    	grandEventLength = _length;
-    }
 
     
     /**
@@ -487,7 +290,7 @@ contract DTXrewardBoost {
 	 * Can be used for building database from scratch (opposed to using event logs)
 	 * also to make sure all data and latest events are synced correctly
 	 */
-	function proposalLengths() external view returns(uint256, uint256) {
-		return(fibonacceningProposals.length, grandFibonacceningProposals.length);
+	function proposalLengths() external view returns(uint256) {
+		return(fibonacceningProposals.length);
 	}
 }
