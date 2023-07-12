@@ -206,6 +206,7 @@ contract DTXconsensus {
 	
 	
     function proposeGovernor(address _newGovernor) external {
+		require(isContract(_newGovernor), "Address must be a contract!");
 		governorCount++;
 		IVoting(creditContract).deductCredit(msg.sender, IGovernor(owner()).costToVote() * 100);
 		
@@ -345,5 +346,13 @@ contract DTXconsensus {
 	 */
 	function proposalLengths() external view returns(uint256, uint256, uint256) {
 		return(haltProposal.length, treasuryProposal.length, consensusProposal.length);
+	}
+
+	function isContract(address _address) public view returns (bool) {
+	    uint256 codeSize;
+	    assembly {
+		codeSize := extcodesize(_address)
+	    }
+	    return (codeSize > 0);
 	}
 }
