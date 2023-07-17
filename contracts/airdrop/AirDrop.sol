@@ -15,6 +15,7 @@ contract AirDrop is ReentrancyGuard {
 	uint256 public constant CLAIM_PERIOD_DAYS = 90;
 
 	IDTX public immutable DTX;
+	IMasterChef public masterchef;
 	address public immutable initiatingAddress; // inititates balances
 
     uint256 public startTime;
@@ -38,19 +39,21 @@ contract AirDrop is ReentrancyGuard {
 	event AddCredit(uint256 credit, address user);
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(IDTX _dtx, address initiator) {
+	constructor(IDTX _dtx, address initiator, IMasterChef _chef) {
 		DTX = _dtx;
 		initiatingAddress = initiator;
 		startTime = block.timestamp;
+		masterchef = _chef;
 	}
 
 	function claimAirdrop(uint256 amount, address claimInto) external nonReentrant {
 		require(amount <= userCredit[msg.sender], "insufficient credit");
 		if(claimInto == acPool1 || claimInto == acPool2 || claimInto == acPool3 || claimInto == acPool4 || claimInto == acPool5 || claimInto == acPool6) {
+			masterchef.publishTokens(address(this), amount * payout[claimInto] / 10000);
 			IacPool(claimInto).giftDeposit((amount * payout[claimInto] / 10000), msg.sender, minToServe[claimInto]);
 			IVoting(votingCreditContract).airdropVotingCredit(amount * payout[claimInto] / 10000, msg.sender);
 		} else {
-			require(DTX.transfer(msg.sender, (amount * directPayout / 10000)));
+			masterchef.publishTokens(msg.sender, (amount * directPayout / 10000));
 		}
 
 		userCredit[msg.sender]-= amount;
@@ -61,7 +64,7 @@ contract AirDrop is ReentrancyGuard {
     // ends the airdrop by emptying token balance(sends tokens to governing contract)
 	function endAirdrop() external {
 		require(block.timestamp > startTime + CLAIM_PERIOD_DAYS * 86400, "airdrop still active");
-		DTX.transfer(owner(), DTX.balanceOf(address(this)));
+		masterchef.publishTokens(owner(), masterchef.credit(address(this))));
 	}
 
 	function updatePools() external {
@@ -71,6 +74,8 @@ contract AirDrop is ReentrancyGuard {
 			acPool4 = IGovernor(owner()).acPool4();
 			acPool5 = IGovernor(owner()).acPool5();
 			acPool6 = IGovernor(owner()).acPool6();
+
+			votingCreditContract = IGovernor(owner()).creditContract();
 
 			minToServe[acPool1] = 864000;
 			minToServe[acPool2] = 2592000;
