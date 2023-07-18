@@ -12,7 +12,6 @@ contract VotingCredit {
 	IMasterChef public masterchef;
 	
 	address public immutable airdropContract = ;
-	address public immutable airdropContractFull = ; //no penalty
 	
 	mapping(address => uint256) public userCredit;
 	
@@ -27,7 +26,7 @@ contract VotingCredit {
 	// allows for custom implementations
 	mapping(uint256 => uint256) public burnedForId;
 	
-	constructor(IDTX _token, IMasterChef _masterchef, uint256 _creditingContractCount, uint256 _deductingContractCount, address _airdropContract, address _airdropContractFull) {
+	constructor(IDTX _token, IMasterChef _masterchef, uint256 _creditingContractCount, uint256 _deductingContractCount, address _airdropContract) {
 		token = _token;
 		masterchef = _masterchef;
 		creditingContractCount = _creditingContractCount; //6
@@ -44,7 +43,6 @@ contract VotingCredit {
 		deductingContract[""] = true;
 		deductingContract[""] = true;
 		airdropContract = _airdropContract; // With token penalty on deposit to lower timeframe stakes
-		airdropContractFull = _airdropContractFull; // No penalties for tokens (credit received is lesser on shorter timeframe stake)
 	}
 	
 	event SetCreditingContract(address _contract, bool setting);
@@ -81,7 +79,7 @@ contract VotingCredit {
 	}
 	
 	function airdropVotingCredit(uint256 amount, address beneficiary) external {
-		require(msg.sender== airdropContract || msg.sender == airdropContractFull, "no permission");
+		require(msg.sender== airdropContract, "no permission");
 		userCredit[beneficiary]+=amount;
 		emit AddCredit(beneficiary, amount);
 	}
