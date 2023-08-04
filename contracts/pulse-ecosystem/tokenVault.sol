@@ -55,8 +55,8 @@ contract tokenVault is ReentrancyGuard {
 	uint256 public lastFundingChangeTimestamp; // save block.timestamp when funding rate is changed
 	
 	
-	uint256 public refShare1 = 2000; // 20% ; initial deposit 
-	uint256 public refShare2 = 2000; // 20% ; recurring fee
+	uint256 public refShare1 = 0; // start at 0%
+	uint256 public refShare2 = 0; // start at 0%
 	
 
     event Deposit(address indexed sender, uint256 amount, uint256 debt, uint256 depositFee, address referral);
