@@ -51,7 +51,7 @@ contract tshareVault is ReentrancyGuard {
 	
 	uint256 public maxStakes = 150;
 
-    uint256 public defaultDirectPayout = 500; //5% if withdrawn into wallet
+    uint256 public defaultDirectPayout = 200; //2% if withdrawn into wallet
 	
 
     event Deposit(address indexed sender, uint256 amount, uint256 debt);
@@ -77,23 +77,23 @@ contract tshareVault is ReentrancyGuard {
         treasury = _feeAddress;
         poolID = _poolID;
 	
-		poolPayout[0x32b33C2Eb712D172e389811d5621031688Fa4c13].amount = 750;
-        poolPayout[0x32b33C2Eb712D172e389811d5621031688Fa4c13].minServe = 864000;
+		poolPayout[].amount = 300;
+        poolPayout[].minServe = 864000;
 
-        poolPayout[0x8C0471539F226453598090dAd4333F3D7E34Afb4].amount = 1500;
-        poolPayout[0x8C0471539F226453598090dAd4333F3D7E34Afb4].minServe = 2592000;
+        poolPayout[].amount = 500;
+        poolPayout[].minServe = 2592000;
 
-        poolPayout[0xC251392b5A5D3f0721027015D1d1234d630c8688].amount = 2500;
-        poolPayout[0xC251392b5A5D3f0721027015D1d1234d630c8688].minServe = 5184000;
+        poolPayout[].amount = 7500;
+        poolPayout[].minServe = 5184000;
 
-        poolPayout[0x7B0939A38EDc3bfDB674F4160e08A3Abed733305].amount = 5000;
-        poolPayout[0x7B0939A38EDc3bfDB674F4160e08A3Abed733305].minServe = 8640000;
+        poolPayout[].amount = 1000;
+        poolPayout[].minServe = 8640000;
 
-        poolPayout[0x2694BaB21281Bf743536754C562b8d3AA99DF80c].amount = 7000;
-        poolPayout[0x2694BaB21281Bf743536754C562b8d3AA99DF80c].minServe = 20736000;
+        poolPayout[].amount = 2500;
+        poolPayout[].minServe = 20736000;
 
-        poolPayout[0x908C35aa2CFF22e8234990344C129AD2fD365A0F].amount = 10000;
-        poolPayout[0x908C35aa2CFF22e8234990344C129AD2fD365A0F].minServe = 31536000; 
+        poolPayout[].amount = 10000;
+        poolPayout[].minServe = 31536000; 
     }
     
     /**
