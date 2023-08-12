@@ -177,5 +177,5 @@ interface IConsensus {
         uint256 withTokens
     ) external;
 	
-	function proposalLengths() external view returns(uint256)
+	function proposalLengths() external view returns(uint256);
 }
