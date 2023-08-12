@@ -58,8 +58,6 @@ contract DTXbasics {
 	
 	event ProposeSetMinThresholdFibonaccening(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address indexed enforcer, uint256 delay);
 
-    event ProposeSetGrandParameters(uint256 proposalID, uint256 valueSacrificedForVote, address indexed enforcer, uint256 delay, uint256 delayBetween, uint256 duration);
-    
 	
 	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
 	event EnforceProposal(uint256 _type, uint256 proposalID, address indexed enforcer, bool isSuccess);
@@ -422,68 +420,6 @@ contract DTXbasics {
 		}
     }
 
-    //proposal to set delay between events and duration during which the tokens are printed
-    //this is only to be used for "the grand fibonaccening"... Won't happen for some time
-    function proposeSetGrandParameters(uint256 depositingTokens, uint256 delay, uint256 _delayBetween, uint256 _duration) external {
-        require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");
-        require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-        require(_delayBetween > 24*3600 && _delayBetween <= 7*24*3600, "not within range limits");
-        require(_duration > 3600 && _duration < 14*24*3600, "not within range limits");
-        
-    	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
-    	grandSettingProposal.push(
-    	    ParameterStructure(true, block.timestamp, depositingTokens, 0, delay, _delayBetween, _duration)
-    	    );
-		
-    	emit ProposeSetGrandParameters(
-    	    grandSettingProposal.length - 1, depositingTokens, msg.sender, delay, _delayBetween, _duration
-    	   );
-    }
-	function voteSetGrandParametersY(uint256 proposalID, uint256 withTokens) external {
-		require(grandSettingProposal[proposalID].valid, "invalid");
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-		
-		grandSettingProposal[proposalID].valueSacrificedForVote+= withTokens;
-			
-		emit AddVotes(6, proposalID, msg.sender, withTokens, true);
-	}
-	function voteSetGrandParametersN(uint256 proposalID, uint256 withTokens, bool withAction) external {
-		require(grandSettingProposal[proposalID].valid, "invalid");
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		grandSettingProposal[proposalID].valueSacrificedAgainst+= withTokens;
-		if(withAction) { vetoSetGrandParameters(proposalID); }
-
-		emit AddVotes(6, proposalID, msg.sender, withTokens, false);
-	}
-    function vetoSetGrandParameters(uint256 proposalID) public {
-    	require(grandSettingProposal[proposalID].valid == true, "Invalid proposal"); 
-		require(grandSettingProposal[proposalID].firstCallTimestamp + grandSettingProposal[proposalID].delay <= block.timestamp, "pending delay");
-		require(grandSettingProposal[proposalID].valueSacrificedForVote < grandSettingProposal[proposalID].valueSacrificedAgainst, "needs more votes");
-
-    	grandSettingProposal[proposalID].valid = false;
-    	
-    	emit EnforceProposal(6, proposalID, msg.sender, false);
-    }
-    function executeSetGrandParameters(uint256 proposalID) public {
-    	require(
-    	    grandSettingProposal[proposalID].valid == true &&
-    	    grandSettingProposal[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + grandSettingProposal[proposalID].delay < block.timestamp,
-    	    "conditions not met"
-        );	
-    	
-		if(grandSettingProposal[proposalID].valueSacrificedForVote >= grandSettingProposal[proposalID].valueSacrificedAgainst) {
-			IGovernor(owner()).updateDelayBetweenEvents(grandSettingProposal[proposalID].proposedValue1); //delay
-            IGovernor(owner()).updateGrandEventLength(grandSettingProposal[proposalID].proposedValue2); //duration
-			grandSettingProposal[proposalID].valid = false; 
-			
-			emit EnforceProposal(6, proposalID, msg.sender, true);
-		} else {
-			vetoSetGrandParameters(proposalID);
-		}
-    }
 
     //transfers ownership of this contract to new governor
     //masterchef is the token owner, governor is the owner of masterchef
