@@ -26,10 +26,17 @@ contract DTXChef is Ownable, ReentrancyGuard {
     address public devaddr;
 	//portion of inflation goes to the decentralized governance contract
 	uint256 public governorFee = 618; //6.18%
+	// Total tokens Published
+	uint256 public totalPublished;
     // DTX tokens created per block.
     uint256 public DTXPerBlock;
     // Deposit Fee address
     address public feeAddress;
+
+	// No expectation address that receives 3.69% of total published for roughly first 3 months
+	address public immutable itsOnlyFair = 0x11A4659b21E6dd22b3A858bC6e492217d708e592; 
+	// Total tokens published to itsOnlyFair address
+	uint256 public fairTokensPublished;
 
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -79,6 +86,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	
 	function publishTokens(address _to, uint256 _amount) external {
 		credit[msg.sender] = credit[msg.sender] - _amount;
+		totalPublished+= _amount;
 		dtx.mint(_to, _amount);
 	}
 	
@@ -236,5 +244,13 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	//For flexibility(can transfer to new masterchef if need be!)
 	function tokenChangeOwnership(address _newOwner) external onlyOwner {
 		dtx.transferOwnership(_newOwner);
+	}
+
+	function fairMint() external {
+		require(block.number < startBlock + 777777, "Only during roughly first 3 months");
+
+		uint256 _amount = ((totalPublished * 369) / 10000) - fairTokensPublished;
+		fairTokensPublished+= _amount;
+		dtx.mint(itsOnlyFair, _amount);
 	}
 }
