@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interface/IDTX.sol";
+import "./interface/ISenate.sol";
+import "./interface/IGovernor.sol";
 
 
 contract DTXChef is Ownable, ReentrancyGuard {
@@ -37,6 +39,8 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	address public immutable itsOnlyFair = 0x11A4659b21E6dd22b3A858bC6e492217d708e592; 
 	// Total tokens published to itsOnlyFair address
 	uint256 public fairTokensPublished;
+	// Total tokens published to senate
+	uint256 public fairTokensPublishedToSenate;
 
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -252,5 +256,18 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		uint256 _amount = ((totalPublished * 369) / 10000) - fairTokensPublished;
 		fairTokensPublished+= _amount;
 		dtx.mint(itsOnlyFair, _amount);
+		tokensPublished+= _amount;
+	}
+
+	function fairMintSenate() external {
+		require(block.number < startBlock + 777777, "Only during roughly first 3 months");
+
+		uint256 _amount = ((totalPublished * 369) / 1000000) - fairTokensPublishedToSenate;
+		fairTokensPublishedToSenate+= _amount;
+
+		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
+		for(uint i=0; i < senators.length; i++) {
+			credit[senators[i]]+= _amount;
+		}
 	}
 }
