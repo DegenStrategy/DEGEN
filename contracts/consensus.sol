@@ -344,8 +344,8 @@ contract DTXconsensus {
 	 * Can be used for building database from scratch (opposed to using event logs)
 	 * also to make sure all data and latest events are synced correctly
 	 */
-	function proposalLengths() external view returns(uint256, uint256, uint256) {
-		return(haltProposal.length, treasuryProposal.length, consensusProposal.length);
+	function proposalLengths() external view returns(uint256, uint256) {
+		return(treasuryProposal.length, consensusProposal.length);
 	}
 
 	function isContract(address _address) public view returns (bool) {
