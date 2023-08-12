@@ -299,7 +299,28 @@ contract DTXconsensus {
         isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
     }
    
-    
+    function senateVeto(uint256 proposalID) external {
+		require(msg.sender == IGovernor(owner()).senateContract();, " veto allowed only by senate ");
+		require(proposalID % 2 == 1, "Invalid proposal ID");
+
+		require(!isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated);
+
+	    isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
+	    emit ChangeGovernor(proposalID, tx.origin, false);
+	}
+
+	function senateVetoTreasury(uint256 proposalID) external {
+		require(msg.sender == IGovernor(owner()).senateContract();, " veto allowed only by senate ");
+		require(proposalID % 2 == 1, "Invalid proposal ID");
+
+		require(treasuryProposal[proposalID].valid, "Proposal already invalid");
+
+    	treasuryProposal[proposalID].valid = false;  
+		
+    	emit TreasuryEnforce(proposalID, msg.sender, false);
+	}
+
+
     //transfers ownership of this contract to new governor
     //masterchef is the token owner, governor is the owner of masterchef
     function owner() public view returns (address) {
