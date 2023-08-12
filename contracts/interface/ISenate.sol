@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: NONE
 pragma solidity >=0.7.0 <0.9.0;
 
-interface MyInterface {
+interface ISenate {
     event AddSenator(address senator);
     event AddVote(address voter, uint256 proposalId);
     event RemoveSenator(address senator);
