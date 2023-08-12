@@ -1,0 +1,162 @@
+// SPDX-License-Identifier: NONE
+pragma solidity 0.8.0;
+
+import "./interface/IGovernor.sol";
+import "./interface/IDTX.sol";
+import "./interface/IConsensus.sol";
+import "./interface/IVoting.sol";
+import "./interface/IMasterChef.sol";
+
+contract Senate {
+	address public immutable token;
+	
+	address[] public senators;
+	
+	mapping(address => bool) public isSenator;
+	mapping(address => bool) public addedSenator; // prevents double add 
+	
+	mapping(address => uint256[]) public senatorVotes;
+	mapping(uint256 => uint256) public votesForProposal;
+	
+	uint256 public lastVotingCreditGrant; // timestamp
+	uint256 public lastTotalPublished; // record of total published from masterchef
+	
+	uint256 public maxSenators = 100;
+	uint256 public minSenators = 25;
+	
+	constructor(address _token) {
+		token = _token;
+	}
+	
+	function addSenator(address _newSenator) public {
+		require(msg.sender == owner(), "only through decentralized voring");
+		require(!isSenator[_newSenator], "already a senator!");
+		require(!addedSenator[_newSenator], "already added");
+		
+		senators.push(_newSenator);
+		isSenator[_newSenator] = true;
+		addedSenator[_newSenator] = true;
+	}
+	
+	function massAdd(address[] calldata _senators) external {
+		for(uint i=0; i < _senators.length; i++) {
+			addSenator(_senators[i]);
+		}
+	}
+	
+	function expandSenate(address _newSenator) external {
+		require(senators.length < maxSenators, "maximum Number of senators achieved");
+		require(votesForProposal[toUint(_newSenator)] > senatorCount()/2, "atleast 50% of senate votes required");
+		require(!isSenator[_newSenator], "already a senator!");
+		require(!addedSenator[_newSenator], "already added");
+		
+		senators.push(_newSenator);
+		isSenator[_newSenator] = true;
+		addedSenator[_newSenator] = true;
+	}
+	
+	function expellSenator(address _senator) external {
+		require(senators.length > minSenators, "minimum number of 25 senate members!");
+		require(votesForProposal[toUint(_senator)+1] > senatorCount() * 75 / 100, "atleast 75% of senate votes required");
+		require(isSenator[_senator], "not a senator!");
+		
+		isSenator[_senator] = false;
+		
+		for(uint i=0; i < senators.length-1; i++) {
+			if(senators[i] == _senator) {
+				senators[i] = senators[senators.length-1];
+				break;
+			}
+		}
+		
+		senators.pop();
+	}
+	
+	function selfReplaceSenator(address _newSenator) external {
+		require(isSenator[msg.sender], "not a senator");
+		require(!isSenator[_newSenator], "already senator");
+		require(senatorVotes[msg.sender].length == 0, "can't be participating in a vote during transfer!");
+		
+		isSenator[msg.sender] = false;
+		isSenator[_newSenator] = true;
+		
+		for(uint i=0; i < senators.length; i++) {
+			if(senators[i] == msg.sender) {
+				senators[i] = _newSenator;
+				addedSenator[_newSenator] = true;
+				break;
+			}
+		}
+	}
+	
+	function grantVotingCredit() external {
+		address _contract = IGovernor(owner()).creditContract();
+		address _chef = IMasterChef(owner()).owner();
+		
+		uint256 _totalPublished = IMasterChef(_chef).totalPublished();
+		
+		uint256 _reward = (_totalPublished - lastTotalPublished) / 100;
+		
+		lastTotalPublished = _totalPublished;
+		// there is a maximum number before gas limit
+		for(uint i=0; i < senators.length; i++) {
+			IVoting(_contract).addCredit(_reward, senators[i]);
+		}
+	}
+	
+	function vote(uint256 proposalId) external {
+		require(isSenator[msg.sender], "not a senator");
+		
+		for(uint i=0; i < senatorVotes[msg.sender].length; i++) {
+			require(senatorVotes[msg.sender][i] != proposalId, "already voting!");
+		}
+		
+		votesForProposal[proposalId]++;
+		senatorVotes[msg.sender].push(proposalId);
+	}
+	
+	function removeVote(uint256 proposalId) external {
+		require(isSenator[msg.sender], "not a senator");
+		
+		for(uint i=0; i < senatorVotes[msg.sender].length; i++) {
+			if(senatorVotes[msg.sender][i] == proposalId) {
+				if(i != senatorVotes[msg.sender].length-1) {
+					senatorVotes[msg.sender][i] = senatorVotes[msg.sender][senatorVotes[msg.sender].length-1];
+				} 
+				senatorVotes[msg.sender].pop();
+				
+				votesForProposal[proposalId]--;
+			}
+		}
+	}
+	
+	function vetoProposal(uint256 proposalId) external {
+		require(votesForProposal[proposalId] > senatorCount()/2, "atleast 50% of senate votes required");
+		
+		address _contract = IGovernor(owner()).consensusContract();
+		IConsensus(_contract).senateVeto(proposalId);
+	}
+	
+	function setSenatorCount(uint256 _min, uint256 _max) external {
+		require(msg.sender == owner(), " decentralized voting only! ");
+		
+		minSenators = _min;
+		maxSenators = _max;
+	}
+	
+	function viewSenators() external view returns(address[] memory) {
+		return senators;
+	}
+	
+	function senatorCount() public view returns (uint256) {
+		return senators.length;
+	}
+	
+	function owner() public view returns (address) {
+		return (IDTX(token).governor());
+    }
+	
+	function toUint(address self) public pure returns(uint256) {
+		return uint256(uint160(self));
+	}
+}
