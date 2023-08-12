@@ -178,4 +178,6 @@ interface IConsensus {
     ) external;
 	
 	function proposalLengths() external view returns(uint256);
+
+	function senateVeto(uint256 proposalId) external;
 }
