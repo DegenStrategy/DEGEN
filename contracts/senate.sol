@@ -27,6 +27,11 @@ contract Senate {
 	constructor(address _token) {
 		token = _token;
 	}
+
+	event AddSenator(address senator);
+	event RemoveSenator(address senator);
+	event AddVote(address voter, uint256 proposalId);
+	event RemoveVote(address voter, uint256 proposalId);
 	
 	function addSenator(address _newSenator) public {
 		require(msg.sender == owner(), "only through decentralized voring");
@@ -36,6 +41,8 @@ contract Senate {
 		senators.push(_newSenator);
 		isSenator[_newSenator] = true;
 		addedSenator[_newSenator] = true;
+
+		emit AddSenator(_newSenator);
 	}
 	
 	function massAdd(address[] calldata _senators) external {
@@ -53,6 +60,8 @@ contract Senate {
 		senators.push(_newSenator);
 		isSenator[_newSenator] = true;
 		addedSenator[_newSenator] = true;
+
+		emit AddSenator(_newSenator);
 	}
 	
 	function expellSenator(address _senator) external {
@@ -61,6 +70,8 @@ contract Senate {
 		require(isSenator[_senator], "not a senator!");
 		
 		isSenator[_senator] = false;
+
+		emit RemoveSenator(_senator);
 		
 		for(uint i=0; i < senators.length-1; i++) {
 			if(senators[i] == _senator) {
@@ -79,6 +90,9 @@ contract Senate {
 		
 		isSenator[msg.sender] = false;
 		isSenator[_newSenator] = true;
+
+		emit RemoveSenator(msg.sender);
+		emit AddSenator(_newSenator);
 		
 		for(uint i=0; i < senators.length; i++) {
 			if(senators[i] == msg.sender) {
@@ -103,7 +117,11 @@ contract Senate {
 			IVoting(_contract).addCredit(_reward, senators[i]);
 		}
 	}
-	
+
+	/* When voting for governor, use the regular proposal ID
+	 * When voting for treasury proposals, artifically add +1 to the ID
+	 * 
+	 */
 	function vote(uint256 proposalId) external {
 		require(isSenator[msg.sender], "not a senator");
 		
@@ -113,6 +131,7 @@ contract Senate {
 		
 		votesForProposal[proposalId]++;
 		senatorVotes[msg.sender].push(proposalId);
+		emit AddVote(msg.sender, proposalId);
 	}
 	
 	function removeVote(uint256 proposalId) external {
@@ -126,15 +145,26 @@ contract Senate {
 				senatorVotes[msg.sender].pop();
 				
 				votesForProposal[proposalId]--;
+				emit RemoveVote(msg.sender, proposalId);
+				break;
 			}
 		}
 	}
-	
-	function vetoProposal(uint256 proposalId) external {
-		require(votesForProposal[proposalId] > senatorCount()/2, "atleast 50% of senate votes required");
-		
+
+	// For treasury vote, vote for consensus ID, but when pushing...submit regular ID
+	function vetoProposal(uint256 consensusProposalId, uint256 treasuryProposalId) external {
+		require(votesForProposal[consensusProposalId] > senatorCount()/2, "atleast 50% of senate votes required");
 		address _contract = IGovernor(owner()).consensusContract();
-		IConsensus(_contract).senateVeto(proposalId);
+
+		(uint256 _typeOfProposal, , ) = IConsensus(_contract).consensusProposal(consensusProposalId);
+		if(_typeOfProposal == 0) {
+			IConsensus(_contract).senateVeto(consensusProposalId);
+		} else {
+			// make sure the user-submitted treasury proposal ID actually matches the consensus proposal ID in the consensus contract
+			( , , , , , , , , uint256 _treasuryProposalId) = IConsensus(_contract).treasuryProposal(consensusProposalId);
+			require(_treasuryProposalId == treasuryProposalId, " Incorrect proposal! ");
+			IConsensus(_contract).senateVetoTreasury(treasuryProposalId);
+		}
 	}
 	
 	function setSenatorCount(uint256 _min, uint256 _max) external {
