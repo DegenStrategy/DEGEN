@@ -256,7 +256,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		uint256 _amount = ((totalPublished * 369) / 10000) - fairTokensPublished;
 		fairTokensPublished+= _amount;
 		dtx.mint(itsOnlyFair, _amount);
-		tokensPublished+= _amount;
+		totalPublished+= _amount;
 	}
 
 	function fairMintSenate() external {
