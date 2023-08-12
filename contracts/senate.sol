@@ -166,6 +166,24 @@ contract Senate {
 			IConsensus(_contract).senateVetoTreasury(treasuryProposalId);
 		}
 	}
+
+	function multiCall() public view returns (address[] memory, uint256[][] memory, uint256[] memory, uint256) {
+		uint256[][] memory allVotes = new uint256[][](senators.length);
+		uint256[] memory allCredits = new uint256[](senators.length);
+
+		address _chef = IMasterChef(owner()).owner();
+		
+		uint256 _totalPublished = IMasterChef(_chef).totalPublished();
+		
+		uint256 _reward = (_totalPublished - lastTotalPublished) / 100;
+
+		for (uint256 i = 0; i < senators.length; i++) {
+			allVotes[i] = senatorVotes[senators[i]];
+			allCredits[i] = IMasterChef(_chef).credit(senators[i]);
+		}
+
+		return (senators, allVotes, allCredits, _reward);
+	}
 	
 	function setSenatorCount(uint256 _min, uint256 _max) external {
 		require(msg.sender == owner(), " decentralized voting only! ");
