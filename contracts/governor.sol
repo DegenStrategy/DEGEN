@@ -45,6 +45,7 @@ contract DTXgovernor {
     address public immutable farmContract = ;
     address public immutable fibonacceningContract = ; //reward boost contract
     address public immutable basicContract = ;
+	address public immutable senateContract = ;
 	
 	address public immutable creditContract = ;
 	
