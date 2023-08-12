@@ -113,4 +113,6 @@ interface IMasterChef {
     function updateStartBlock(uint256 _startBlock) external;
 
     function withdraw(uint256 _pid, uint256 _amount) external;
+
+    function totalPublished() external view returns(uint256);
 }
