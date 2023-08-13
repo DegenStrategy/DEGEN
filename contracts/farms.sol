@@ -388,7 +388,7 @@ contract DTXfarms {
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);	
 			
 		vaultProposals[proposalID].valueSacrificedAgainst+= withTokens;	
-		if(withAction) { vetoGovernorTransfer(proposalID); }	
+		if(withAction) { vetoVault(proposalID); }	
 		emit AddVotes(5, proposalID, msg.sender, withTokens, false);	
 	}	
     function vetoVault(uint256 proposalID) public {	
