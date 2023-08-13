@@ -167,11 +167,14 @@ contract Senate {
 		}
 	}
 
-	function multiCall() public view returns (address[] memory, uint256[][] memory, uint256[] memory, uint256) {
+	function multiCall() public view returns (address[] memory, uint256[][] memory, uint256[] memory, uint256, uint256[] memory) {
 		uint256[][] memory allVotes = new uint256[][](senators.length);
 		uint256[] memory allCredits = new uint256[](senators.length);
+		uint256[] memory mintableCredit = new uint256[](senators.length);
 
 		address _chef = IMasterChef(owner()).owner();
+
+		address _votingContract = IGovernor(owner()).creditContract();
 		
 		uint256 _totalPublished = IMasterChef(_chef).totalPublished();
 		
@@ -179,10 +182,11 @@ contract Senate {
 
 		for (uint256 i = 0; i < senators.length; i++) {
 			allVotes[i] = senatorVotes[senators[i]];
-			allCredits[i] = IMasterChef(_chef).credit(senators[i]);
+			allCredits[i] = IVoting(_votingContract).userCredit(senators[i]);
+			mintableCredit[i] = IMasterChef(_chef).credit(senators[i]);
 		}
 
-		return (senators, allVotes, allCredits, _reward);
+		return (senators, allVotes, allCredits, _reward, mintableCredit);
 	}
 	
 	function setSenatorCount(uint256 _min, uint256 _max) external {
