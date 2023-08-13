@@ -373,16 +373,7 @@ contract DTXgovernor {
             IVault(plsxVault).setRefShare2(_amount);
             IVault(hexVault).setRefShare2(_amount);
 			IVault(incVault).setRefShare2(_amount);
-        } else if(_type == 5) {
-            IVault(plsVault).updateSettings(_amount);
-            IVault(plsxVault).updateSettings(_amount);
-            IVault(hexVault).updateSettings(_amount);
-			IVault(incVault).updateSettings(_amount);
-			IVault(lp1Vault).updateSettings(_amount);
-			IVault(lp2Vault).updateSettings(_amount);
-			IVault(lp3Vault).updateSettings(_amount);
-			IVault(lp4Vault).updateSettings(_amount);
-        }
+        } 
     }
 	
 	function setGovernorTax(uint256 _amount) external {
