@@ -83,7 +83,7 @@ contract pulseVault is ReentrancyGuard {
         poolPayout[].amount = 500;
         poolPayout[].minServe = 2592000;
 
-        poolPayout[].amount = 7500;
+        poolPayout[].amount = 750;
         poolPayout[].minServe = 5184000;
 
         poolPayout[].amount = 1000;
