@@ -8,6 +8,7 @@ import "interface/IDTX.sol";
 import "interface/IGovernor.sol";
 
 contract BuybackDTX {
+	uint256 public constant MAX_SWAP = 100 000 000 * 1e18;
     address public constant UNISWAP_ROUTER_ADDRESS = ;
     address public immutable DTX = ;
     address public immutable wPLS = ;
@@ -23,9 +24,11 @@ contract BuybackDTX {
     function buybackPLS() public {
 		require(msg.sender == tx.origin);
         uint deadline = block.timestamp + 15; 
+		uint256 _swapAmount = address(this).balance;
+		if(_swapAmount > MAX_SWAP) { _swapAmount = MAX_SWAP; }
         uint[] memory _minOutT = getEstimatedDTXforETH();
         uint _minOut = _minOutT[_minOutT.length-1] * 99 / 100;
-        uniswapRouter.swapETHForExactTokens{ value: address(this).balance }(_minOut, getPLSpath(), address(this), deadline);
+        uniswapRouter.swapETHForExactTokens{ value: _swapAmount }(_minOut, getPLSpath(), address(this), deadline);
     }
 	
 	function buybackAndBurn(bool _pls) external {
@@ -60,7 +63,9 @@ contract BuybackDTX {
 
     //with gets amount in you provide how much you want out
     function getEstimatedDTXforETH() public view returns (uint[] memory) {
-        return uniswapRouter.getAmountsOut(address(this).balance, getPLSpath()); //NOTICE: ETH is matic PLS
+		uint256 _swapAmount = address(this).balance;
+		if(_swapAmount > MAX_SWAP) { _swapAmount = MAX_SWAP; }
+        return uniswapRouter.getAmountsOut(_swapAmount, getPLSpath()); //NOTICE: ETH is matic PLS
     }
 
     function getPLSpath() private view returns (address[] memory) {
