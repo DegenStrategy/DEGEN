@@ -272,7 +272,9 @@ contract DTXfarms {
     	
 		if(governorTransferProposals[proposalID].valueSacrificedForVote >= governorTransferProposals[proposalID].valueSacrificedAgainst) {
 			if(governorTransferProposals[proposalID].isBurn) {
-				IGovernor(owner()).burnTokens(governorTransferProposals[proposalID].proposedValue);
+				if(IDTX(token).balanceOf(owner()) >= governorTransferProposals[proposalID].proposedValue) {
+					IGovernor(owner()).burnTokens(governorTransferProposals[proposalID].proposedValue);
+				}
 			} else {
 				IGovernor(owner()).transferToTreasury(governorTransferProposals[proposalID].proposedValue);
 			}
