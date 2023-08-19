@@ -66,7 +66,7 @@ contract Senate {
 	
 	function expellSenator(address _senator) external {
 		require(senators.length > minSenators, "minimum number of 25 senate members!");
-		require(votesForProposal[toUint(_senator)+1] > senatorCount() * 75 / 100, "atleast 75% of senate votes required");
+		require(votesForProposal[toUint(_senator)+1] > senatorCount() * 50 / 100, "atleast 50% of senate votes required");
 		require(isSenator[_senator], "not a senator!");
 		
 		isSenator[_senator] = false;
