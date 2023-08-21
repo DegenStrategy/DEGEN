@@ -88,7 +88,7 @@ contract DTXgovernor {
     
     mapping(address => uint256) private _rollBonus;
 
-	uint256 public referralBonus = 2000;
+	uint256 public referralBonus = 1000; // 10% for both referr and invitee
 	
 	uint256 public newGovernorBlockDelay = 189000; //in blocks (roughly 5 days at beginning)
     
