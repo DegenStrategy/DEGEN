@@ -55,6 +55,8 @@ contract DTXgovernor {
     //Addresses for treasuryWallet and NFT wallet
     address public treasuryWallet = ;
     address public nftWallet = ;
+
+	address public immutable rewardContract = ; //for referral rewards
     
     //addresses for time-locked deposits(autocompounding pools)
     address public immutable acPool1 = ;
@@ -78,12 +80,15 @@ contract DTXgovernor {
 	address public immutable plsxVault = ;
 	address public immutable hexVault = ;
 	address public immutable incVault = ;
+	address public immutable tshareVault = ;
 	address public immutable lp1Vault = ; // PLS LP
 	address public immutable lp2Vault = ; // USD LP
 	address public immutable lp3Vault = ; // HEX LP
 	address public immutable lp4Vault = ; // PLSX LP
     
     mapping(address => uint256) private _rollBonus;
+
+	uint256 public referralBonus = 2000;
 	
 	uint256 public newGovernorBlockDelay = 189000; //in blocks (roughly 5 days at beginning)
     
@@ -251,6 +256,7 @@ contract DTXgovernor {
         emit GiveRolloverBonus(_toAddress, _bonusToPay, _depositToPool);
     }
 
+
     /**
      * Sets inflation in Masterchef
      */
@@ -373,7 +379,10 @@ contract DTXgovernor {
             IVault(plsxVault).setRefShare2(_amount);
             IVault(hexVault).setRefShare2(_amount);
 			IVault(incVault).setRefShare2(_amount);
-        } 
+        } else if (_type == 5) {
+			require(_amount <= 2500, "max 25% Bonus!);
+			referralBonus = _amount;
+		}
     }
 	
 	function setGovernorTax(uint256 _amount) external {
