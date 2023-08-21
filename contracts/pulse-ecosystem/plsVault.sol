@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.1;
+pragma solidity 0.8.20;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
@@ -23,7 +23,6 @@ contract pulseVault is ReentrancyGuard {
         uint256 amount;
 		uint256 debt;
 		uint256 feesPaid;
-		address referredBy;
 		uint256 lastAction;
     }
 
@@ -41,6 +40,10 @@ contract pulseVault is ReentrancyGuard {
 
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
+
+	// Referral system: Track referrer + referral points
+	mapping(address => address) public referredBy;
+	mapping(address => uint256) public referralPoints;
  
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
@@ -118,14 +121,18 @@ contract pulseVault is ReentrancyGuard {
         require(msg.value == _amount && _amount > 0, "invalid amount");
         harvest();
 		
+		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
+			referredBy[msg.sender] = referral;
+		}
+		
 		uint256 _depositFee = _amount * depositFee / 10000;
 		_amount = _amount - _depositFee;
 
         uint256 commission = 0;
 		
-		if(referral != msg.sender && _depositFee > 0) {
+		if(referredBy[msg.sender] != address(0) && _depositFee > 0) {
 			commission = _depositFee * refShare1 / 10000;
-			payable(referral).transfer(commission);
+			payable(referredBy[msg.sender]).transfer(commission);
 		}
 		
 		payable(treasury).transfer(_depositFee - commission);
@@ -133,10 +140,10 @@ contract pulseVault is ReentrancyGuard {
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 
         userInfo[msg.sender].push(
-                UserInfo(_amount, _debt, _depositFee, referral, block.timestamp)
+                UserInfo(_amount, _debt, _depositFee, block.timestamp)
             );
 
-        emit Deposit(msg.sender, _amount, _debt, _depositFee, referral);
+        emit Deposit(msg.sender, _amount, _debt, _depositFee, referredBy[msg.sender]);
     }
 
     /**
@@ -157,7 +164,7 @@ contract pulseVault is ReentrancyGuard {
         require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
         UserInfo storage user = userInfo[msg.sender][_stakeID];
         
-        payFee(user);
+        payFee(user, msg.sender);
 
 		uint256 userTokens = user.amount; 
 
@@ -178,6 +185,12 @@ contract pulseVault is ReentrancyGuard {
 			IMasterChef(masterchef).publishTokens(address(this), _toWithdraw);
             IacPool(_harvestInto).giftDeposit(_toWithdraw, msg.sender, poolPayout[_harvestInto].minServe);
         }
+		
+		if(referredBy[msg.sender] != address(0)) {
+			referralPoints[msg.sender]+= _toWithdraw;
+			referralPoints[referredBy[msg.sender]]+= _toWithdraw;
+		}
+		
         IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 		
 		emit Withdraw(msg.sender, _stakeID, _toWithdraw, currentAmount);
@@ -194,7 +207,7 @@ contract pulseVault is ReentrancyGuard {
         uint256 _payout = 0;
  
         for(uint256 i = 0; i<_stakeID.length; i++) {
-			payFee(user[_stakeID[i]]);
+			payFee(user[_stakeID[i]], msg.sender);
             _toWithdraw+= user[_stakeID[i]].amount * accDtxPerShare / 1e12 - user[_stakeID[i]].debt;
 			user[_stakeID[i]].debt = user[_stakeID[i]].amount * accDtxPerShare / 1e12;
         }
@@ -207,6 +220,11 @@ contract pulseVault is ReentrancyGuard {
             _payout = _toWithdraw * poolPayout[_harvestInto].amount / 10000;
 			IMasterChef(masterchef).publishTokens(address(this), _payout);
             IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
+		}
+		
+		if(referredBy[msg.sender] != address(0)) {
+			referralPoints[msg.sender]+= _payout;
+			referralPoints[referredBy[msg.sender]]+= _payout;
 		}
 
         uint256 _penalty = _toWithdraw - _payout;
@@ -221,7 +239,7 @@ contract pulseVault is ReentrancyGuard {
 		require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
 		UserInfo storage user = userInfo[msg.sender][_stakeID];
 
-        payFee(user);
+        payFee(user, msg.sender);
 
 		uint256 _amount = user.amount;
 		
@@ -242,7 +260,7 @@ contract pulseVault is ReentrancyGuard {
 		for(uint256 i = 0; i< _beneficiary.length; i++) {
 			for(uint256 j = 0; j< _stakeID[i].length; i++) {
                 UserInfo storage user = userInfo[_beneficiary[i]][_stakeID[i][j]];
-                payFee(user);
+                payFee(user, _beneficiary[i]);
             }
 		}
 	}
@@ -254,7 +272,7 @@ contract pulseVault is ReentrancyGuard {
 			
 			for(uint256 j = 0; j < _nrOfStakes; j++) {
                 UserInfo storage user = userInfo[_beneficiary[i]][j];
-                payFee(user);
+                payFee(user, _beneficiary[i]);
             }
 		}
 		
@@ -314,6 +332,13 @@ contract pulseVault is ReentrancyGuard {
         return _credit + amount; 
     }
 
+	function viewPoolPayout(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].amount;
+	}
+	
+	function viewPoolMinServe(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].minServe;
+	}
 	
 	/*
 	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
@@ -375,7 +400,7 @@ contract pulseVault is ReentrancyGuard {
 		refShare2 = _refShare2;
 	}
 
-    function payFee(UserInfo storage user) private {
+    function payFee(UserInfo storage user, address _userAddress) private {
 		uint256 _lastAction = user.lastAction;
 
 		// Prevents charging new funding fee for the past (in case funding fee changes)
@@ -392,9 +417,9 @@ contract pulseVault is ReentrancyGuard {
 			
 			uint256 commission = (block.timestamp - _lastAction) / 3600 * user.amount * fundingRate / 100000;
 			uint256 refEarning = 0;
-			address _ref = user.referredBy;
+			address _ref = referredBy[_userAddress];
 			
-			if(_ref != msg.sender) {
+			if(_ref != address(0)) {
 				refEarning = commission * refShare2 / 10000;
 				payable(_ref).transfer(refEarning);
 			}
