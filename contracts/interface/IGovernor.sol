@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: NONE
+
 pragma solidity >=0.7.0 <0.9.0;
 
 interface IGovernor {
@@ -9,12 +10,6 @@ interface IGovernor {
         address poolInto
     );
     event Harvest(address indexed sender, uint256 callFee);
-    event Multisig(
-        address signer,
-        address newGovernor,
-        bool sign,
-        uint256 idToVoteFor
-    );
     event SetInflation(uint256 rewardPerBlock);
     event TransferOwner(address newOwner, uint256 timestamp);
 
@@ -41,8 +36,6 @@ interface IGovernor {
     function acPool6() external view returns (address);
 
     function acPool6ID() external view returns (uint256);
-
-    function alreadySigned(address, address) external view returns (bool);
 
     function basicContract() external view returns (address);
 
@@ -93,6 +86,10 @@ interface IGovernor {
 
     function harvestAll() external;
 
+    function hexVault() external view returns (address);
+
+    function incVault() external view returns (address);
+
     function isInflationStatic() external view returns (bool);
 
     function lastBlockHeight() external view returns (uint256);
@@ -100,6 +97,14 @@ interface IGovernor {
     function lastHarvestedTime() external view returns (uint256);
 
     function lastRegularReward() external view returns (uint256);
+
+    function lp1Vault() external view returns (address);
+
+    function lp2Vault() external view returns (address);
+
+    function lp3Vault() external view returns (address);
+
+    function lp4Vault() external view returns (address);
 
     function masterchef() external view returns (address);
 
@@ -121,15 +126,23 @@ interface IGovernor {
 
     function pendingHarvestRewards() external view returns (uint256);
 
-    function postGrandFibIncreaseCount() external;
+    function plsVault() external view returns (address);
 
-    function rebalanceFarms() external;
+    function plsxVault() external view returns (address);
+
+    function postGrandFibIncreaseCount() external;
 
     function rebalancePools() external;
 
     function recordTimeStart() external view returns (uint256);
 
+    function referralBonus() external view returns (uint256);
+
     function rememberReward() external;
+
+    function rewardContract() external view returns (address);
+
+    function senateContract() external view returns (address);
 
     function setActivateFibonaccening(bool _arg) external;
 
@@ -149,11 +162,6 @@ interface IGovernor {
     ) external;
 
     function setThresholdFibonaccening(uint256 newThreshold) external;
-
-    function signaturesConfirmed(address, uint256)
-        external
-        view
-        returns (address);
 
     function stakeRolloverBonus(
         address _toAddress,
@@ -184,7 +192,7 @@ interface IGovernor {
 
     function treasuryWallet() external view returns (address);
 
-    function updateAllPools() external;
+    function tshareVault() external view returns (address);
 
     function updateCostToVote(uint256 newCostToVote) external;
 
@@ -199,9 +207,6 @@ interface IGovernor {
     function updateGrandEventLength(uint256 _amount) external;
 
     function updateRolloverBonus(address _forPool, uint256 _bonus) external;
-    
+
     function updateVault(uint256 _type, uint256 _amount) external;
-
-    function senateContract() external view returns(address);
 }
-
