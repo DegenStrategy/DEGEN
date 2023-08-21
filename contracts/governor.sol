@@ -380,7 +380,7 @@ contract DTXgovernor {
             IVault(hexVault).setRefShare2(_amount);
 			IVault(incVault).setRefShare2(_amount);
         } else if (_type == 5) {
-			require(_amount <= 2500, "max 25% Bonus!);
+			require(_amount <= 2500, "max 25% Bonus!");
 			referralBonus = _amount;
 		}
     }
