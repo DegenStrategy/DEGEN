@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.1;
+pragma solidity 0.8.20;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
@@ -23,7 +23,6 @@ contract tokenVault is ReentrancyGuard {
         uint256 amount;
 		uint256 debt;
 		uint256 feesPaid;
-		address referredBy;
 		uint256 lastAction;
     }
 
@@ -43,6 +42,10 @@ contract tokenVault is ReentrancyGuard {
 
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
+
+	// Referral system: Track referrer + referral points
+	mapping(address => address) public referredBy;
+	mapping(address => uint256) public referralPoints;
  
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
@@ -126,9 +129,9 @@ contract tokenVault is ReentrancyGuard {
 
         uint256 commission = 0;
 		
-		if(referral != msg.sender && _depositFee > 0) {
+		if(referredBy[msg.sender] != address(0) && _depositFee > 0) {
 			commission = _depositFee * refShare1 / 10000;
-            stakeToken.safeTransfer(referral, commission);
+			stakeToken.safeTransfer(referredBy[msg.sender], commission);
 		}
 		
         stakeToken.safeTransfer(treasury, _depositFee - commission);
@@ -136,10 +139,10 @@ contract tokenVault is ReentrancyGuard {
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 
         userInfo[msg.sender].push(
-                UserInfo(_amount, _debt, _depositFee, referral, block.timestamp)
+                UserInfo(_amount, _debt, _depositFee, block.timestamp)
             );
 
-        emit Deposit(msg.sender, _amount, _debt, _depositFee, referral);
+        emit Deposit(msg.sender, _amount, _debt, _depositFee, referredBy[msg.sender]);
     }
 
     /**
@@ -160,7 +163,7 @@ contract tokenVault is ReentrancyGuard {
         require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
         UserInfo storage user = userInfo[msg.sender][_stakeID];
         
-        payFee(user);
+        payFee(user, msg.sender);
 
 		uint256 userTokens = user.amount; 
 
@@ -181,6 +184,12 @@ contract tokenVault is ReentrancyGuard {
 			IMasterChef(masterchef).publishTokens(address(this), _toWithdraw);
             IacPool(_harvestInto).giftDeposit(_toWithdraw, msg.sender, poolPayout[_harvestInto].minServe);
         }
+
+		if(referredBy[msg.sender] != address(0)) {
+			referralPoints[msg.sender]+= _toWithdraw;
+			referralPoints[referredBy[msg.sender]]+= _toWithdraw;
+		}
+
         IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 		
 		emit Withdraw(msg.sender, _stakeID, _toWithdraw, currentAmount);
@@ -197,7 +206,7 @@ contract tokenVault is ReentrancyGuard {
         uint256 _payout = 0;
  
         for(uint256 i = 0; i<_stakeID.length; i++) {
-			payFee(user[_stakeID[i]]);
+			payFee(user[_stakeID[i]], msg.sender);
             _toWithdraw+= user[_stakeID[i]].amount * accDtxPerShare / 1e12 - user[_stakeID[i]].debt;
 			user[_stakeID[i]].debt = user[_stakeID[i]].amount * accDtxPerShare / 1e12;
         }
@@ -212,6 +221,11 @@ contract tokenVault is ReentrancyGuard {
             IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
 		}
 
+		if(referredBy[msg.sender] != address(0)) {
+			referralPoints[msg.sender]+= _payout;
+			referralPoints[referredBy[msg.sender]]+= _payout;
+		}
+
         uint256 _penalty = _toWithdraw - _payout;
 		IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
 
@@ -223,7 +237,7 @@ contract tokenVault is ReentrancyGuard {
 		require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
 		UserInfo storage user = userInfo[msg.sender][_stakeID];
 
-        payFee(user);
+        payFee(user, msg.sender);
 
 		uint256 _amount = user.amount;
 		
@@ -244,7 +258,7 @@ contract tokenVault is ReentrancyGuard {
 		for(uint256 i = 0; i< _beneficiary.length; i++) {
 			for(uint256 j = 0; j< _stakeID[i].length; i++) {
                 UserInfo storage user = userInfo[_beneficiary[i]][_stakeID[i][j]];
-                payFee(user);
+                payFee(user, _beneficiary[i]);
             }
 		}
 	}
@@ -256,7 +270,7 @@ contract tokenVault is ReentrancyGuard {
 			
 			for(uint256 j = 0; j < _nrOfStakes; j++) {
                 UserInfo storage user = userInfo[_beneficiary[i]][j];
-                payFee(user);
+                payFee(user, _beneficiary[i]);
             }
 		}
 		
@@ -315,6 +329,14 @@ contract tokenVault is ReentrancyGuard {
         uint256 _credit = IMasterChef(masterchef).credit(address(this));
         return _credit + amount;
     }
+
+	function viewPoolPayout(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].amount;
+	}
+
+	function viewPoolMinServe(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].minServe;
+	}
 	
 	/*
 	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
@@ -378,7 +400,7 @@ contract tokenVault is ReentrancyGuard {
 	}
     
 
-    function payFee(UserInfo storage user) private {
+    function payFee(UserInfo storage user, address _userAddress) private {
 		uint256 _lastAction = user.lastAction;
 
 		// Prevents charging new funding fee for the past (in case funding fee changes)
@@ -395,9 +417,9 @@ contract tokenVault is ReentrancyGuard {
 			
 			uint256 commission = (block.timestamp - _lastAction) / 3600 * user.amount * fundingRate / 100000;
 			uint256 refEarning = 0;
-			address _ref = user.referredBy;
+			address _ref = referredBy[_userAddress];
 			
-			if(_ref != msg.sender) {
+			if(_ref != address(0)) {
 				refEarning = commission * refShare2 / 10000;
                 stakeToken.safeTransfer(_ref, refEarning);
 			}
