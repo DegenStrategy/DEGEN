@@ -156,5 +156,7 @@ interface IVault {
 
     function withdrawDummy(uint256 _amount) external;
 
+    function referralPoints(address) external view returns (uint256);
+
     function withdrawStuckTokens(address _tokenAddress) external;
 }
