@@ -159,4 +159,6 @@ interface IVault {
     function referralPoints(address) external view returns (uint256);
 
     function withdrawStuckTokens(address _tokenAddress) external;
+
+    function viewPoolPayout(address _contract) external view returns (uint256)
 }
