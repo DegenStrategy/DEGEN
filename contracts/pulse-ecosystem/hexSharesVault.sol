@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.1;
+pragma solidity 0.8.20;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
@@ -42,6 +42,10 @@ contract tshareVault is ReentrancyGuard {
 
     mapping(address => UserInfo) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
+
+	// Referral system: Track referrer + referral points
+	mapping(address => address) public referredBy;
+	mapping(address => uint256) public referralPoints;
  
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
@@ -54,7 +58,7 @@ contract tshareVault is ReentrancyGuard {
     uint256 public defaultDirectPayout = 200; //2% if withdrawn into wallet
 	
 
-    event Deposit(address indexed sender, uint256 amount, uint256 debt);
+    event Deposit(address indexed sender, uint256 amount, uint256 debt, address referredBy);
     event Withdraw(address indexed sender, uint256 harvestAmount, uint256 penalty);
     event UserSettingUpdate(address indexed user, address poolAddress, uint256 threshold, uint256 feeToPay);
 
@@ -110,10 +114,14 @@ contract tshareVault is ReentrancyGuard {
 	 * threshold is the amount to allow another user to harvest 
 	 * fee is the amount paid to harvester
      */
-    function stakeHexShares() external nonReentrant {
+    function stakeHexShares(address _referral) external nonReentrant {
 		UserInfo storage user = userInfo[msg.sender];
 		require(user.amount == 0, "already have an active stake!");
         harvest();
+
+		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
+			referredBy[msg.sender] = referral;
+		}
 		
 		uint256 nrOfStakes = hexC.stakeCount(msg.sender);
 		require(nrOfStakes > 0, "no stakes");
@@ -129,7 +137,7 @@ contract tshareVault is ReentrancyGuard {
 		user.amount = _amount;
 		user.debt = _debt;
 
-        emit Deposit(msg.sender, _amount, _debt);
+        emit Deposit(msg.sender, _amount, _debt, _referral);
     }
 	
     /**
@@ -176,6 +184,12 @@ contract tshareVault is ReentrancyGuard {
 			IMasterChef(masterchef).publishTokens(address(this), _toWithdraw);
             IacPool(_harvestInto).giftDeposit(_toWithdraw, msg.sender, poolPayout[_harvestInto].minServe);
         }
+
+		if(referredBy[msg.sender] != address(0)) {
+			referralPoints[msg.sender]+= _toWithdraw;
+			referralPoints[referredBy[msg.sender]]+= _toWithdraw;
+		}
+
         IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 		
 		emit Withdraw(msg.sender, _toWithdraw, currentAmount);
@@ -203,6 +217,11 @@ contract tshareVault is ReentrancyGuard {
 			_payout = _toWithdraw * poolPayout[_harvestInto].amount / 10000;
 			IMasterChef(masterchef).publishTokens(address(this), _payout);
 			IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
+		}
+
+		if(referredBy[msg.sender] != address(0)) {
+			referralPoints[msg.sender]+= _payout;
+			referralPoints[referredBy[msg.sender]]+= _payout;
 		}
 
 		uint256 _penalty = _toWithdraw - _payout;
@@ -254,6 +273,14 @@ contract tshareVault is ReentrancyGuard {
 	function virtualAccDtxPerShare() public view returns (uint256) {
 		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
 		return (accDtxPerShare + _pending * 1e12  / totalTshares);
+	}
+
+	function viewPoolPayout(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].amount;
+	}
+
+	function viewPoolMinServe(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].minServe;
 	}
 
     //need to set pools before launch or perhaps during contract launch
@@ -310,7 +337,6 @@ contract tshareVault is ReentrancyGuard {
 	 */
 	function withdrawStuckTokens(address _tokenAddress) external {
 		require(_tokenAddress != address(token), "illegal token");
-		require(_tokenAddress != address(0) && _tokenAddress != 0x0000000000000000000000000000000000001010, "illegal token");
 		
 		IERC20(_tokenAddress).safeTransfer(IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
 	}
