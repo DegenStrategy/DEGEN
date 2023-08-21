@@ -160,5 +160,7 @@ interface IVault {
 
     function withdrawStuckTokens(address _tokenAddress) external;
 
-    function viewPoolPayout(address _contract) external view returns (uint256)
+    function viewPoolPayout(address _contract) external view returns (uint256);
+
+    function viewPoolMinServe(address _contract) external view returns (uint256);
 }
