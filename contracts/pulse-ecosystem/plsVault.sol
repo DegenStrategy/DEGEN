@@ -122,6 +122,7 @@ contract pulseVault is ReentrancyGuard {
         harvest();
 		
 		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
+			payable(referral).transfer(0);
 			referredBy[msg.sender] = referral;
 		}
 		
