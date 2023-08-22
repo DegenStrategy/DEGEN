@@ -4,8 +4,8 @@ pragma solidity 0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/Uniswap/uniswap-v2-periphery/blob/master/contracts/interfaces/IUniswapV2Router02.sol";
 
-import "interface/IDTX.sol";
-import "interface/IGovernor.sol";
+import "../interface/IDTX.sol";
+import "../interface/IGovernor.sol";
 
 contract BuybackDTX {
 	uint256 public constant MAX_SWAP = 100 000 000 * 1e18;
