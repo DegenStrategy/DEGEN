@@ -107,7 +107,7 @@ contract Senate {
 		address _contract = IGovernor(owner()).creditContract();
 		address _chef = IMasterChef(owner()).owner();
 		
-		uint256 _totalPublished = IMasterChef(_chef).totalPublished();
+		uint256 _totalPublished = IDTX(token).totalPublished();
 		
 		uint256 _reward = (_totalPublished - lastTotalPublished) / 100;
 		
