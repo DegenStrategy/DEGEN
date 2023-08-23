@@ -28,8 +28,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
     address public devaddr;
 	//portion of inflation goes to the decentralized governance contract
 	uint256 public governorFee = 618; //6.18%
-	// Total tokens Published
-	uint256 public totalPublished;
     // DTX tokens created per block.
     uint256 public DTXPerBlock;
     // Deposit Fee address
@@ -90,7 +88,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	
 	function publishTokens(address _to, uint256 _amount) external {
 		credit[msg.sender] = credit[msg.sender] - _amount;
-		totalPublished+= _amount;
 		dtx.mint(_to, _amount);
 	}
 	
@@ -253,15 +250,16 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	function fairMint() external {
 		require(block.number < startBlock + 777777, "Only during roughly first 3 months");
 
+		uint256 totalPublished = dtx.totalPublished();
 		uint256 _amount = ((totalPublished * 369) / 10000) - fairTokensPublished;
 		fairTokensPublished+= _amount;
 		dtx.mint(itsOnlyFair, _amount);
-		totalPublished+= _amount;
 	}
 
 	function fairMintSenate() external {
 		require(block.number < startBlock + 777777, "Only during roughly first 3 months");
 
+		uint256 totalPublished = dtx.totalPublished();
 		uint256 _amount = ((totalPublished * 369) / 1000000) - fairTokensPublishedToSenate;
 		fairTokensPublishedToSenate+= _amount;
 
