@@ -13,6 +13,9 @@ import "./interface/IGovernor.sol";
 contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	string private _name;
     string private _symbol;
+
+	// Total tokens Published
+	uint256 public totalPublished;
     
 	constructor() ERC20("PulseDAO Currency", "XPD") {
 		_name = string("PulseDAO");
@@ -27,6 +30,7 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
+		totalPublished+= amount;
     }
 	
     function burnToken(address account, uint256 amount) external onlyOwner returns (bool) {
