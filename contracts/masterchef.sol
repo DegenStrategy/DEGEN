@@ -87,6 +87,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
     }
 	
 	function publishTokens(address _to, uint256 _amount) external {
+		require(credit[msg.sender] >= _amount, "Insufficient credit");
 		credit[msg.sender] = credit[msg.sender] - _amount;
 		dtx.mint(_to, _amount);
 	}
