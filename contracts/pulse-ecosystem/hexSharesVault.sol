@@ -27,6 +27,7 @@ contract tshareVault is ReentrancyGuard {
     struct UserInfo {
         uint256 amount;
 		uint256 debt;
+		uint256 lastAction;
     }
 
     struct PoolPayout {
@@ -46,7 +47,8 @@ contract tshareVault is ReentrancyGuard {
 	// Referral system: Track referrer + referral points
 	mapping(address => address) public referredBy;
 	mapping(address => uint256) public referralPoints;
- 
+
+	uint256 public safePeriod = 12 hours;
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
     address public admin; //admin = governing contract!
@@ -136,6 +138,7 @@ contract tshareVault is ReentrancyGuard {
         
 		user.amount = _amount;
 		user.debt = _debt;
+		user.lastAction = block.timestamp;
 
         emit Deposit(msg.sender, _amount, _debt, _referral);
     }
@@ -162,6 +165,7 @@ contract tshareVault is ReentrancyGuard {
     function withdraw(address _harvestInto) public nonReentrant {
         harvest();
         UserInfo storage user = userInfo[msg.sender];
+		require(user.lastAction < block.timestamp + safePeriod, "You must wait a SAFE PERIOD of 12hours before withdrawing!");
 		uint256 userTokens = user.amount; 
 		require(userTokens > 0, "no active stake");
 
@@ -201,6 +205,7 @@ contract tshareVault is ReentrancyGuard {
 	//In case user has too many stakes, or if some are not worth harvesting
 	function selfHarvest(address _harvestInto) external {
         UserInfo storage user = userInfo[msg.sender];
+		require(user.lastAction < block.timestamp + safePeriod, "You must wait a SAFE PERIOD of 12hours before withdrawing!");
 		require(user.amount > 0, "no shares");
         harvest();
         uint256 _toWithdraw = 0;
@@ -327,6 +332,10 @@ contract tshareVault is ReentrancyGuard {
 	// tx can run out of gas. Only calculates shares based on the first (maxStakes) number of stakes
 	function setMaxStakes(uint256 _amount) external adminOnly {
 		maxStakes = _amount;
+	}
+
+	function setSafePeriod(uint256 _amount) external adminOnly {
+		safePeriod = _amount;
 	}
 	
 	
