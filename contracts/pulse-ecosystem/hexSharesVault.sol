@@ -247,6 +247,7 @@ contract tshareVault is ReentrancyGuard {
 		}
 		UserInfo storage user = userInfo[_user];
 		if(user.amount != _amount) {
+			user.lastAction = block.timestamp;
 			uint256 _current = user.amount * accDtxPerShare / 1e12;
             uint256 _profit = _current - user.debt;
 			user.debt = _current - _profit; //debt reduces by user earnings(amount available for harvest)
@@ -268,10 +269,10 @@ contract tshareVault is ReentrancyGuard {
     }
 
 	//we want user deposit, we want total deposited, we want pending rewards, 
-	function multiCall(address _user) external view returns(uint256, uint256, uint256) {
+	function multiCall(address _user) external view returns(uint256, uint256, uint256, uint256) {
 		UserInfo storage user = userInfo[_user];
 		uint256 _pending = user.amount * virtualAccDtxPerShare() / 1e12 - user.debt;
-		return(user.amount, totalTshares, _pending);
+		return(user.amount, totalTshares, _pending, user.lastAction);
 	}
 
 	// With "Virtual harvest" for external calls
