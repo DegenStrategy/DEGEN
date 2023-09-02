@@ -11,6 +11,7 @@ import "./interface/IMasterChef.sol";
 import "./interface/IGovernor.sol";
 
 contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
+	uint256 public CONSTANT MAX_SUPPLY = 21 000 000 000; //21 billion max supply
 	string private _name;
     string private _symbol;
 
@@ -29,6 +30,7 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	
 
     function mint(address to, uint256 amount) public onlyOwner {
+		require(totalSupply() + amount <= MAX_SUPPLY, "MAX SUPPLY REACHED!");
         _mint(to, amount);
 		totalPublished+= amount;
     }
