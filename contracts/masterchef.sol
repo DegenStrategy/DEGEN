@@ -29,7 +29,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	//portion of inflation goes to the decentralized governance contract
 	uint256 public governorFee = 618; //6.18%
     // DTX tokens created per block.
-    uint256 public DTXPerBlock;
+    uint256 public DTXPerBlock = 75 * 1e18; // start at 75 tokens per block (*roughly* 50,000 tokens per 10minutes; Bitcoin started with 50 BTC per 10minutes)
     // Deposit Fee address
     address public feeAddress;
 
