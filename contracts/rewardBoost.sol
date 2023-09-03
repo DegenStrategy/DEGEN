@@ -81,18 +81,12 @@ contract DTXrewardBoost {
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
         require(
             startTimestamp > block.timestamp + delay + (24*3600) + IGovernor(owner()).delayBeforeEnforce() && 
-            startTimestamp - block.timestamp <= 21 days, "max 21 days"); 
-		if(!isGrandFibonacceningReady()) {
-			require(
-				(newRewardPerBlock * durationInBlocks) < (IERC20(token).totalSupply() * 23 / 100),
-				"Safeguard: Can't print more than 23% of tokens in single event"
-			);
-		} else {
-			require(
-				(newRewardPerBlock * durationInBlocks) < (IERC20(token).totalSupply() * 618 / 1000),
-				"Safeguard: max 61.8% during Major event"
-			);
-		}
+            startTimestamp - block.timestamp <= 90 days, "max 90 days"); 
+		require(
+			(newRewardPerBlock * durationInBlocks) < (IDTX(token).totalPublished() * 5 / 100),
+			"Safeguard: Can't print more than 5% of tokens in single event"
+		);
+
 		//duration(in blocks) must be lower than amount of blocks mined in 30days(can't last more than roughly 30days)
 		//30(days)*24(hours)*3600(seconds)  = 2592000
 		uint256 amountOfBlocksIn30Days = 2592 * IGovernor(owner()).blocksPerSecond() / 1000;
@@ -160,7 +154,7 @@ contract DTXrewardBoost {
 			fibonacceningActivatedBlock = block.number;
 			IGovernor(owner()).setActivateFibonaccening(true);
 			
-			if(isGrandFibonacceningReady()) {
+			if(IMasterChef(masterchef).DTXPerBlock() <= 1618 * 1e15) {
 				expiredGrandFibonaccening = true;
 			}
 			
@@ -191,7 +185,6 @@ contract DTXrewardBoost {
         
     	IDTX(address(token)).burn(tokensForBurn); // burns the tokens - "fibonaccening" sacrifice
 		
-		//if past 'grand fibonaccening' increase event count
 		if(expiredGrandFibonaccening) {
 			IGovernor(owner()).postGrandFibIncreaseCount();
 		}
@@ -213,52 +206,9 @@ contract DTXrewardBoost {
         fibonacceningProposals[proposalID].valid = false;
         emit CancleFibonaccening(proposalID, msg.sender);
     }
-    
-    /**
-     * After the Grand Fibonaccening event, the inflation reduces to roughly 1.618% annually
-     * On each new Fibonaccening event, it further reduces by Golden ratio(in percentile)
-	 *
-     * New inflation = Current inflation * ((100 - 1.618) / 100)
-     */
-    function rebalanceInflation() external {
-        require(IGovernor(owner()).totalFibonacciEventsAfterGrand() > 0, "Only after the Grand Fibonaccening event");
-        require(!(IGovernor(owner()).eventFibonacceningActive()), "Event is running");
-		bool isStatic = IGovernor(owner()).isInflationStatic();
-        
-		uint256 initialSupply = IERC20(token).totalSupply();
-		uint256 _factor = goldenRatio;
-		
-		// if static, then inflation is 1.618% annually
-		// Else the inflation reduces by 1.618%(annually) on each event
-		if(!isStatic) {
-			for(uint256 i = 0; i < IGovernor(owner()).totalFibonacciEventsAfterGrand(); i++) {
-				_factor = _factor * 98382 / 100000; //factor is multiplied * 1000 (number is 1618, when actual factor is 1.618)
-			}
-		}
-		
-		// divide by 1000 to turn 1618 into 1.618% (and then divide farther by 100 to convert percentage)
-        uint256 supplyToPrint = initialSupply * _factor / 100000; 
-		
-        uint256 rewardPerBlock = supplyToPrint / (365 * 24 * 36 * IGovernor(owner()).blocksPerSecond() / 10000);
-        IGovernor(owner()).setInflation(rewardPerBlock);
-       
-        emit RebalanceInflation(rewardPerBlock);
-    }
-    
-     /**
-     * If inflation is to drop below golden ratio, the grand fibonaccening event is ready
-     */
-    function isGrandFibonacceningReady() public view returns (bool) {
-        if(!(IGovernor(owner()).eventFibonacceningActive())) { //we x1000'd the supply so 1e18
-            if((IMasterChef(masterchef).DTXPerBlock() - goldenRatio * 1e18) <= goldenRatio * 1e18) {
-				return true;
-			}
-        } 
-		return false;
-    }
 
 	
-  function setMasterchef() external {
+	function setMasterchef() external {
 		masterchef = IMasterChef(address(token)).owner();
     }
     
@@ -274,17 +224,27 @@ contract DTXrewardBoost {
 
     
     /**
-     * After the Fibonaccening event ends, global inflation reduces
-     * by -1.618 tokens/block prior to the Grand Fibonaccening and
-     * by 1.618 percentile after the Grand Fibonaccening ( * ((100-1.618) / 100))
+     * After the Reward Boost event ends, global inflation reduces
+     * by -1.618 tokens 
+     * ... Or to 1.618% on annual basis (on underflow)
     */
     function calculateUpcomingRewardPerBlock() public view returns(uint256) {
-        if(!expiredGrandFibonaccening) {
-            return IGovernor(owner()).lastRegularReward() - goldenRatio * 1e18;
-        } else {
-            return IGovernor(owner()).lastRegularReward() * 98382 / 100000; 
-        }
+		if(!expiredGrandFibonaccening) {
+			return IGovernor(owner()).lastRegularReward() - 1618 * 1e15; // Reduce reward by 1.618 reward per block
+		} else {
+			uint256 _factor = 1618 * 1e15;
+			for(uint256 i = 0; i < IGovernor(owner()).totalFibonacciEventsAfterGrand(); i++) {
+				_factor = _factor * 98382 / 100000; //factor is multiplied * 1000 (number is 1618, when actual factor is 1.618)
+			}
+			
+			uint256 _initialSupply = IDTX(token).totalPublished();
+			
+			uint256 supplyToPrint = _initialSupply * _factor / 100000; 
+		
+			uint256 rewardPerBlock = supplyToPrint / (365 * 24 * 36 * IGovernor(owner()).blocksPerSecond() / 10000);
+		}
     }
+	
 	
 	/**
 	 * Can be used for building database from scratch (opposed to using event logs)
