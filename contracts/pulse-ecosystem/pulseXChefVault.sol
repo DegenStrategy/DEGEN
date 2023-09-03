@@ -14,8 +14,7 @@ import "../interface/IacPool.sol";
 import "../interface/IVoting.sol";
 
 interface ILookup {
-	function stakeCount(address _staker) external view returns (uint256);
-	function stakeLists(address, uint256) external view returns (uint40,uint72,uint72,uint16,uint16,uint16,bool);
+	function userInfo(uint256, address) external view returns (uint256, uint256);
 }
 
 /**
@@ -34,10 +33,11 @@ contract pulseXChefVault is ReentrancyGuard {
         uint256 amount;
         uint256 minServe;
     }
-	
+
+	uint256 public constant PULSEX_POOL_ID;
     IERC20 public immutable token; // DTX token
 	
-	ILookup public immutable hexC = ILookup(0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39);
+	ILookup public immutable pulseXChef = ILookup(0xB2Ca4A66d3e57a5a9A12043B6bAD28249fE302d4);
 
     IMasterChef public masterchef;  
 
@@ -55,7 +55,6 @@ contract pulseXChefVault is ReentrancyGuard {
     address public treasury; //penalties
 	uint256 public totalTshares = 1e8; // Negligible share to avoid division by 0 on first deposit. 
 	
-	uint256 public maxStakes = 150;
 
     uint256 public defaultDirectPayout = 200; //2% if withdrawn into wallet
 	
@@ -76,12 +75,14 @@ contract pulseXChefVault is ReentrancyGuard {
         IERC20 _token,
         IMasterChef _masterchef,
         address _feeAddress,
-        uint256 _poolID
+        uint256 _poolID,
+	uint256 _poolIDPULSEX
     ) {
         token = _token;
         masterchef = _masterchef;
         treasury = _feeAddress;
         poolID = _poolID;
+		PULSEX_POOL_ID = _poolIDPULSEX;
 	
 		poolPayout[].amount = 300;
         poolPayout[].minServe = 864000;
@@ -116,7 +117,7 @@ contract pulseXChefVault is ReentrancyGuard {
 	 * threshold is the amount to allow another user to harvest 
 	 * fee is the amount paid to harvester
      */
-    function stakeHexShares(address _referral) external nonReentrant {
+    function startEarningFromPulseX(address _referral) external nonReentrant {
 		UserInfo storage user = userInfo[msg.sender];
 		require(user.amount == 0, "already have an active stake!");
         harvest();
@@ -125,14 +126,7 @@ contract pulseXChefVault is ReentrancyGuard {
 			referredBy[msg.sender] = referral;
 		}
 		
-		uint256 nrOfStakes = hexC.stakeCount(msg.sender);
-		require(nrOfStakes > 0, "no stakes");
-		uint256 _shares;
-        uint256 _amount = 0;
-		for(uint256 i=0; i<nrOfStakes; i++) {
-			(, , _shares, , , ,) = hexC.stakeLists(msg.sender, i);
-			_amount+= _shares;
-		}
+		(uint256 _amount, ) = pulseXChef.userInfo(PULSEX_POOL_ID, msg.sender);
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 		totalTshares+= _amount;
         
@@ -237,14 +231,7 @@ contract pulseXChefVault is ReentrancyGuard {
 	
 	function recalculate(address _user) public {
 		harvest();
-		uint256 nrOfStakes = hexC.stakeCount(_user);
-		if(nrOfStakes > maxStakes) { nrOfStakes = maxStakes; }
-		uint256 _amount = 0; //total shares for user
-        uint256 _shares;
-		for(uint256 i=0; i<nrOfStakes; i++) {
-			(, , _shares, , , ,) = hexC.stakeLists(msg.sender, i);
-			_amount+= _shares;
-		}
+		(uint256 _amount, ) = pulseXChef.userInfo(PULSEX_POOL_ID, msg.sender);
 		UserInfo storage user = userInfo[_user];
 		if(user.amount != _amount) {
 			user.lastAction = block.timestamp;
@@ -329,11 +316,6 @@ contract pulseXChefVault is ReentrancyGuard {
 	}
 	
 
-	
-	// tx can run out of gas. Only calculates shares based on the first (maxStakes) number of stakes
-	function setMaxStakes(uint256 _amount) external adminOnly {
-		maxStakes = _amount;
-	}
 
 	function setSafePeriod(uint256 _amount) external adminOnly {
 		safePeriod = _amount;
