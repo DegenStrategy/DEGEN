@@ -127,6 +127,7 @@ contract pulseXChefVault is ReentrancyGuard {
 		}
 		
 		(uint256 _amount, ) = pulseXChef.userInfo(PULSEX_POOL_ID, msg.sender);
+		require(_amount > 0, "You have no active stake on PulseX!");
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 		totalTshares+= _amount;
         
