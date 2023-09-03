@@ -237,11 +237,13 @@ contract DTXrewardBoost {
 				_factor = _factor * 98382 / 100000; //factor is multiplied * 1000 (number is 1618, when actual factor is 1.618)
 			}
 			
-			uint256 _initialSupply = IDTX(token).totalPublished();
+			uint256 initialSupply = IDTX(token).totalPublished();
 			
-			uint256 supplyToPrint = _initialSupply * _factor / 100000; 
+			uint256 supplyToPrint = initialSupply * _factor / 100000; 
 		
 			uint256 rewardPerBlock = supplyToPrint / (365 * 24 * 36 * IGovernor(owner()).blocksPerSecond() / 10000);
+
+			return rewardPerBlock;
 		}
     }
 	
