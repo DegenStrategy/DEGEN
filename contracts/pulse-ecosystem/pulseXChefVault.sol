@@ -117,16 +117,17 @@ contract pulseXChefVault is ReentrancyGuard {
 	 * threshold is the amount to allow another user to harvest 
 	 * fee is the amount paid to harvester
      */
-    function startEarningFromPulseX(address _referral) external nonReentrant {
-		UserInfo storage user = userInfo[msg.sender];
+    function startEarningFromPulseX(address _referral, bool isProxy) external nonReentrant {
+		address _userAddress = isProxy ? tx.origin : msg.sender;
+		UserInfo storage user = userInfo[_userAddress];
 		require(user.amount == 0, "already have an active stake!");
         harvest();
 
-		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
-			referredBy[msg.sender] = referral;
+		if(referredBy[_userAddress] == address(0) && referral != _userAddress) {
+			referredBy[_userAddress] = referral;
 		}
 		
-		(uint256 _amount, ) = pulseXChef.userInfo(PULSEX_POOL_ID, msg.sender);
+		(uint256 _amount, ) = pulseXChef.userInfo(PULSEX_POOL_ID, _userAddress);
 		require(_amount > 0, "You have no active stake on PulseX!");
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 		totalTshares+= _amount;
@@ -135,7 +136,7 @@ contract pulseXChefVault is ReentrancyGuard {
 		user.debt = _debt;
 		user.lastAction = block.timestamp;
 
-        emit Deposit(msg.sender, _amount, _debt, _referral);
+        emit Deposit(_userAddress, _amount, _debt, _referral);
     }
 	
     /**
