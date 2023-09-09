@@ -116,21 +116,22 @@ contract tshareVault is ReentrancyGuard {
 	 * threshold is the amount to allow another user to harvest 
 	 * fee is the amount paid to harvester
      */
-    function stakeHexShares(address _referral) external nonReentrant {
-		UserInfo storage user = userInfo[msg.sender];
+    function stakeHexShares(address _referral, bool isProxy) external nonReentrant {
+		address _userAddress = isProxy ? tx.origin : msg.sender;
+		UserInfo storage user = userInfo[_userAddress];
 		require(user.amount == 0, "already have an active stake!");
         harvest();
 
-		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
-			referredBy[msg.sender] = referral;
+		if(referredBy[_userAddress] == address(0) && referral != _userAddress) {
+			referredBy[_userAddress] = referral;
 		}
 		
-		uint256 nrOfStakes = hexC.stakeCount(msg.sender);
+		uint256 nrOfStakes = hexC.stakeCount(_userAddress);
 		require(nrOfStakes > 0, "no stakes");
 		uint256 _shares;
         uint256 _amount = 0;
 		for(uint256 i=0; i<nrOfStakes; i++) {
-			(, , _shares, , , ,) = hexC.stakeLists(msg.sender, i);
+			(, , _shares, , , ,) = hexC.stakeLists(_userAddress, i);
 			_amount+= _shares;
 		}
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
@@ -140,7 +141,7 @@ contract tshareVault is ReentrancyGuard {
 		user.debt = _debt;
 		user.lastAction = block.timestamp;
 
-        emit Deposit(msg.sender, _amount, _debt, _referral);
+        emit Deposit(_userAddress, _amount, _debt, _referral);
     }
 	
     /**
