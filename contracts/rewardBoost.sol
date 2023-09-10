@@ -154,7 +154,7 @@ contract DTXrewardBoost {
 			fibonacceningActivatedBlock = block.number;
 			IGovernor(owner()).setActivateFibonaccening(true);
 			
-			if(IMasterChef(masterchef).DTXPerBlock() <= 1618 * 1e15) {
+			if(IMasterChef(masterchef).DTXPerBlock() <= 1618 * 1e16) {
 				expiredGrandFibonaccening = true;
 			}
 			
@@ -232,7 +232,7 @@ contract DTXrewardBoost {
 		if(!expiredGrandFibonaccening) {
 			return IGovernor(owner()).lastRegularReward() - 1618 * 1e16; // Reduce reward by 16.18 reward per block
 		} else {
-			uint256 _factor = 1618 * 1e15;
+			uint256 _factor = 1618 * 1e16;
 			for(uint256 i = 0; i < IGovernor(owner()).totalFibonacciEventsAfterGrand(); i++) {
 				_factor = _factor * 98382 / 100000; //factor is multiplied * 1000 (number is 1618, when actual factor is 1.618)
 			}
