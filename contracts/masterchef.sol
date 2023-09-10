@@ -33,10 +33,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
     // Deposit Fee address
     address public feeAddress;
 
-	// No expectation address that receives 3.69% of total published for roughly first 3 months
-	address public immutable itsOnlyFair = 0x11A4659b21E6dd22b3A858bC6e492217d708e592; 
-	// Total tokens published to itsOnlyFair address
-	uint256 public fairTokensPublished;
 	// Total tokens published to senate
 	uint256 public fairTokensPublishedToSenate;
 
@@ -50,6 +46,9 @@ contract DTXChef is Ownable, ReentrancyGuard {
     uint256 public totalAllocPoint = 0;
     // The block number when DTX mining starts.
     uint256 public startBlock;
+
+	bool public senatorRewards = true;
+	uint256 public senatorRewardAmount = 200; // 0.02%
 	
 	 // can burn tokens without allowance
 	mapping(address => bool) public trustedContract;
@@ -248,25 +247,27 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		dtx.transferOwnership(_newOwner);
 	}
 
-	function fairMint() external {
-		require(block.number < startBlock + 777777, "Only during roughly first 3 months");
-
-		uint256 totalPublished = dtx.totalPublished();
-		uint256 _amount = ((totalPublished * 369) / 10000) - fairTokensPublished;
-		fairTokensPublished+= _amount;
-		dtx.mint(itsOnlyFair, _amount);
-	}
 
 	function fairMintSenate() external {
-		require(block.number < startBlock + 777777, "Only during roughly first 3 months");
+		require(senatorRewards, "senator rewards are turned off");
 
 		uint256 totalPublished = dtx.totalPublished();
-		uint256 _amount = ((totalPublished * 369) / 1000000) - fairTokensPublishedToSenate;
+		uint256 _amount = ((totalPublished * senatorRewardAmount) / 1000000) - fairTokensPublishedToSenate;
 		fairTokensPublishedToSenate+= _amount;
 
 		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
 		for(uint i=0; i < senators.length; i++) {
 			credit[senators[i]]+= _amount;
 		}
+	}
+
+	function rewardSenators(bool _e) external onlyOwner {
+		senatorRewards = _e;
+	}
+
+	function changeSenatorReward(uint256 _amount) external onlyOwner {
+		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
+		require(_amount * senators.length <= 10000, "Maximum 1% of total rewards for all senators");
+		senatorRewardAmount = _amount;
 	}
 }
