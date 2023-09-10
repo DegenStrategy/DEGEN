@@ -230,7 +230,7 @@ contract DTXrewardBoost {
     */
     function calculateUpcomingRewardPerBlock() public view returns(uint256) {
 		if(!expiredGrandFibonaccening) {
-			return IGovernor(owner()).lastRegularReward() - 1618 * 1e15; // Reduce reward by 1.618 reward per block
+			return IGovernor(owner()).lastRegularReward() - 1618 * 1e16; // Reduce reward by 16.18 reward per block
 		} else {
 			uint256 _factor = 1618 * 1e15;
 			for(uint256 i = 0; i < IGovernor(owner()).totalFibonacciEventsAfterGrand(); i++) {
