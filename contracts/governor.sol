@@ -102,6 +102,8 @@ contract DTXgovernor {
 	
 	uint256 public lastHarvestedTime;
 
+	uint256[] public allocationPercentages = [5333, 8000, 12000, 26660, 34666, 40000]; // In basis points (1 basis point = 0.01%)
+
     event SetInflation(uint256 rewardPerBlock);
     event TransferOwner(address newOwner, uint256 timestamp);
     event EnforceGovernor(address _newGovernor, address indexed enforcer);
@@ -156,13 +158,10 @@ contract DTXgovernor {
      * Pools with higher time-lock must always pay higher rewards in relative terms
      * Eg. for 1DTX staked in the pool 6, you should always be receiving
      * 50% more rewards compared to staking in pool 4
-     * 
-     * QUESTION: should we create a modifier to prevent rebalancing during inflation events?
-     * Longer pools compound on their interests and earn much faster?
-     * On the other hand it could also be an incentive to hop to pools with longer lockup
-	 * Could also make it changeable through voting
      */
     function rebalancePools() public {
+		uint256 totalAllocation = IMasterChef(masterchef).totalAllocPoint();
+
     	uint256 balancePool1 = IacPool(acPool1).balanceOf();
     	uint256 balancePool2 = IacPool(acPool2).balanceOf();
     	uint256 balancePool3 = IacPool(acPool3).balanceOf();
@@ -171,13 +170,14 @@ contract DTXgovernor {
     	uint256 balancePool6 = IacPool(acPool6).balanceOf();
     	
    	    uint256 total = balancePool1 + balancePool2 + balancePool3 + balancePool4 + balancePool5 + balancePool6;
-    	
-    	IMasterChef(masterchef).set(acPool1ID, (balancePool1 * 20000 / total), 0, false);
-    	IMasterChef(masterchef).set(acPool2ID, (balancePool2 * 30000 / total), 0, false);
-    	IMasterChef(masterchef).set(acPool3ID, (balancePool3 * 45000 / total), 0, false);
-    	IMasterChef(masterchef).set(acPool4ID, (balancePool4 * 100000 / total), 0, false);
-    	IMasterChef(masterchef).set(acPool5ID, (balancePool5 * 130000 / total), 0, false);
-    	IMasterChef(masterchef).set(acPool6ID, (balancePool6 * 150000 / total), 0, false); 
+
+		IMasterChef(masterchef).set(acPool1ID, (100000 * 5333 * total / 10000 * balancePool1) / (total * 10000), 0, false);
+    	IMasterChef(masterchef).set(acPool2ID, (100000 * 8000 * balancePool2) / (total * 10000), 0, false);
+    	IMasterChef(masterchef).set(acPool3ID, (100000 * 12000 * balancePool3) / (total * 10000), 0, false);
+    	IMasterChef(masterchef).set(acPool4ID, (100000 * 26660 * balancePool4) / (total * 10000), 0, false);;
+    	IMasterChef(masterchef).set(acPool5ID, (100000 * 34666 * balancePool5) / (total * 10000), 0, false);
+    	IMasterChef(masterchef).set(acPool6ID, (100000 * 40000 * balancePool6) / (total * 10000), 0, false); 
+
     	
     	//equivalent to massUpdatePools() in masterchef, but we loop just through relevant pools
     	IMasterChef(masterchef).updatePool(acPool1ID);
