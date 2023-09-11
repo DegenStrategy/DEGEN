@@ -13,26 +13,6 @@ import "./interface/IacPool.sol";
 import "./interface/ITreasury.sol";
 import "./interface/IVault.sol";
 
-
-    /**
-     * DTX governor is a decentralized masterchef governed by it's users
-     * Works as a decentralized cryptocurrency with no third-party control
-     * Effectively creating a DAO through time-deposits
-     *
-     * In order to earn staking rewards, users must lock up their tokens.
-     * Certificates of deposit or time deposit are the biggest market in the world
-     * The longer the lockup period, the higher the rewards(APY) and voting power 
-     * The locked up stakers create the governance council, through which
-     * the protocol can be upgraded in a decentralized manner.
-     *
-     * Users are utilized as oracles through on-chain voting regulating the entire system(events,
-     * rewards, APYs, fees, bonuses,...)
-     * The token voting is overpowered by the consensus mechanism(locked up stakers)
-     *
-     * It is a real DAO creating an actual decentralized finance ecosystem
-    */
-
-    
 contract DTXgovernor {
     
     uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
