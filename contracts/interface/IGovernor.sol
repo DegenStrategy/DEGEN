@@ -57,8 +57,6 @@ interface IGovernor {
 
     function delayBeforeEnforce() external view returns (uint256);
 
-    function delayFibonacci(bool _arg) external;
-
     function durationForCalculation() external view returns (uint256);
 
     function eligibleNewGovernor() external view returns (address);
