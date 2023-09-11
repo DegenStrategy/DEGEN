@@ -256,6 +256,8 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		fairTokensPublishedToSenate+= _amount;
 
 		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
+		require(senatorRewardAmount * senators.length <= 10000, "Maximum 1% of total rewards for all senators");
+
 		for(uint i=0; i < senators.length; i++) {
 			credit[senators[i]]+= _amount;
 		}
