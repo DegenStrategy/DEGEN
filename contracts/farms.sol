@@ -412,12 +412,13 @@ contract DTXfarms {
 		}	
     }
 
-	//Slowly reduce the maximum allocation for distribution to PulseChain ecosystem (more rewards for PulseDAO native miners)
-	//reduce by 0.9% every 7 weeks
+	// Slowly reduce the maximum allocation for distribution to PulseChain ecosystem (more rewards for PulseDAO native miners)
+	// reduce by 1% every 7 days
+	// Y=9000*(1-0.01)^t
 	function reduceMaxPulseAllocation() external {
 		require(lastReducePulseAllocation <= block.timestamp - 7 * 86400, "Must wait 7 days");
 		lastReducePulseAllocation = block.timestamp;
-		maxPulseEcoTotalAllocation = maxPulseEcoTotalAllocation * 991 / 1000;
+		maxPulseEcoTotalAllocation = maxPulseEcoTotalAllocation * 99 / 100;
 	}
 
     function syncCreditContract() external {
