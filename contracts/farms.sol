@@ -67,7 +67,6 @@ contract DTXfarms {
 	
 	address public masterchef;
     
-	uint256 public maxLpAllocation = 750;
 	uint256 public maxNftAllocation = 1500;
 	
 	uint256 public maxPulseEcoAllocation = 2000; //max 20% per pool
@@ -124,16 +123,11 @@ contract DTXfarms {
         ) external { 
     	require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
     	require(depositingTokens >= IGovernor(owner()).costToVote(), "there is a minimum cost to vote");
-    	require(poolid > 5 && poolid <= 15, "only allowed for these pools"); 
+    	require(poolid > 5 && poolid <= 11, "only allowed for these pools"); 
 		
-		//6,7,8,9 are  DTX lp pools
-		//10 is for NFT staking(nfts and virtual land)
-    	if(poolid > 5 && poolid < 10) {
-    	    require(
-    	        newAllocation <= maxLpAllocation,
-    	        "exceeds max allocation"
-    	       );
-    	} else if(poolid == 10) {
+		//6,7,8,9,10 are  PLS,PLSX,HEX,INC,T-Share
+		//11 is for NFT staking(nfts and virtual land)
+    	if(poolid == 11) {
 			require(
     	        newAllocation <= maxNftAllocation,
     	        "exceeds max allocation"
