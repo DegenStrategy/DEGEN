@@ -48,7 +48,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
     uint256 public startBlock;
 
 	bool public senatorRewards = true;
-	uint256 public senatorRewardAmount = 200; // 0.02%
 	
 	 // can burn tokens without allowance
 	mapping(address => bool) public trustedContract;
@@ -252,11 +251,15 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		require(senatorRewards, "senator rewards are turned off");
 
 		uint256 totalPublished = dtx.totalPublished();
-		uint256 _amount = ((totalPublished * senatorRewardAmount) / 1000000) - fairTokensPublishedToSenate;
-		fairTokensPublishedToSenate+= _amount;
-
 		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
-		require(senatorRewardAmount * senators.length <= 10000, "Maximum 1% of total rewards for all senators");
+
+		if(senators.length <= 100) {
+			_senatorRewardAmount = 100; // 0.01%
+		} else {
+			_senatorRewardAmount = 10000 / senators.length; // 1% shared between all the senators
+		}
+		uint256 _amount = ((totalPublished * _senatorRewardAmount) / 1000000) - fairTokensPublishedToSenate;
+		fairTokensPublishedToSenate+= _amount;
 
 		for(uint i=0; i < senators.length; i++) {
 			credit[senators[i]]+= _amount;
@@ -265,11 +268,5 @@ contract DTXChef is Ownable, ReentrancyGuard {
 
 	function rewardSenators(bool _e) external onlyOwner {
 		senatorRewards = _e;
-	}
-
-	function changeSenatorReward(uint256 _amount) external onlyOwner {
-		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
-		require(_amount * senators.length <= 10000, "Maximum 1% of total rewards for all senators");
-		senatorRewardAmount = _amount;
 	}
 }
