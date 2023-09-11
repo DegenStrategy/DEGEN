@@ -236,22 +236,6 @@ contract DTXgovernor {
         
         emit GiveRolloverBonus(_toAddress, _bonusToPay, _depositToPool);
     }
-
-
-    /**
-     * Sets inflation in Masterchef
-     */
-    function setInflation(uint256 rewardPerBlock) external {
-        require(msg.sender == fibonacceningContract);
-    	IMasterChef(masterchef).updateEmissionRate(rewardPerBlock);
-
-        emit SetInflation(rewardPerBlock);
-    }
-	
-	function rememberReward() external {
-		require(msg.sender == fibonacceningContract);
-		lastRegularReward = IMasterChef(masterchef).DTXPerBlock();
-	}
     
     
     function enforceGovernor() external {
@@ -289,26 +273,46 @@ contract DTXgovernor {
 			_tokenAddr, _recipient, _amountToSend
 		);
 	}
+
+
+	function rememberReward() external {
+		require(msg.sender == fibonacceningContract);
+		lastRegularReward = IMasterChef(masterchef).DTXPerBlock();
+	}
+
+
+    /**
+     * Sets inflation in Masterchef
+     */
+    function setInflation(uint256 rewardPerBlock) external {
+        require(msg.sender == fibonacceningContract);
+    	IMasterChef(masterchef).updateEmissionRate(rewardPerBlock);
+
+        emit SetInflation(rewardPerBlock);
+    }
+
+	function setActivateFibonaccening(bool _arg) external {
+		require(msg.sender == fibonacceningContract);
+		eventFibonacceningActive = _arg;
+	}
+
+
+	function transferRewardBoostThreshold() external {
+		require(msg.sender == fibonacceningContract);
+		
+		IERC20(token).transfer(fibonacceningContract, thresholdFibonaccening);
+	}
+	
+	function postGrandFibIncreaseCount() external {
+		require(msg.sender == fibonacceningContract);
+		totalFibonacciEventsAfterGrand++;
+	}
 	
 	function updateDurationForCalculation(uint256 _newDuration) external {
 	    require(msg.sender == basicContract);
 	    durationForCalculation = _newDuration;
 	}
 	
-	function delayFibonacci(bool _arg) external {
-	    require(msg.sender == consensusContract);
-	    fibonacciDelayed = _arg;
-	}
-	
-	function setActivateFibonaccening(bool _arg) external {
-		require(msg.sender == fibonacceningContract);
-		eventFibonacceningActive = _arg;
-	}
-
-	function setPool(uint256 _pid, uint256 _allocPoint, uint16 _depositFeeBP, bool _withUpdate) external {
-	    require(msg.sender == farmContract);
-	    IMasterChef(masterchef).set(_pid, _allocPoint, _depositFeeBP, _withUpdate);
-	}
 	
 	function setThresholdFibonaccening(uint256 newThreshold) external {
 	    require(msg.sender == basicContract);
@@ -324,6 +328,15 @@ contract DTXgovernor {
 	    require(msg.sender == basicContract);
 	    IacPool(_acPool).setCallFee(_newCallFee);
 	}
+
+	function updateDelayBetweenEvents(uint256 _amount) external {
+	    require(msg.sender == basicContract);
+		IRewardBoost(fibonacceningContract).updateDelayBetweenEvents(_amount);
+	}
+	function updateGrandEventLength(uint256 _amount) external {
+	    require(msg.sender == basicContract);
+		IRewardBoost(fibonacceningContract).updateGrandEventLength(_amount);
+	}
 	
 	function updateCostToVote(uint256 newCostToVote) external {
 	    require(msg.sender == basicContract);
@@ -334,6 +347,11 @@ contract DTXgovernor {
 	    require(msg.sender == basicContract);
 		require(_bonus <= 1500, "15% hard limit");
 	    _rollBonus[_forPool] = _bonus;
+	}
+
+	function setPool(uint256 _pid, uint256 _allocPoint, uint16 _depositFeeBP, bool _withUpdate) external {
+	    require(msg.sender == farmContract);
+	    IMasterChef(masterchef).set(_pid, _allocPoint, _depositFeeBP, _withUpdate);
 	}
 
 	function updateVault(uint256 _type, uint256 _amount) external {
@@ -370,12 +388,7 @@ contract DTXgovernor {
 		require(msg.sender == farmContract);
 		IMasterChef(masterchef).setGovernorFee(_amount);
 	}
-	
-	function transferRewardBoostThreshold() external {
-		require(msg.sender == fibonacceningContract);
-		
-		IERC20(token).transfer(fibonacceningContract, thresholdFibonaccening);
-	}
+
 	
 	function burnTokens(uint256 amount) external {
 		require(msg.sender == farmContract);
@@ -387,20 +400,6 @@ contract DTXgovernor {
 		require(msg.sender == farmContract);
 		
 		IERC20(token).transfer(treasuryWallet, amount);
-	}
-	
-	function postGrandFibIncreaseCount() external {
-		require(msg.sender == fibonacceningContract);
-		totalFibonacciEventsAfterGrand++;
-	}
-	
-	function updateDelayBetweenEvents(uint256 _amount) external {
-	    require(msg.sender == basicContract);
-		IRewardBoost(fibonacceningContract).updateDelayBetweenEvents(_amount);
-	}
-	function updateGrandEventLength(uint256 _amount) external {
-	    require(msg.sender == basicContract);
-		IRewardBoost(fibonacceningContract).updateGrandEventLength(_amount);
 	}
 	    
 	
