@@ -69,9 +69,9 @@ contract DTXfarms {
     
 	uint256 public maxNftAllocation = 1500;
 	
-	uint256 public maxPulseEcoAllocation = 2000; //max 20% per pool
-	uint256 public maxPulseEcoTotalAllocation = 5000; // max 50% total
-    bool public isReductionEnforced; 
+	uint256 public maxPulseEcoAllocation = 3300; //max 33% per pool
+	uint256 public maxPulseEcoTotalAllocation = 9000; // max 90% total (at beginning)
+	uint256 public lastReducePulseAllocation; //block timestamp when maximum pulse ecosystem allocation is reduced
     
     event InitiateFarmProposal(
             uint256 proposalID, uint256 depositingTokens, uint256 poolid,
@@ -90,9 +90,10 @@ contract DTXfarms {
 	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
 	event EnforceProposal(uint256 _type, uint256 proposalID, address indexed enforcer, bool isSuccess);
     
-	constructor (address _DTX, address _masterchef)  {
+	constructor (address _DTX, address _masterchef, uint256 _launch)  {
 		token = _DTX;
 		masterchef = _masterchef;
+		lastReducePulseAllocation = _launch + 7 days;
 	}
 
 	//ability to change max allocations without launching new contract
@@ -177,7 +178,6 @@ contract DTXfarms {
      * Updates the rewards for the corresponding farm in the proposal
     */
     function updateFarm(uint256 proposalID) public {
-        require(!isReductionEnforced, "reward reduction is active"); //only when reduction is not enforced
         require(proposalFarmUpdate[proposalID].valid, "invalid proposal");
         require(
             proposalFarmUpdate[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + proposalFarmUpdate[proposalID].delay  < block.timestamp,
@@ -188,8 +188,8 @@ contract DTXfarms {
 		uint256 _newAllocation = IMasterChef(masterchef).totalAllocPoint() * proposalFarmUpdate[proposalID].newAllocation / 10000;
         
 		if(proposalFarmUpdate[proposalID].valueSacrificedForVote >= proposalFarmUpdate[proposalID].valueSacrificedAgainst) {
-			if(_poolID > 10 && _poolID <= 15) { //for pulse ecosystem
-				for(uint256 i= 11; i<=15; i++) {
+			if(_poolID > 5) { //Rewards outside PulseDAO CD mining
+				for(uint256 i= 6; i<=11; i++) {
 					if(_poolID != i) { 
 						(uint256 _allocPoint, ,) = IMasterChef(masterchef).poolInfo(i);
 						_pulseEcoCount+= _allocPoint;
@@ -411,6 +411,14 @@ contract DTXfarms {
 			vetoVault(proposalID);	
 		}	
     }
+
+	//Slowly reduce the maximum allocation for distribution to PulseChain ecosystem (more rewards for PulseDAO native miners)
+	//reduce by 0.9% every 7 weeks
+	function reduceMaxPulseAllocation() external {
+		require(lastReducePulseAllocation <= block.timestamp - 7 * 86400, "Must wait 7 days");
+		lastReducePulseAllocation = block.timestamp;
+		maxPulseEcoTotalAllocation = maxPulseEcoTotalAllocation * 991 / 1000;
+	}
 
     function syncCreditContract() external {
 		creditContract = IGovernor(owner()).creditContract();
