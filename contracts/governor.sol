@@ -69,8 +69,8 @@ contract DTXgovernor {
     mapping(address => uint256) private _rollBonus;
 
 	uint256 public referralBonus = 1000; // 10% for both referr and invitee
-	
-	uint256 public newGovernorBlockDelay = 189000; //in blocks (roughly 5 days at beginning)
+
+	uint256 public CONSTANT CONTRACT_LAUNCH_DATE;
     
     uint256 public costToVote = 500000 * 1e18;  // 500K coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 3 days; //minimum number of TIME between when proposal is initiated and executed
@@ -122,6 +122,7 @@ contract DTXgovernor {
 			_rollBonus[_acPool4] = 250;
 			_rollBonus[_acPool5] = 350;
 			_rollBonus[_acPool6] = 500;
+			CONTRACT_LAUNCH_DATE = block.timestamp;
     }    
 
     
@@ -255,7 +256,7 @@ contract DTXgovernor {
     
     function enforceGovernor() external {
         require(msg.sender == consensusContract);
-		require(newGovernorRequestBlock + newGovernorBlockDelay < block.number, "time delay not yet passed");
+		require(newGovernorRequestBlock + newGovernorBlockDelay() < block.number, "time delay not yet passed");
 
 		IMasterChef(masterchef).setFeeAddress(eligibleNewGovernor);
         IMasterChef(masterchef).dev(eligibleNewGovernor);
@@ -420,14 +421,14 @@ contract DTXgovernor {
 	 * newGovernorBlockDelay is the delay during which the governor proposal can be voted against
 	 * As the time passes, changes should take longer to enforce(greater security)
 	 * Prioritize speed and efficiency at launch. Prioritize security once established
-	 * Delay increases by 2500 blocks(roughly 1.6hours) per each day after launch
-	 * Delay starts at 189000 blocks(roughly 5 days)
+	 * Delay increases by 535 blocks(roughly 1.6hours) per each day after launch
+	 * Delay starts at 42772 blocks(roughly 5 days)
 	 * After a month, delay will be roughly 7 days (increases 2days/month)
 	 * After a year, 29 days. After 2 years, 53 days,...
 	 * Can be ofcourse changed by replacing governor contract
 	 */
-	function updateGovernorChangeDelay() external {
-		newGovernorBlockDelay = 189000 + (((block.timestamp - 1654041600) / 86400) * 2500);
+	function newGovernorBlockDelay() public view returns (uint256) {
+		return (42772 + (((block.timestamp - CONTRACT_LAUNCH_DATE) / 86400) * 535));
 	}
     
 }  
