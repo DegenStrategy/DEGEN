@@ -149,7 +149,7 @@ contract tshareVault is ReentrancyGuard {
      */
     function harvest() public {
 		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
-        IMasterChef(masterchef).withdraw(poolID, 0);
+        IMasterChef(masterchef).updatePool(poolID);
 		accDtxPerShare+= _pending * 1e12  / totalTshares;
     }
 
