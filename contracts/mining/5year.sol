@@ -249,15 +249,6 @@ contract TimeDeposit is ReentrancyGuard {
         withdraw(userInfo[msg.sender][_stakeID].shares, _stakeID);
     }
 
-	
-    /**
-     * Harvest pending rewards from masterchef
-	 * Governor pays the rewards for harvesting and rebalancing
-     */
-    function harvest() external {
-        IMasterChef(masterchef).withdraw(poolID, 0);
-    }
-
     
     /**
      * @notice Sets admin address and treasury
