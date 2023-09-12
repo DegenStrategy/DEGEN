@@ -167,19 +167,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
         pool.lastRewardBlock = block.number;
     }
 
-    // Withdraw LP tokens from MasterChef.
-    function withdraw(uint256 _pid, uint256 _amount) public nonReentrant {
-        PoolInfo storage pool = poolInfo[_pid];
-        require(pool.participant == msg.sender, "withdraw: not good");
-        updatePool(_pid);
-        if(_amount > 0) {
-            pool.participant = address(0);
-            pool.allocPoint = 0;
-            totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
-        }
-        emit Withdraw(msg.sender, _pid, _amount);
-    }
-
     function stopPublishing(uint256 _pid) external onlyOwner {
         updatePool(_pid);
         poolInfo[_pid].participant = address(0);
