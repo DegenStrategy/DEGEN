@@ -111,6 +111,4 @@ interface IMasterChef {
     function updatePool(uint256 _pid) external;
 
     function updateStartBlock(uint256 _startBlock) external;
-
-    function withdraw(uint256 _pid, uint256 _amount) external;
 }
