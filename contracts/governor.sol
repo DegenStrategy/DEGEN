@@ -178,24 +178,9 @@ contract DTXgovernor {
     	IMasterChef(masterchef).set(acPool5ID, (100000 * 34666 * balancePool5) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool6ID, (100000 * 40000 * balancePool6) / (total * 10000), 0, false); 
 
-    	
-    	//equivalent to massUpdatePools() in masterchef, but we loop just through relevant pools
-    	IMasterChef(masterchef).updatePool(acPool1ID);
-    	IMasterChef(masterchef).updatePool(acPool2ID); 
-    	IMasterChef(masterchef).updatePool(acPool3ID); 
-    	IMasterChef(masterchef).updatePool(acPool4ID); 
-    	IMasterChef(masterchef).updatePool(acPool5ID); 
-    	IMasterChef(masterchef).updatePool(acPool6ID); 
+    	IMasterChef(masterchef).massUpdatePools();
     }
 	
-	function harvestAll() public {
-		IacPool(acPool1).harvest();
-		IacPool(acPool2).harvest();
-		IacPool(acPool3).harvest();
-		IacPool(acPool4).harvest();
-		IacPool(acPool5).harvest();
-		IacPool(acPool6).harvest();
-	}
 
     /**
      * Harvests from all pools and rebalances rewards
@@ -205,7 +190,6 @@ contract DTXgovernor {
 
         uint256 totalFee = pendingHarvestRewards();
 
-		harvestAll();
         rebalancePools();
 		
 		lastHarvestedTime = block.timestamp;
