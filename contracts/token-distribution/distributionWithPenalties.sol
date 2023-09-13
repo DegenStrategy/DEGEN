@@ -12,10 +12,13 @@ import "../interface/IVoting.sol";
 // merkle-tree airdrop
 // Distribution with penalties (for referrals, locked(illiquid) contributions, rewards(giveaways))
 contract AirDrop is ReentrancyGuard {
-	bytes32 public immutable merkleRoot =; //root
+	address private immutable deployer;
 	uint256 public constant CLAIM_PERIOD_DAYS = 90;
 
 	IDTX public immutable DTX;
+
+	bytes32 public merkleRoot; //root
+
 	IMasterChef public masterchef;
 
     uint256 public startTime;
@@ -38,12 +41,14 @@ contract AirDrop is ReentrancyGuard {
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
 	constructor(IDTX _dtx, IMasterChef _chef) {
+		deployer = msg.sender;
 		DTX = _dtx;
 		startTime = block.timestamp;
 		masterchef = _chef;
 	}
 
 	function claimAirdrop(uint256 _claimAmount, uint256 amount, address claimInto, bytes32[] calldata merkleProof) external nonReentrant {
+		require(merkleRoot != 0, "Wait until Merkle tree is provided");
 		require(isValid(msg.sender, amount, merkleProof), "Merkle proof invalid");
 		require(_claimAmount + amountRedeemed[msg.sender] <= amount, "insufficient credit");
 
@@ -72,6 +77,12 @@ contract AirDrop is ReentrancyGuard {
         bytes32 node = keccak256(abi.encodePacked(_user, amount));
         return(MerkleProof.verify(merkleProof, merkleRoot, node));
     }
+
+	function setMerkle(bytes32 _merkle) external {
+		require(msg.sender == deployer, "only deployer allowed!");
+		require(merkleRoot == 0, "Already initialized!");
+		merkleRoot = _merkle;
+	}
 
 	function updatePools() external {
 			acPool1 = IGovernor(owner()).acPool1();
