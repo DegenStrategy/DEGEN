@@ -24,6 +24,7 @@ contract AirDrop is ReentrancyGuard {
     address public acPool6;
 	
 	address public votingCreditContract;
+	uint256 public totalRedeemed;
 
 	mapping(address => uint256) public amountRedeemed; // amount user already redeemed
     mapping(address => uint256) public payout; // payout for given pool
@@ -48,6 +49,7 @@ contract AirDrop is ReentrancyGuard {
 		}
 
 		amountRedeemed[msg.sender]+= _claimAmount;
+		totalRedeemed+= _claimAmount;
 
 		emit RedeemCredit(_claimAmount, msg.sender, claimInto);
 	}
