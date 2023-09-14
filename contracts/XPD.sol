@@ -17,6 +17,7 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 
 	// Total tokens Published
 	uint256 public totalPublished;
+	uint256 public totalBurned;
     
 	constructor() ERC20("PulseDAO Currency", "XPD") {
 		_name = string("PulseDAO");
@@ -30,12 +31,13 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	
 
     function mint(address to, uint256 amount) public onlyOwner {
-		require(totalPublished + amount <= MAX_SUPPLY, "MAX SUPPLY REACHED!");
+		require(totalPublished - totalBurned + amount <= MAX_SUPPLY, "MAX SUPPLY REACHED!");
+	totalPublished+= amount;
         _mint(to, amount);
-		totalPublished+= amount;
     }
 	
     function burnToken(address account, uint256 amount) external onlyOwner returns (bool) {
+	totalBurned+=amount;
 	_burn(account, amount);
 	return true;
     }
