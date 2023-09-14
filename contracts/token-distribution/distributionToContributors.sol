@@ -69,6 +69,7 @@ contract AirDrop is ReentrancyGuard {
 		require(msg.sender == deployer, "only deployer allowed!");
 		require(merkleRoot == 0, "Already initialized!");
 		merkleRoot = _merkle;
+		IGovernor(owner()).beginMintingPhase();
 	}
 
 	function updatePools() external {
