@@ -50,15 +50,6 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         _symbol = _newSymbol;
 	}
 	
-	//If tokens are accidentally sent to the contract. Could be returned to rightful owners at the mercy of DTX governance
-	function transferStuckTokens(address _token) external nonReentrant {
-		require(msg.sender == tx.origin);
-		address treasuryWallet = IGovernor(governor()).treasuryWallet();
-		uint256 tokenAmount = IERC20(_token).balanceOf(address(this));
-		
-		IERC20(_token).transfer(treasuryWallet, tokenAmount);
-	}
-	
 	// Governor is a smart contract that allows the control of the entire system in a decentralized manner
 	//DTX token is owned by masterchef and masterchef is owned by Governor
 	function governor() public view returns (address) {
