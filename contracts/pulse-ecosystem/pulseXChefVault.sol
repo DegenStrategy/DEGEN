@@ -56,7 +56,7 @@ contract pulseXChefVault is ReentrancyGuard {
 	uint256 public totalTshares = 1e8; // Negligible share to avoid division by 0 on first deposit. 
 	
 
-    uint256 public defaultDirectPayout = 200; //2% if withdrawn into wallet
+    uint256 public defaultDirectPayout = 50; //2% if withdrawn into wallet
 	
 
     event Deposit(address indexed sender, uint256 amount, uint256 debt, address referredBy);
@@ -84,13 +84,13 @@ contract pulseXChefVault is ReentrancyGuard {
         poolID = _poolID;
 		PULSEX_POOL_ID = _poolIDPULSEX;
 	
-		poolPayout[].amount = 300;
+		poolPayout[].amount = 100;
         poolPayout[].minServe = 864000;
 
-        poolPayout[].amount = 500;
+        poolPayout[].amount = 300;
         poolPayout[].minServe = 2592000;
 
-        poolPayout[].amount = 7500;
+        poolPayout[].amount = 500;
         poolPayout[].minServe = 5184000;
 
         poolPayout[].amount = 1000;
