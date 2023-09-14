@@ -9,6 +9,7 @@ import "./interface/IMasterChef.sol";
 
 contract Senate {
 	address public immutable token;
+	address private immutable deployer;
 	
 	address[] public senators;
 	
@@ -26,6 +27,7 @@ contract Senate {
 	
 	constructor(address _token) {
 		token = _token;
+		deployer = msg.sender;
 	}
 
 	event AddSenator(address senator);
@@ -105,7 +107,7 @@ contract Senate {
 	
 	function grantVotingCredit() external {
 		address _contract = IGovernor(owner()).creditContract();
-		address _chef = IMasterChef(owner()).owner();
+		address _chef = IDTX(token).owner();
 		
 		uint256 _totalPublished = IDTX(token).totalPublished();
 		
@@ -172,7 +174,7 @@ contract Senate {
 		uint256[] memory allCredits = new uint256[](senators.length);
 		uint256[] memory mintableCredit = new uint256[](senators.length);
 
-		address _chef = IMasterChef(owner()).owner();
+		address _chef = IDTX(token).owner();
 
 		address _votingContract = IGovernor(owner()).creditContract();
 		
@@ -194,6 +196,14 @@ contract Senate {
 		
 		minSenators = _min;
 		maxSenators = _max;
+	}
+
+	function initializeSenators(address[] calldata _senators) external {
+		require(msg.sender == deployer, "deployer only!");
+		require(senators.length == 0, "already initialized!");
+		for (uint256 i = 0; i < _senators.length; i++) {
+			senators.push(_senators[i]);
+		}
 	}
 	
 	function viewSenators() external view returns(address[] memory) {
