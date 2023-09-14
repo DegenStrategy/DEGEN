@@ -241,7 +241,7 @@ contract DTXrewardBoost {
 			
 			uint256 supplyToPrint = initialSupply * _factor / 100000; 
 		
-			uint256 rewardPerBlock = supplyToPrint / (365 * 24 * 36 * IGovernor(owner()).blocksPerSecond() / 10000);
+			uint256 rewardPerBlock = supplyToPrint / (365 * 24 * 3600 * 99000 / 1000000); // 0.099 blocks per second
 
 			return rewardPerBlock;
 		}
