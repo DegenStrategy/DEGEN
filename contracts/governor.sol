@@ -14,10 +14,11 @@ import "./interface/ITreasury.sol";
 import "./interface/IVault.sol";
 
 contract DTXgovernor {
-    
+    address private immutable deployer;
     uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
     address public immutable token = ENTERNEWTOKEN; //DTX token
-    
+
+
     //masterchef address
     address public immutable masterchef = ENTERNEWCHEF;
 	
@@ -61,10 +62,8 @@ contract DTXgovernor {
 	address public immutable hexVault = ;
 	address public immutable incVault = ;
 	address public immutable tshareVault = ;
-	address public immutable lp1Vault = ; // PLS LP
-	address public immutable lp2Vault = ; // USD LP
-	address public immutable lp3Vault = ; // HEX LP
-	address public immutable lp4Vault = ; // PLSX LP
+
+	address public immutable tokenDistributionContract = ;
     
     mapping(address => uint256) private _rollBonus;
 
@@ -81,6 +80,8 @@ contract DTXgovernor {
     //delays for Fibonnaccening(Reward Boost) Events
     uint256 public immutable minDelay = 1 days; // has to be called minimum 1 day in advance
     uint256 public immutable maxDelay = 31 days; //1month.. is that good? i think yes
+
+	bool mintingPhase = false;
     
     uint256 public lastRegularReward = 42069000000000000000000; //remembers the last reward used(outside of boost)
     bool public eventFibonacceningActive = true; // prevent some functions if event is active ..threshold and durations for fibonaccening
@@ -118,6 +119,7 @@ contract DTXgovernor {
 		address _acPool4,
 		address _acPool5,
 		address _acPool6) {
+			deployer = msg.sender;
 			_rollBonus[_acPool1] = 75;
 			_rollBonus[_acPool2] = 100;
 			_rollBonus[_acPool3] = 150;
@@ -392,13 +394,28 @@ contract DTXgovernor {
      */
     function transferCollectedFees(address _tokenContract) external {
         require(msg.sender == tx.origin);
-		require(_tokenContract != token, "not DTX!");
+		require(_tokenContract != token, "not XPD!");
 		
         uint256 amount = IERC20(_tokenContract).balanceOf(address(this));
         
         IERC20(_tokenContract).transfer(treasuryWallet, amount);
     }
-	
+
+	// When merkle tree root is provided to the distribution contract, the minting phase begins
+	function beginMintingPhase() external {
+		require(msg.sender == "tokenDistributionContract", "only distribution contract!");
+		mintingPhase = true;
+	}
+
+	// Prior the minting phase begins, deployer can make changes in case of a security-related issue
+	function changeGovernorForSecurityPriorMintingBegins(address _newGovernor) external {
+        require(msg.sender == deployer, "Deployer only!");
+		require(!mintingPhase, "Minting phase has already begun!");
+
+		IMasterChef(masterchef).setFeeAddress(_newGovernor);
+        IMasterChef(masterchef).dev(_newGovernor);
+        IMasterChef(masterchef).transferOwnership(_newGovernor); //transfer masterchef ownership
+    }
 	
 	/*
 	 * newGovernorBlockDelay is the delay during which the governor proposal can be voted against
