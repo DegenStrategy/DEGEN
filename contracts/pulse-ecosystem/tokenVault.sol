@@ -51,7 +51,7 @@ contract tokenVault is ReentrancyGuard {
 	uint256 public accDtxPerShare;
     address public treasury; 
 
-    uint256 public defaultDirectPayout = 200; //5% if withdrawn into wallet
+    uint256 public defaultDirectPayout = 50; //0.5% if withdrawn into wallet
 	
 	uint256 public depositFee = 0; // 0
 	uint256 public fundingRate = 0;// 0
@@ -88,13 +88,13 @@ contract tokenVault is ReentrancyGuard {
 	token = _token;
 	treasury = _feeAddress;
 
-		poolPayout[].amount = 300;
+		poolPayout[].amount = 100;
         poolPayout[].minServe = 864000;
 
-        poolPayout[].amount = 500;
+        poolPayout[].amount = 300;
         poolPayout[].minServe = 2592000;
 
-        poolPayout[].amount = 7500;
+        poolPayout[].amount = 500;
         poolPayout[].minServe = 5184000;
 
         poolPayout[].amount = 1000;
