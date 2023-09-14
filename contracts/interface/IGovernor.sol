@@ -39,8 +39,6 @@ interface IGovernor {
 
     function basicContract() external view returns (address);
 
-    function blocksPerSecond() external view returns (uint256);
-
     function burnTokens(uint256 amount) external;
 
     function calculateAverageBlockTime() external;
