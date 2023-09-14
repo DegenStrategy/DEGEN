@@ -60,7 +60,7 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
 
     uint256 public tokenDebt; //sum of allocations of all deposited NFTs
 
-    uint256 public defaultDirectPayout = 500; //5% if withdrawn into wallet
+    uint256 public defaultDirectPayout = 50; //0.5% if withdrawn into wallet
 
     event Deposit(address indexed tokenAddress, uint256 indexed tokenID, address indexed depositor, uint256 shares, uint256 nftAllocation, address allocContract);
     event Withdraw(address indexed sender, uint256 stakeID, address indexed token, uint256 indexed tokenID, uint256 shares, uint256 harvestAmount);
@@ -82,19 +82,19 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
 		masterchef = _masterchef;
 
 		
-		poolPayout[].amount = 750;
+		poolPayout[].amount = 100;
         poolPayout[].minServe = 864000;
 
-        poolPayout[].amount = 1500;
+        poolPayout[].amount = 300;
         poolPayout[].minServe = 2592000;
 
-        poolPayout[].amount = 2500;
+        poolPayout[].amount = 500;
         poolPayout[].minServe = 5184000;
 
-        poolPayout[].amount = 5000;
+        poolPayout[].amount = 1000;
         poolPayout[].minServe = 8640000;
 
-        poolPayout[].amount = 7000;
+        poolPayout[].amount = 2500;
         poolPayout[].minServe = 20736000;
 
         poolPayout[].amount = 10000;
