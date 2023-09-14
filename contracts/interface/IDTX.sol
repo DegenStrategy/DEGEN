@@ -71,10 +71,6 @@ interface IDTX {
 
     function transferStuckTokens(address _token) external;
 
-    function totalPublished() external view returns(uint256);
-
-    function totalBurned() external view returns(uint256);
-
     function MAX_SUPPLY() external view returns(uint256);
 }
 
