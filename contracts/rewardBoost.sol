@@ -83,7 +83,7 @@ contract DTXrewardBoost {
             startTimestamp > block.timestamp + delay + (24*3600) + IGovernor(owner()).delayBeforeEnforce() && 
             startTimestamp - block.timestamp <= 90 days, "max 90 days"); 
 		require(
-			(newRewardPerBlock * durationInBlocks) < (IDTX(token).totalPublished() * 5 / 100),
+			(newRewardPerBlock * durationInBlocks) < (IMasterChef(masterchef).virtualTotalSupply() * 5 / 100),
 			"Safeguard: Can't print more than 5% of tokens in single event"
 		);
 
@@ -237,7 +237,7 @@ contract DTXrewardBoost {
 				_factor = _factor * 98382 / 100000; //factor is multiplied * 1000 (number is 1618, when actual factor is 1.618)
 			}
 			
-			uint256 initialSupply = IDTX(token).totalPublished();
+			uint256 initialSupply = IMasterChef(masterchef).virtualTotalSupply();
 			
 			uint256 supplyToPrint = initialSupply * _factor / 100000; 
 		
