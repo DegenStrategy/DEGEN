@@ -14,10 +14,6 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	uint256 public CONSTANT MAX_SUPPLY = 21000000000 * 1e18; //21 billion max supply
 	string private _name;
     string private _symbol;
-
-	// Total tokens Published
-	uint256 public totalPublished;
-	uint256 public totalBurned;
     
 	constructor() ERC20("PulseDAO Currency", "XPD") {
 		_name = string("PulseDAO");
