@@ -31,13 +31,11 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	
 
     function mint(address to, uint256 amount) public onlyOwner {
-		require(totalPublished - totalBurned + amount <= MAX_SUPPLY, "MAX SUPPLY REACHED!");
-	totalPublished+= amount;
+		require(totalSupply() + amount <= MAX_SUPPLY, "MAX SUPPLY REACHED!");
         _mint(to, amount);
     }
 	
     function burnToken(address account, uint256 amount) external onlyOwner returns (bool) {
-	totalBurned+=amount;
 	_burn(account, amount);
 	return true;
     }
