@@ -112,5 +112,11 @@ interface IMasterChef {
 
     function updateStartBlock(uint256 _startBlock) external;
 
-    function totalTokensGranted() external view returns (uint256) {
+    function totalCreditRewards() external view returns (uint256);
+
+    function virtualTotalSupply() external view returns (uint256);
+
+    function totalPrincipalBurned() external view returns (uint256);
+
+    function totalPublished() external view returns (uint256);
 }
