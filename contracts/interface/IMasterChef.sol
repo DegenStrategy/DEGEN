@@ -111,4 +111,6 @@ interface IMasterChef {
     function updatePool(uint256 _pid) external;
 
     function updateStartBlock(uint256 _startBlock) external;
+
+    function totalTokensGranted() external view returns (uint256) {
 }
