@@ -20,7 +20,7 @@ contract Senate {
 	mapping(uint256 => uint256) public votesForProposal;
 	
 	uint256 public lastVotingCreditGrant; // timestamp
-	uint256 public lastTotalPublished; // record of total published from masterchef
+	uint256 public lastTotalCreditGiven; // record of total credit given in masterchef
 	
 	uint256 public maxSenators = 100;
 	uint256 public minSenators = 25;
@@ -109,11 +109,11 @@ contract Senate {
 		address _contract = IGovernor(owner()).creditContract();
 		address _chef = IDTX(token).owner();
 		
-		uint256 _totalPublished = IDTX(token).totalPublished();
+		uint256 _totalGiven = IMasterchef(_chef).totalCreditRewards();
 		
-		uint256 _reward = (_totalPublished - lastTotalPublished) / 100;
+		uint256 _reward = (_totalGiven - lastTotalCreditGiven) / 100;
 		
-		lastTotalPublished = _totalPublished;
+		lastTotalCreditGiven = _totalGiven;
 		// there is a maximum number before gas limit
 		for(uint i=0; i < senators.length; i++) {
 			IVoting(_contract).addCredit(_reward, senators[i]);
@@ -178,9 +178,9 @@ contract Senate {
 
 		address _votingContract = IGovernor(owner()).creditContract();
 		
-		uint256 _totalPublished = IMasterChef(_chef).totalPublished();
+		uint256 _totalGiven = IMasterChef(_chef).totalCreditRewards();
 		
-		uint256 _reward = (_totalPublished - lastTotalPublished) / 100;
+		uint256 _reward = (_totalGiven - lastTotalCreditGiven) / 100;
 
 		for (uint256 i = 0; i < senators.length; i++) {
 			allVotes[i] = senatorVotes[senators[i]];
