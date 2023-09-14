@@ -13,7 +13,7 @@ import "../interface/IVoting.sol";
 // Distribution with penalties (for referrals, locked(illiquid) contributions, rewards(giveaways))
 contract AirDrop is ReentrancyGuard {
 	address private immutable deployer;
-	uint256 public constant CLAIM_PERIOD_DAYS = 90;
+	uint256 public constant CLAIM_PERIOD_DAYS = 180;
 
 	IDTX public immutable DTX;
 
