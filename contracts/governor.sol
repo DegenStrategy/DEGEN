@@ -85,12 +85,7 @@ contract DTXgovernor {
     
     uint256 public lastRegularReward = 42069000000000000000000; //remembers the last reward used(outside of boost)
     bool public eventFibonacceningActive = true; // prevent some functions if event is active ..threshold and durations for fibonaccening
-    
-    uint256 public blocksPerSecond = 100000; // divide by a million
-    uint256 public durationForCalculation= 12 hours; //period used to calculate block time
-    uint256  public lastBlockHeight; //block number when counting is activated
-    uint256 public recordTimeStart; //timestamp when counting is activated
-    bool public countingBlocks;
+
 
 	bool public isInflationStatic; // if static, inflation stays perpetually at 1.618% annually. If dynamic, it reduces by 1.618% on each reward boost
     uint256  public totalFibonacciEventsAfterGrand; //used for rebalancing inflation after Grand Fib
@@ -130,24 +125,6 @@ contract DTXgovernor {
     }    
 
     
-
-    /**
-     * Calculates average block time
-     * No decimals so we keep track of "100blocks" per second
-	 * It will be used in the future to keep inflation static, while block production can be dynamic
-	 * (bitcoin adjusts to 1 block per 10minutes, DTX inflation is dependant on the production of blocks on Pulsechain which can vary)
-     */
-    function startCountingBlocks() external {
-        require(!countingBlocks, "already counting blocks");
-        countingBlocks = true;
-        lastBlockHeight = block.number;
-        recordTimeStart = block.timestamp;
-    } 
-    function calculateAverageBlockTime() external {
-        require(countingBlocks && (recordTimeStart + durationForCalculation) <= block.timestamp);
-        blocksPerSecond = 1000000 * (block.number - lastBlockHeight) / (block.timestamp - recordTimeStart);
-        countingBlocks = false;
-    }
     
     function getRollBonus(address _bonusForPool) external view returns (uint256) {
         return _rollBonus[_bonusForPool];
