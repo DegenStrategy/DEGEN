@@ -239,12 +239,12 @@ contract DTXconsensus {
 		require(consensusProposal[proposalID].typeOfChange == 0);
 
         require(
-            tokensCastedPerVote(proposalID) >= totalDTXStaked() * 33 / 100,
-				"Requires atleast 33% of staked(weighted) tokens"
+            tokensCastedPerVote(proposalID) >= totalDTXStaked() * 20 / 100,
+				"Requires atleast 20% of staked(weighted) tokens"
         );
 
-        //requires 80% agreement
-        if(tokensCastedPerVote(proposalID+1) >= tokensCastedPerVote(proposalID) / 5) {
+        //requires 2/3 agreement (+senate can reject)
+        if(tokensCastedPerVote(proposalID+1) >= tokensCastedPerVote(proposalID) / 3) {
             
                 isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
                 
