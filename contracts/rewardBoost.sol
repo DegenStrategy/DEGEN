@@ -88,9 +88,9 @@ contract DTXrewardBoost {
 		);
 
 		//duration(in blocks) must be lower than amount of blocks mined in 30days(can't last more than roughly 30days)
-		//30(days)*24(hours)*3600(seconds)  = 2592000
-		uint256 amountOfBlocksIn30Days = 2592 * IGovernor(owner()).blocksPerSecond() / 1000;
-		require(durationInBlocks <= amountOfBlocksIn30Days, "maximum 30days duration");
+		//30(days)*24(hours)*3600(seconds) / 10.1  = 256633
+		uint256 amountOfBlocksIn30Days = 2592 * 256633;
+		require(durationInBlocks <= amountOfBlocksIn30Days, "maximum 30days duration - 256633 blocks");
     
 		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
         fibonacceningProposals.push(
