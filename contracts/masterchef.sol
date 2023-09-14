@@ -33,6 +33,8 @@ contract DTXChef is Ownable, ReentrancyGuard {
     // Deposit Fee address
     address public feeAddress;
 
+	bool maxSupplyReached = false;
+
 	// Total tokens published to senate
 	uint256 public fairTokensPublishedToSenate;
 
@@ -46,6 +48,13 @@ contract DTXChef is Ownable, ReentrancyGuard {
     uint256 public totalAllocPoint = 0;
     // The block number when DTX mining starts.
     uint256 public startBlock;
+	// Keep track of total credit given 
+	uint256 public totalCreditRewards;
+	// Keep track of principal burned
+	uint256 public totalPrincipalBurned;
+	// Keep track of total tokens published (by users)
+	uint256 public totalPublished;
+	
 
 	bool public senatorRewards = true;
 	
@@ -78,6 +87,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
         startBlock = _startBlock;
 	credit[_airdropLocked] = _airdropLockedAmount;
 	credit[_airdropFull] = _airdropFullAmount;
+		totalCreditRewards = _airdropLockedAmount + _airdropFullAmount;
     }
 
     function poolLength() external view returns (uint256) {
@@ -87,6 +97,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	function publishTokens(address _to, uint256 _amount) external {
 		require(credit[msg.sender] >= _amount, "Insufficient credit");
 		credit[msg.sender] = credit[msg.sender] - _amount;
+		totalPublished+=_amount;
 		dtx.mint(_to, _amount);
 	}
 	
@@ -94,6 +105,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		require(trustedContract[msg.sender], "only trusted contracts");
 		require(dtx.burnToken(_from, _amount), "burn failed");
 		credit[msg.sender] = credit[msg.sender] + _amount;
+		totalPrincipalBurned+= _amount;
 		return true;
 	}
 	
@@ -164,6 +176,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
         uint256 dtxReward = multiplier.mul(DTXPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
         dtx.mint(devaddr, dtxReward.mul(governorFee).div(10000));
 		credit[pool.participant] = credit[pool.participant] + dtxReward;
+		totalCreditRewards+=dtxReward;
         pool.lastRewardBlock = block.number;
     }
 
@@ -215,8 +228,12 @@ contract DTXChef is Ownable, ReentrancyGuard {
 
     //Pancake has to add hidden dummy pools inorder to alter the emission, here we make it simple and transparent to all.
     function updateEmissionRate(uint256 _DTXPerBlock) public onlyOwner {
-        massUpdatePools();
-        DTXPerBlock = _DTXPerBlock;
+        if(!maxSupplyReached) {
+			massUpdatePools();
+	        DTXPerBlock = _DTXPerBlock;
+		} else {
+			DTXPerBlock = 0;
+		}
 		
 		emit UpdateEmissions(tx.origin, _DTXPerBlock);
     }
@@ -237,7 +254,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	function fairMintSenate() external {
 		require(senatorRewards, "senator rewards are turned off");
 
-		uint256 totalPublished = dtx.totalPublished();
 		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
 
 		if(senators.length <= 100) {
@@ -245,15 +261,29 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		} else {
 			_senatorRewardAmount = 10000 / senators.length; // 1% shared between all the senators
 		}
-		uint256 _amount = ((totalPublished * _senatorRewardAmount) / 1000000) - fairTokensPublishedToSenate;
-		fairTokensPublishedToSenate+= _amount;
+		uint256 _amount = ((totalCreditRewards * _senatorRewardAmount) / 1000000) - fairTokensPublishedToSenate;
 
 		for(uint i=0; i < senators.length; i++) {
 			credit[senators[i]]+= _amount;
 		}
+
+		fairTokensPublishedToSenate+= senators.length * _amount;
+		totalCreditRewards+= senators.length * _amount;
 	}
 
 	function rewardSenators(bool _e) external onlyOwner {
 		senatorRewards = _e;
+	}
+
+	// renounce rewards once maximum supply would be breached
+	// if there is an "overflow", tokens can simply be burned from the governing contract
+	function renounceRewards() external {
+		require(virtualTotalSupply >= dtx.MAX_SUPPLY(), "Max supply not yet reached!");
+		DTXPerBlock = 0;
+		maxSupplyReached = true;
+	}
+
+	function virtualTotalSupply() public view returns (uint256) {
+		return (dtx.totalSupply() + totalCreditRewards + totalPrincipalBurned - totalPublished);
 	}
 }
