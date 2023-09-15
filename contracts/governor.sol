@@ -83,7 +83,7 @@ contract DTXgovernor {
 
 	bool mintingPhase = false;
     
-    uint256 public lastRegularReward = 42069000000000000000000; //remembers the last reward used(outside of boost)
+    uint256 public lastRegularReward = 850 * 1e18; //remembers the last reward used(outside of boost)
     bool public eventFibonacceningActive = true; // prevent some functions if event is active ..threshold and durations for fibonaccening
 
 
