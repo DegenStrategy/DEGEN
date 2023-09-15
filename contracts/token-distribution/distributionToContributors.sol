@@ -19,7 +19,6 @@ contract AirDrop is ReentrancyGuard {
 
 	IMasterChef public masterchef;
 
-    uint256 public startTime;
     uint256 public directPayout = 8000; // 20% penalty
 	uint256 public totalRedeemed;
 
@@ -41,7 +40,6 @@ contract AirDrop is ReentrancyGuard {
 	constructor(IDTX _dtx, IMasterChef _chef) {
 		deployer = msg.sender;
 		DTX = _dtx;
-		startTime = block.timestamp;
 		masterchef = _chef;
 	}
 
