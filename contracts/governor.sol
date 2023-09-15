@@ -77,7 +77,7 @@ contract DTXgovernor {
     uint256 public delayBeforeEnforce = 3 days; //minimum number of TIME between when proposal is initiated and executed
     
     //fibonaccening event can be scheduled once minimum threshold of tokens have been collected
-    uint256 public thresholdFibonaccening = 10000000000 * 1e18; //10B coins
+    uint256 public thresholdFibonaccening = 28750000 * 1e18; // roughly 2.5% of initial supply to begin with
     
     //delays for Fibonnaccening(Reward Boost) Events
     uint256 public immutable minDelay = 1 days; // has to be called minimum 1 day in advance
