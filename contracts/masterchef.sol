@@ -47,7 +47,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
     // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
     // The block number when DTX mining starts.
-    uint256 public startBlock;
+    uint256 public startBlock = 99999999; // arbitrary date ( is updated when minting phase begins )
 	// Keep track of total credit given 
 	uint256 public totalCreditRewards;
 	// Keep track of principal burned
@@ -74,7 +74,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
         address _devaddr,
         address _feeAddress,
         uint256 _DTXPerBlock,
-        uint256 _startBlock,
 	address _airdropLocked,
 	uint256 _airdropLockedAmount,
 	address _airdropFull,
@@ -84,7 +83,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
         devaddr = _devaddr;
         feeAddress = _feeAddress;
         DTXPerBlock = _DTXPerBlock;
-        startBlock = _startBlock;
 	credit[_airdropLocked] = _airdropLockedAmount;
 	credit[_airdropFull] = _airdropFullAmount;
 		totalCreditRewards = _airdropLockedAmount + _airdropFullAmount;
@@ -241,7 +239,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
     //Only update before start of farm
     function updateStartBlock(uint256 _startBlock) public onlyOwner {
         require(block.number < startBlock, "already started");
-	require(_startBlock > startBlock, "can only delay");
 		startBlock = _startBlock;
     }
 	
