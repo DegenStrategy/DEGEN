@@ -10,7 +10,7 @@ import "../interface/IGovernor.sol";
 import "../interface/IVoting.sol";
 
 // merkle-tree airdrop
-// Distribution with no penalties (for contributors)
+// Distribution with penalties to encourage long term participation in the protocol
 contract AirDrop is ReentrancyGuard {
 	address private immutable deployer;
 	IDTX public immutable DTX;
@@ -18,6 +18,10 @@ contract AirDrop is ReentrancyGuard {
 	bytes32 public merkleRoot; //root
 
 	IMasterChef public masterchef;
+
+    uint256 public startTime;
+    uint256 public directPayout = 8000; // 20% penalty
+	uint256 public totalRedeemed;
 
     address public acPool1;
     address public acPool2;
@@ -27,16 +31,17 @@ contract AirDrop is ReentrancyGuard {
     address public acPool6;
 	
 	address public votingCreditContract;
-	uint256 public totalRedeemed;
 
-	mapping(address => uint256) public amountRedeemed; // amount user already redeemed
-    mapping(address => uint256) public payout; // payout for given pool
+	mapping(address => uint256) public amountRedeemed;
+	mapping(address => uint256) public minToServe;
+    mapping(address => uint256) public payout;
 
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
 	constructor(IDTX _dtx, IMasterChef _chef) {
 		deployer = msg.sender;
 		DTX = _dtx;
+		startTime = block.timestamp;
 		masterchef = _chef;
 	}
 
@@ -45,13 +50,26 @@ contract AirDrop is ReentrancyGuard {
 		require(isValid(msg.sender, amount, merkleProof), "Merkle proof invalid");
 		require(_claimAmount + amountRedeemed[msg.sender] <= amount, "insufficient credit");
 
+		uint256 _penalty;
+		uint256 _reward;
+
 		if(claimInto == acPool1 || claimInto == acPool2 || claimInto == acPool3 || claimInto == acPool4 || claimInto == acPool5 || claimInto == acPool6) {
-			masterchef.publishTokens(address(this), _claimAmount);
-			IacPool(claimInto).giftDeposit(_claimAmount, msg.sender, 0);
-			IVoting(votingCreditContract).airdropVotingCredit(_claimAmount * payout[claimInto] / 10000, msg.sender);
+			_reward = _claimAmount * payout[claimInto] / 10000;
+			_penalty = _claimAmount - _reward;
+
+			masterchef.publishTokens(address(this), _reward);
+			IacPool(claimInto).giftDeposit(_reward, msg.sender, 0);
+			IVoting(votingCreditContract).airdropVotingCredit(_reward, msg.sender);
+
+			masterchef.publishTokens(owner(), _penalty);
 		} else {
 			require(claimInto == msg.sender, "invalid recipient");
-			masterchef.publishTokens(msg.sender, _claimAmount);
+
+			_reward = _claimAmount * directPayout / 10000;
+			_penalty = _claimAmount - _reward;
+
+			masterchef.publishTokens(msg.sender, _reward);
+			masterchef.publishTokens(owner(), _penalty);
 		}
 
 		amountRedeemed[msg.sender]+= _claimAmount;
@@ -59,6 +77,7 @@ contract AirDrop is ReentrancyGuard {
 
 		emit RedeemCredit(_claimAmount, msg.sender, claimInto);
 	}
+
 
 	function isValid(address _user, uint256 amount, bytes32[] calldata merkleProof) public view returns(bool) {
         bytes32 node = keccak256(abi.encodePacked(_user, amount));
@@ -82,12 +101,12 @@ contract AirDrop is ReentrancyGuard {
 
 			votingCreditContract = IGovernor(owner()).creditContract();
 
-			payout[acPool1] = 500;
-			payout[acPool2] = 1000;
-			payout[acPool3] = 1500;
-			payout[acPool4] = 2000;
-			payout[acPool5] = 5000;
-			payout[acPool6] = 10000;	
+			payout[acPool1] = 8500; // 15% penalty for 1month
+			payout[acPool2] = 8750; // 12.5% penalty for 3 months
+			payout[acPool3] = 9000; // 10% penalty for 6 months
+			payout[acPool4] = 9500; // 5% penalty for 1year 
+			payout[acPool5] = 9750; // 2.5% for 3 Year
+			payout[acPool6] = 10000; // 0 penalty for 5 year
     }
 
 	function owner() public view returns(address) {
