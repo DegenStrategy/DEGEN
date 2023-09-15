@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.1;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interface/IGovernor.sol";
 import "./interface/IDTX.sol";
 import "./interface/IVault.sol";
@@ -58,6 +59,11 @@ contract RedeemReferralRewards {
 		uint256 _vault5 = IVault(IGovernor(_governor).tshareVault()).referralPoints(_user);
 		
 		return (_vault1 + _vault2 + _vault3 + _vault4 + _vault5);
+	}
+
+	function withdrawTokens(uint256 _amount) external {
+		require(msg.sender == governor(), "decentralized voting only");
+		IERC20(token).transfer(governor(), _amount);
 	}
 	
 	function governor() public view returns (address) {
