@@ -70,6 +70,8 @@ contract DTXgovernor {
 	uint256 public referralBonus = 1000; // 10% for both referr and invitee
 
 	uint256 public CONSTANT CONTRACT_LAUNCH_DATE;
+	uint256 public mintingPhaseLaunchDate;
+	uint256 public tokensSentForReferralRewards;
     
     uint256 public costToVote = 500000 * 1e18;  // 500K coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 3 days; //minimum number of TIME between when proposal is initiated and executed
@@ -364,7 +366,24 @@ contract DTXgovernor {
 		
 		IERC20(token).transfer(treasuryWallet, amount);
 	}
-	    
+
+	// During first 2 months, we can send 2.5% of tokens to the referral reward contract
+	// Afterwards this has to be managed through the treasury
+	function transferToReferralContract() external {
+		require(block.timestamp > mintingPhaseLaunchDate + 60 days, "Only during first 2 months!");
+		
+		uint256 _total = IMasterChef(masterchef).totalCreditRewards();
+		uint256 _toTransfer = (_total * 25 / 1000) - tokensMintedForReferralRewards;
+
+		if(IDTX(token).balanceOf(address(this)) >= _toTransfer) {
+			IDTX(token).transfer(rewardContract, _toTransfer);
+		} else {
+			_toTransfer = IDTX(token).balanceOf(address(this));
+			IDTX(token).transfer(rewardContract, _toTransfer);
+		}
+
+		tokensMintedForReferralRewards+= _toTransfer;
+	}
 	
     /**
      * Transfers collected fees into treasury wallet(but not DTX...for now)
@@ -389,6 +408,7 @@ contract DTXgovernor {
         require(msg.sender == deployer, "Deployer only!");
 		require(!mintingPhase, "Minting phase has already begun!");
 
+		mintingPhaseLaunchDate = block.timestamp;
 		IMasterChef(masterchef).setFeeAddress(_newGovernor);
         IMasterChef(masterchef).dev(_newGovernor);
         IMasterChef(masterchef).transferOwnership(_newGovernor); //transfer masterchef ownership
