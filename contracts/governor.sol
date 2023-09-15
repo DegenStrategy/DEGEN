@@ -373,7 +373,7 @@ contract DTXgovernor {
 		require(block.timestamp > mintingPhaseLaunchDate + 60 days, "Only during first 2 months!");
 		
 		uint256 _total = IMasterChef(masterchef).totalCreditRewards();
-		uint256 _toTransfer = (_total * 25 / 1000) - tokensMintedForReferralRewards;
+		uint256 _toTransfer = (_total * 25 / 1000) - tokensSentForReferralRewards;
 
 		if(IDTX(token).balanceOf(address(this)) >= _toTransfer) {
 			IDTX(token).transfer(rewardContract, _toTransfer);
@@ -382,7 +382,7 @@ contract DTXgovernor {
 			IDTX(token).transfer(rewardContract, _toTransfer);
 		}
 
-		tokensMintedForReferralRewards+= _toTransfer;
+		tokensSentForReferralRewards+= _toTransfer;
 	}
 	
     /**
@@ -409,6 +409,7 @@ contract DTXgovernor {
 		require(!mintingPhase, "Minting phase has already begun!");
 
 		mintingPhaseLaunchDate = block.timestamp;
+		IMasterChef(masterchef).updateStartBlock(block.number+17111); // Minting phase begins in 48 hoours
 		IMasterChef(masterchef).setFeeAddress(_newGovernor);
         IMasterChef(masterchef).dev(_newGovernor);
         IMasterChef(masterchef).transferOwnership(_newGovernor); //transfer masterchef ownership
