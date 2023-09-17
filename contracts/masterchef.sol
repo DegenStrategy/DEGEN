@@ -252,7 +252,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		require(senatorRewards, "senator rewards are turned off");
 
 		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
-
+		uint256 _senatorRewardAmount;
 		if(senators.length <= 100) {
 			_senatorRewardAmount = 100; // 0.01%
 		} else {
