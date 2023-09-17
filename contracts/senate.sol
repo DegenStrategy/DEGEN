@@ -203,7 +203,7 @@ contract Senate {
 		require(senators.length == 0, "already initialized!");
 		for (uint256 i = 0; i < _senators.length; i++) {
 			senators.push(_senators[i]);
-			emit Addsenator(_senators[i]);
+			emit AddSenator(_senators[i]);
 		}
 	}
 	
