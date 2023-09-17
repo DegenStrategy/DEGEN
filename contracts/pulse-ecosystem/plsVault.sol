@@ -55,9 +55,6 @@ contract pulseVault is ReentrancyGuard {
 	uint256 public fundingRate = 0;// 0
 	uint256 public lastFundingChangeTimestamp; // save block.timestamp when funding rate is changed
 	
-	uint256 public refShare1 = 0; // start at 0%
-	uint256 public refShare2 = 0; // start at 0%
-	
 
     event Deposit(address indexed sender, uint256 amount, uint256 debt, uint256 depositFee, address referral);
     event Withdraw(address indexed sender, uint256 stakeID, uint256 harvestAmount, uint256 penalty);
@@ -66,7 +63,7 @@ contract pulseVault is ReentrancyGuard {
     event Harvest(address indexed harvester, address indexed benficiary, uint256 stakeID, address harvestInto, uint256 harvestAmount, uint256 penalty, uint256 callFee); //harvestAmount contains the callFee
     event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
 	
-	event CollectedFee(address ref, uint256 amount);
+	event CollectedFee(uint256 amount);
 
     constructor(
         IMasterChef _masterchef,
@@ -122,21 +119,13 @@ contract pulseVault is ReentrancyGuard {
         harvest();
 		
 		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
-			payable(referral).transfer(0);
 			referredBy[msg.sender] = referral;
 		}
 		
 		uint256 _depositFee = _amount * depositFee / 10000;
 		_amount = _amount - _depositFee;
 
-        uint256 commission = 0;
-		
-		if(referredBy[msg.sender] != address(0) && _depositFee > 0) {
-			commission = _depositFee * refShare1 / 10000;
-			payable(referredBy[msg.sender]).transfer(commission);
-		}
-		
-		payable(treasury).transfer(_depositFee - commission);
+		payable(treasury).transfer(_depositFee );
 		
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 
@@ -391,15 +380,6 @@ contract pulseVault is ReentrancyGuard {
 		lastFundingChangeTimestamp = block.timestamp;
 	}
 
-    function setRefShare1(uint256 _refShare1) external adminOnly {
-        require(_refShare1 <= 7500, "out of limit");
-		refShare1 = _refShare1;
-	}
-
-    function setRefShare2(uint256 _refShare2) external adminOnly {
-        require(_refShare2 <= 7500, "out of limit");
-		refShare2 = _refShare2;
-	}
 
     function payFee(UserInfo storage user, address _userAddress) private {
 		uint256 _lastAction = user.lastAction;
@@ -417,21 +397,14 @@ contract pulseVault is ReentrancyGuard {
 			user.lastAction = block.timestamp - (secondsSinceLastaction % 3600);
 			
 			uint256 commission = (block.timestamp - _lastAction) / 3600 * user.amount * fundingRate / 100000;
-			uint256 refEarning = 0;
-			address _ref = referredBy[_userAddress];
 			
-			if(_ref != address(0)) {
-				refEarning = commission * refShare2 / 10000;
-				payable(_ref).transfer(refEarning);
-			}
-			
-			payable(treasury).transfer(commission - refEarning);
+			payable(treasury).transfer(commission);
 
             user.feesPaid = user.feesPaid + commission;
 			
 			user.amount = user.amount - commission;
 			
-			emit CollectedFee(_ref, commission);
+			emit CollectedFee(commission);
 		}
 	}
 
