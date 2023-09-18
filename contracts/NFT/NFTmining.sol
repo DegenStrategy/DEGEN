@@ -21,10 +21,9 @@ interface INFTallocation {
 }
 
 /**
- * XPD NFT staking contract
- * !!! Warning: !!! Copyrighted
+ * XPD NFT Mining contract
  */
-contract NFTAllocation is ReentrancyGuard, ERC721Holder {
+contract XPDnftMining is ReentrancyGuard, ERC721Holder {
     using SafeERC20 for IERC20;
 
     struct UserInfo {
@@ -71,14 +70,15 @@ contract NFTAllocation is ReentrancyGuard, ERC721Holder {
     event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
 
     constructor(
+        address _admin,
+        address _treasury,
         IERC20 _token,
-        IMasterChef _masterchef,
-	address _allocationContract
+        IMasterChef _masterchef
     ) {
         token = _token;
-        admin = msg.sender;
+        admin = _admin;
+        treasury = _treasury;
 		masterchef = _masterchef;
-		allocationContract = _allocationContract;
 
 		
 		poolPayout[].amount = 100;
