@@ -11,6 +11,10 @@ import "../interface/IGovernor.sol";
 import "../interface/IVoting.sol";
 import "../interface/IMasterChef.sol";
 
+interface IDistribution {
+	function setMerkle(bytes32 _merkle) external;
+}
+
 // merkle-tree airdrop
 // Distribution with penalties to encourage long term participation in the protocol
 contract AirDrop is ReentrancyGuard {
@@ -33,15 +37,18 @@ contract AirDrop is ReentrancyGuard {
 	
 	address public votingCreditContract;
 
+	address public secondDistributionContract; // second airdrop contract used for giveaways and referral rewards (has additional penalties)
+
 	mapping(address => uint256) public amountRedeemed;
 	mapping(address => uint256) public minToServe;
     mapping(address => uint256) public payout;
 
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(IDTX _dtx) {
+	constructor(IDTX _dtx, address _secondDistributionContract) {
 		deployer = msg.sender;
 		DTX = _dtx;
+		secondDistributionContract = _secondDistributionContract;
 	}
 
 	function claimAirdrop(uint256 _claimAmount, uint256 amount, address claimInto, bytes32[] calldata merkleProof) external nonReentrant {
@@ -83,11 +90,22 @@ contract AirDrop is ReentrancyGuard {
         return(MerkleProof.verify(merkleProof, merkleRoot, node));
     }
 
-	function setMerkle(bytes32 _merkle) external {
+	/*
+	 * Initializes merkle root in both airdrop contracts (1. to distributors and 2. to giveaways/referral rewards)
+	 * Initiates minting phase in governing contract (effectively renounces contracts)
+	 * Transfers credit to the second distribution contract and to address for liquidity
+	*/
+	function setMerkle(bytes32 _merkle, uint256 _totalCreditToContributors, bytes32 _merkleForSecondDistributionContract) external {
 		require(msg.sender == deployer, "only deployer allowed!");
 		require(merkleRoot == 0, "Already initialized!");
+		require(_totalCreditToContributors <= 900000000 * 1e18, "Max 900M initial allocation!");
+		require(_totalCreditToContributors >= 810000000 * 1e18, "Max 10% to referral and giveaways!");
+
 		merkleRoot = _merkle;
 		IGovernor(owner()).beginMintingPhase();
+		masterchef.transferCredit(msg.sender, 225000000 * 1e18); // for initial liquidity
+		masterchef.transferCredit(secondDistributionContract, 900000000 * 1e18 - _totalCreditToContributors); // for referral and giveaways
+		IDistribution(secondDistributionContract).setMerkle(_merkleForSecondDistributionContract);
 	}
 
 	function updatePools() external {
