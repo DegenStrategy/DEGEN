@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.1;
+pragma solidity 0.8.20;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
@@ -24,7 +24,7 @@ interface INFTallocation {
  * XPD NFT staking contract
  * !!! Warning: !!! Copyrighted
  */
-contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
+contract NFTAllocation is ReentrancyGuard, ERC721Holder {
     using SafeERC20 for IERC20;
 
     struct UserInfo {
@@ -51,12 +51,12 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
  
-	uint256 public poolID = ; 
+	uint256 public poolID = 11; 
     uint256 public totalAllocation = 10000;
     uint256 public accDtxPerShare;
     address public admin; //admin = governing contract!
     address public treasury; //penalties
-    address public allocationContract = ; // PROXY CONTRACT for looking up allocations
+    address public allocationContract; // PROXY CONTRACT for looking up allocations
 
     uint256 public tokenDebt; //sum of allocations of all deposited NFTs
 
@@ -74,12 +74,14 @@ contract XPDnftStaking is ReentrancyGuard, ERC721Holder {
         address _admin,
         address _treasury,
         IERC20 _token,
-        IMasterChef _masterchef
+        IMasterChef _masterchef,
+	address _allocationContract
     ) {
         token = _token;
         admin = _admin;
         treasury = _treasury;
 		masterchef = _masterchef;
+		allocationContract = _allocationContract;
 
 		
 		poolPayout[].amount = 100;
