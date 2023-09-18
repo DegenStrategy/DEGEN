@@ -112,14 +112,11 @@ contract TimeDeposit is ReentrancyGuard {
     constructor(
         IDTX _token,
         IMasterChef _masterchef,
-        address _admin,
-        address _treasury,
         uint256 _poolID
     ) {
         token = _token;
         masterchef = _masterchef;
-        admin = _admin;
-        treasury = _treasury;
+        admin = msg.sender;
         poolID = _poolID;
     }
     
