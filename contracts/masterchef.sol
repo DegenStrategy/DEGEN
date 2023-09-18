@@ -77,7 +77,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	address _airdropLocked,
 	uint256 _airdropLockedAmount,
 	address _airdropFull,
-	uint256 _airdropFullAmount,
+	uint256 _airdropFullAmount
     ) {
         dtx = _DTX;
         devaddr = _devaddr;
@@ -275,7 +275,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	// renounce rewards once maximum supply would be breached
 	// if there is an "overflow", tokens can simply be burned from the governing contract
 	function renounceRewards() external {
-		require(virtualTotalSupply >= dtx.MAX_SUPPLY(), "Max supply not yet reached!");
+		require(virtualTotalSupply() >= dtx.MAX_SUPPLY(), "Max supply not yet reached!");
 		DTXPerBlock = 0;
 		maxSupplyReached = true;
 	}
