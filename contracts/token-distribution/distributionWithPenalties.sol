@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.2;
+pragma solidity 0.8.20;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -9,6 +9,7 @@ import "../interface/IDTX.sol";
 import "../interface/IacPool.sol";
 import "../interface/IGovernor.sol";
 import "../interface/IVoting.sol";
+import "../interface/IMasterChef.sol";
 
 // merkle-tree airdrop
 // Distribution with penalties (for referrals, locked(illiquid) contributions, rewards(giveaways))
@@ -70,7 +71,7 @@ contract AirDrop is ReentrancyGuard {
     // ends the airdrop by emptying token balance(sends tokens to governing contract)
 	function endAirdrop() external {
 		require(block.timestamp > startTime + CLAIM_PERIOD_DAYS * 86400, "airdrop still active");
-		masterchef.publishTokens(owner(), masterchef.credit(address(this))));
+		masterchef.publishTokens(owner(), masterchef.credit(address(this)));
 	}
 
 	function isValid(address _user, uint256 amount, bytes32[] calldata merkleProof) public view returns(bool) {
