@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.2;
 
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interface/IDTX.sol";
@@ -40,11 +41,10 @@ contract AirDrop is ReentrancyGuard {
 
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(IDTX _dtx, IMasterChef _chef) {
+	constructor(IDTX _dtx) {
 		deployer = msg.sender;
 		DTX = _dtx;
 		startTime = block.timestamp;
-		masterchef = _chef;
 	}
 
 	function claimAirdrop(uint256 _claimAmount, uint256 amount, address claimInto, bytes32[] calldata merkleProof) external nonReentrant {
@@ -93,6 +93,7 @@ contract AirDrop is ReentrancyGuard {
 			acPool6 = IGovernor(owner()).acPool6();
 
 			votingCreditContract = IGovernor(owner()).creditContract();
+			masterchef = IMasterChef(IGovernor(owner()).masterchef());
 
 			minToServe[acPool1] = 864000;
 			minToServe[acPool2] = 2592000;
