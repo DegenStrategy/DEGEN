@@ -71,18 +71,13 @@ contract DTXChef is Ownable, ReentrancyGuard {
 
     constructor(
         IDTX _DTX,
-	address _airdropLocked,
-	uint256 _airdropLockedAmount,
-	address _airdropFull,
-	uint256 _airdropFullAmount
+	address _airdropFull
     ) {
         dtx = _DTX;
         devaddr = msg.sender;
         feeAddress = msg.sender;
-	credit[_airdropLocked] = _airdropLockedAmount;
-	credit[_airdropFull] = _airdropFullAmount;
-		totalCreditRewards = _airdropLockedAmount + _airdropFullAmount;
-        require(totalCreditRewards <= 1150000000, "Max 1.15B Initial allocation required!");
+	    credit[_airdropFull] = 1125000000 * 1e18;
+		totalCreditRewards = 1125000000 * 1e18;
     }
 
     function poolLength() external view returns (uint256) {
@@ -192,7 +187,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	
 	// In case pools are changed (on migration old contract transfers it's credit to the new one)
 	function transferCredit(address _to, uint256 _amount) external {
-		require(trustedContract[msg.sender], "only trusted contracts");
+        require(credit[msg.sender] >= _amount, "insufficient credit for transfer!");
 		credit[msg.sender] = credit[msg.sender] - _amount;
 		credit[_to] = credit[_to] + _amount;
 		emit TransferCredit(msg.sender, _to, _amount);
@@ -247,6 +242,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 
 	function fairMintSenate() external {
 		require(senatorRewards, "senator rewards are turned off");
+        require(block.number > startBlock, "Must wait until minting phase begins!");
 
 		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
 		uint256 _senatorRewardAmount;
