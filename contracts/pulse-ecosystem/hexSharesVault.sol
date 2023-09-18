@@ -70,16 +70,13 @@ contract tshareVault is ReentrancyGuard {
      * @notice Constructor
      * @param _token: DTX token contract
      * @param _masterchef: MasterChef contract
-     * @param _treasury: address of the treasury (collects fees)
      */
     constructor(
         IERC20 _token,
-        IMasterChef _masterchef,
-        address _feeAddress
+        IMasterChef _masterchef
     ) {
         token = _token;
         masterchef = _masterchef;
-        treasury = _feeAddress;
         poolID = 10;
 	
 		poolPayout[].amount = 100;
@@ -121,8 +118,8 @@ contract tshareVault is ReentrancyGuard {
 		require(user.amount == 0, "already have an active stake!");
         harvest();
 
-		if(referredBy[_userAddress] == address(0) && referral != _userAddress) {
-			referredBy[_userAddress] = referral;
+		if(referredBy[_userAddress] == address(0) && _referral != _userAddress) {
+			referredBy[_userAddress] = _referral;
 		}
 		
 		uint256 nrOfStakes = hexC.stakeCount(_userAddress);
