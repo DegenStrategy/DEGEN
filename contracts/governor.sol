@@ -55,7 +55,7 @@ contract DTXgovernor {
     uint256 public immutable acPool5ID = 4;
     uint256 public immutable acPool6ID = 5;
 	
-	uint256 public immutable nftStakingPoolID = 10;
+	uint256 public immutable nftStakingPoolID = 11;
 	
 	address public immutable plsVault = ;
 	address public immutable plsxVault = ;
