@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: NONE
-pragma solidity >= 0.8.0;
+pragma solidity 0.8.1;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -71,18 +71,14 @@ contract DTXChef is Ownable, ReentrancyGuard {
 
     constructor(
         IDTX _DTX,
-        address _devaddr,
-        address _feeAddress,
-        uint256 _DTXPerBlock,
 	address _airdropLocked,
 	uint256 _airdropLockedAmount,
 	address _airdropFull,
 	uint256 _airdropFullAmount
     ) {
         dtx = _DTX;
-        devaddr = _devaddr;
-        feeAddress = _feeAddress;
-        DTXPerBlock = _DTXPerBlock;
+        devaddr = msg.sender;
+        feeAddress = msg.sender;
 	credit[_airdropLocked] = _airdropLockedAmount;
 	credit[_airdropFull] = _airdropFullAmount;
 		totalCreditRewards = _airdropLockedAmount + _airdropFullAmount;
