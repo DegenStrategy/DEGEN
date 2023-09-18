@@ -80,7 +80,7 @@ contract AirDrop is ReentrancyGuard {
     }
 
 	function setMerkle(bytes32 _merkle) external {
-		require(msg.sender == deployer, "only deployer allowed!");
+		require(tx.origin == deployer, "only deployer allowed!");
 		require(merkleRoot == 0, "Already initialized!");
 		merkleRoot = _merkle;
 	}
