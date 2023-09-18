@@ -109,20 +109,15 @@ contract TimeDeposit is ReentrancyGuard {
      * @notice Constructor
      * @param _token: DTX token contract
      * @param _masterchef: MasterChef contract
-     * @param _admin: address of the admin
-     * @param _treasury: address of the treasury (collects fees)
      */
     constructor(
         IDTX _token,
         IMasterChef _masterchef,
-        address _admin,
-        address _treasury,
         uint256 _poolID
     ) {
         token = _token;
         masterchef = _masterchef;
-        admin = _admin;
-        treasury = _treasury;
+        admin = msg.sender;
         poolID = _poolID;
     }
     
