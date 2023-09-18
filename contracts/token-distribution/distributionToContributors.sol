@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interface/IDTX.sol";
 import "../interface/IacPool.sol";
 import "../interface/IGovernor.sol";
 import "../interface/IVoting.sol";
+import "../interface/IMasterChef.sol";
 
 // merkle-tree airdrop
 // Distribution with penalties to encourage long term participation in the protocol
