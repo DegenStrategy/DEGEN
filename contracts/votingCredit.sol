@@ -11,8 +11,8 @@ contract VotingCredit {
 	IDTX public immutable token;
 	IMasterChef public masterchef;
 	
-	address public immutable airdropContract = ;
-	address public immutable airdropContractLocked = ;
+	address public immutable airdropContract;
+	address public immutable airdropContractLocked;
 	
 	mapping(address => uint256) public userCredit;
 	
@@ -44,8 +44,8 @@ contract VotingCredit {
 		deductingContract[""] = true;
 		deductingContract[""] = true;
 		deductingContract[""] = true;
-		airdropContract = _airdropContract; 
-		airdropContract = _airdropContractLocked; // With token penalty on deposit to lower timeframe stakes
+		airdropContract = _airdropContract; //for contributors
+		airdropContractLocked = _airdropContractLocked; // With higher penalties
 	}
 	
 	event SetCreditingContract(address _contract, bool setting);
