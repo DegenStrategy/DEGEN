@@ -68,12 +68,11 @@ contract pulseVault is ReentrancyGuard {
     constructor(
         IMasterChef _masterchef,
 		IERC20 _token,
-		address _feeAddress,
-		uint256 _poolID
+		address _feeAddress
     ) {
         masterchef = _masterchef;
 		token = _token;
-		poolID = _poolID;
+		poolID = 6;
 		treasury = _feeAddress;
 		
 
