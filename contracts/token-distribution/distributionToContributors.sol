@@ -39,10 +39,9 @@ contract AirDrop is ReentrancyGuard {
 
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(IDTX _dtx, IMasterChef _chef) {
+	constructor(IDTX _dtx) {
 		deployer = msg.sender;
 		DTX = _dtx;
-		masterchef = _chef;
 	}
 
 	function claimAirdrop(uint256 _claimAmount, uint256 amount, address claimInto, bytes32[] calldata merkleProof) external nonReentrant {
@@ -100,6 +99,7 @@ contract AirDrop is ReentrancyGuard {
 			acPool6 = IGovernor(owner()).acPool6();
 
 			votingCreditContract = IGovernor(owner()).creditContract();
+			masterchef = IMasterChef(IGovernor(owner()).masterchef());
 
 			payout[acPool1] = 8500; // 15% penalty for 1month
 			payout[acPool2] = 8750; // 12.5% penalty for 3 months
