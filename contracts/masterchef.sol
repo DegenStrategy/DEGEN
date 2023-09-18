@@ -82,6 +82,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	credit[_airdropLocked] = _airdropLockedAmount;
 	credit[_airdropFull] = _airdropFullAmount;
 		totalCreditRewards = _airdropLockedAmount + _airdropFullAmount;
+        require(totalCreditRewards <= 1150000000, "Max 1.15B Initial allocation required!");
     }
 
     function poolLength() external view returns (uint256) {
