@@ -71,15 +71,12 @@ contract NFTAllocation is ReentrancyGuard, ERC721Holder {
     event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
 
     constructor(
-        address _admin,
-        address _treasury,
         IERC20 _token,
         IMasterChef _masterchef,
 	address _allocationContract
     ) {
         token = _token;
-        admin = _admin;
-        treasury = _treasury;
+        admin = msg.sender;
 		masterchef = _masterchef;
 		allocationContract = _allocationContract;
 
