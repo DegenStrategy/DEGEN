@@ -48,6 +48,7 @@ contract DTXNFTallocationProxy is Ownable {
 	ProposalStructure[] public payoutProposal;
 
     address public immutable token;
+    address public immutable masterchef;
 	
 	address public creditContract;
 
@@ -58,8 +59,9 @@ contract DTXNFTallocationProxy is Ownable {
     mapping(address => bool) public allocationContract; 
     mapping(address => PendingContract) public pendingContract; 
     
-    constructor(address _dtx) {
+    constructor(address _dtx, address _masterchef) {
         token = _dtx;
+        masterchef = _masterchef;
     }
 
     event SetAllocationContract(address contractAddress, bool setting);
@@ -163,7 +165,7 @@ contract DTXNFTallocationProxy is Ownable {
 		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
     	require(depositingTokens >= IGovernor(owner()).costToVote(), "minimum cost to vote");
 		require(
-			IDTX(token).trustedContract(_forPoolAddress) || _forPoolAddress == address(0) ||
+			IMasterChef(masterchef).trustedContract(_forPoolAddress) || _forPoolAddress == address(0) ||
 					_forPoolAddress == address(1) || _forPoolAddress == address(2),
 			"pools/trusted contracts only");
     
