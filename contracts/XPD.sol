@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: NONE
-pragma solidity ^0.8.1;
+pragma solidity ^0.8.20;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/extensions/ERC20Burnable.sol";
@@ -11,11 +11,11 @@ import "./interface/IMasterChef.sol";
 import "./interface/IGovernor.sol";
 
 contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
-	uint256 public CONSTANT MAX_SUPPLY = 21000000000 * 1e18; //21 billion max supply
+	uint256 public constant MAX_SUPPLY = 21000000000 * 1e18; //21 billion max supply
 	string private _name;
     string private _symbol;
     
-	constructor() ERC20("PulseDAO Currency", "XPD") {
+	constructor() ERC20("PulseDAO Currency", "XPD") Ownable(msg.sender) {
 		_name = string("PulseDAO");
 		_symbol = string("XPD");
 	}
