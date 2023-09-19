@@ -106,15 +106,23 @@ contract DTXfarms {
 	}
 	
 	function rebalancePools() public {
-		//get allocations for staking pools. then give allocated percentage to each (6-11)
-		uint256 _totalAllocatedToXPDMiners;
-		uint256 _allocation;
+		uint256 _totalAllocatedToXPDMiners; //allocation points here
 		for(uint i = 0; i <= 5; i++) {
-			(_allocation, , ) = IMasterChef(masterchef).poolInfo(i);
+			(uint256 _allocation, , ) = IMasterChef(masterchef).poolInfo(i);
 			_totalAllocatedToXPDMiners+= _allocation;
 		}
+
+		uint256 _percentageAllocatedToPulseEcosystem = 0; //Percentages here
 		for(uint i=6; i <= 11; i++) {
-			uint256 _newAlloc = _totalAllocatedToXPDMiners * poolAllocation[i] / 10000;
+			_percentageAllocatedToPulseEcosystem+= poolAllocation[i];
+		}
+
+		uint256 _percentageAllocatedToXPDMiners = 10000 - _percentageAllocatedToPulseEcosystem;
+		uint256 _multiplier = 100000000 / _percentageAllocatedToXPDMiners;
+		uint256 _newTotalAllocation = (_totalAllocatedToXPDMiners * _multiplier) / 10000;
+
+		for(uint i=6; i <= 11; i++) {
+			uint256 _newAlloc = _newTotalAllocation * poolAllocation[i] / 10000;
 			IGovernor(owner()).setPool(poolAllocation[i], _newAlloc, 0, false);
 		}
 		IMasterChef(masterchef).massUpdatePools();
