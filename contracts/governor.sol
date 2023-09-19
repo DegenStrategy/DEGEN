@@ -15,6 +15,7 @@ import "./interface/IVault.sol";
 
 contract DTXgovernor {
     address private immutable deployer;
+	uint256 public immutable CONTRACT_LAUNCH_DATE;
     uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
     address public immutable token = ENTERNEWTOKEN; //DTX token
 
@@ -68,7 +69,6 @@ contract DTXgovernor {
 
 	uint256 public referralBonus = 1000; // 10% for both referr and invitee
 
-	uint256 public constant CONTRACTLAUNCHDATE;
 	uint256 public mintingPhaseLaunchDate;
 	uint256 public tokensSentForReferralRewards;
     
@@ -122,7 +122,7 @@ contract DTXgovernor {
 			_rollBonus[_acPool4] = 250;
 			_rollBonus[_acPool5] = 350;
 			_rollBonus[_acPool6] = 500;
-			CONTRACTLAUNCHDATE = block.timestamp;
+			CONTRACT_LAUNCH_DATE = block.timestamp;
     }    
 
     
@@ -382,7 +382,7 @@ contract DTXgovernor {
 
 	// When merkle tree root is provided to the distribution contract, the minting phase begins
 	function beginMintingPhase() external {
-		require(msg.sender == "tokenDistributionContract", "only distribution contract!");
+		require(msg.sender == tokenDistributionContract, "only distribution contract!");
 		mintingPhase = true;
 	}
 
@@ -409,7 +409,7 @@ contract DTXgovernor {
 	 * Can be ofcourse changed by replacing governor contract
 	 */
 	function newGovernorBlockDelay() public view returns (uint256) {
-		return (42772 + (((block.timestamp - CONTRACTLAUNCHDATE) / 86400) * 535));
+		return (42772 + (((block.timestamp - CONTRACT_LAUNCH_DATE) / 86400) * 535));
 	}
     
 }  
