@@ -124,6 +124,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
     }
 
     // Update the given pool's DTX allocation point and deposit fee. Can only be called by the owner.
+	// Notice: DepositFee is completely irrelevant, but it's been left as it would otherwise mess up our setup
     function set(uint256 _pid, uint256 _allocPoint, uint16 _depositFeeBP, bool _withUpdate) public onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
