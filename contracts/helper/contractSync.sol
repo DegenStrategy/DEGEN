@@ -21,9 +21,9 @@ interface INFTstaking {
 	function setAdmin() external;
 }
 
-
 contract DTXsyncContracts {
     address public immutable tokenDTX;
+    address public immutable proxyVoting;
     
     address public acPool1;
     address public acPool2;
@@ -33,15 +33,18 @@ contract DTXsyncContracts {
     address public acPool6;
 
 
-    constructor(address _dtx) {
+    constructor(address _dtx, address _proxyVoting) {
         tokenDTX = _dtx;
+        proxyVoting = _proxyVoting;
     }
 
     function updateAll() external {
+		updatePools();
+		updatePoolsDistributionContract();
         updatePoolsOwner();
-        updatePoolsInSideContracts();
         updateMasterchef();
 		nftStaking();
+        IChange(proxyVoting).updatePools();
     }
 
     function updatePools() public {
@@ -65,6 +68,13 @@ contract DTXsyncContracts {
         IacPool(acPool5).setAdmin();
         IacPool(acPool6).setAdmin();
     }
+
+	function updatePoolsDistributionContract() public {
+		address governor = IDTX(tokenDTX).governor();
+
+		IChange(IGovernor(governor).tokenDistributionContract()).updatePools();
+		IChange(IGovernor(governor).tokenDistributionContractExtraPenalty()).updatePools();
+	}
 
 	function syncCreditContract() public {
         address governor = IDTX(tokenDTX).governor();
