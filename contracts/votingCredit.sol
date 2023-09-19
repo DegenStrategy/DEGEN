@@ -27,7 +27,7 @@ contract VotingCredit {
 	// allows for custom implementations
 	mapping(uint256 => uint256) public burnedForId;
 	
-	constructor(IDTX _token, IMasterChef _masterchef, uint256 _creditingContractCount, uint256 _deductingContractCount, address _airdropContract, address _airdropContractLocked) {
+	constructor(IDTX _token, IMasterChef _masterchef, address _airdropContract, address _airdropContractLocked) {
 		token = _token;
 		masterchef = _masterchef;
 		creditingContractCount = 7;
