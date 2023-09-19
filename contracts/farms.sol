@@ -417,6 +417,21 @@ contract DTXfarms {
 		}	
     }
 
+	// Reduce Allocations if they exceed allowed maximum
+	function rebalanceIfPulseAllocationExceedsMaximum() external {
+		uint256 _totalAllocation = 0;
+		for(uint i=6; i <= 11; i++) {
+			_totalAllocation+= poolAllocation[i];
+		}
+
+		if(_totalAllocation > maxPulseEcoTotalAllocation) {
+			uint256 _exceedsBy = _totalAllocation - maxPulseEcoTotalAllocation;
+			for(uint i=6; i <= 11; i++) {
+				poolAllocation[i] = (poolAllocation[i] * (maxPulseEcoTotalAllocation - _exceedsBy)) / maxPulseEcoTotalAllocation;
+			}
+		}
+	}
+
 	// Slowly reduce the maximum allocation for distribution to PulseChain ecosystem (more rewards for PulseDAO native miners)
 	// reduce by 1% every 7 days
 	// Y=9000*(1-0.01)^t
