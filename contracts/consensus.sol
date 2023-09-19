@@ -300,7 +300,7 @@ contract DTXconsensus {
     }
    
     function senateVeto(uint256 proposalID) external {
-		require(msg.sender == IGovernor(owner()).senateContract();, " veto allowed only by senate ");
+		require(msg.sender == IGovernor(owner()).senateContract(), " veto allowed only by senate ");
 		require(proposalID % 2 == 1, "Invalid proposal ID");
 
 		require(!isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated);
@@ -310,7 +310,7 @@ contract DTXconsensus {
 	}
 
 	function senateVetoTreasury(uint256 proposalID) external {
-		require(msg.sender == IGovernor(owner()).senateContract();, " veto allowed only by senate ");
+		require(msg.sender == IGovernor(owner()).senateContract(), " veto allowed only by senate ");
 		require(proposalID % 2 == 1, "Invalid proposal ID");
 
 		require(treasuryProposal[proposalID].valid, "Proposal already invalid");
