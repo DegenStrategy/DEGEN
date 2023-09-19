@@ -328,12 +328,12 @@ contract DTXgovernor {
             IVault(plsxVault).setDepositFee(_amount);
             IVault(hexVault).setDepositFee(_amount);
 			IVault(incVault).setDepositFee(_amount);
-        } else if(_type == 2) {
+        } else if(_type == 1) {
             IVault(plsVault).setFundingRate(_amount);
             IVault(plsxVault).setFundingRate(_amount);
             IVault(hexVault).setFundingRate(_amount);
 			IVault(incVault).setFundingRate(_amount);
-        } else if (_type == 3) {
+        } else if (_type == 2) {
 			require(_amount <= 2500, "max 25% Bonus!");
 			referralBonus = _amount;
 		}
