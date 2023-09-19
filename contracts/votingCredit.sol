@@ -30,7 +30,7 @@ contract VotingCredit {
 	constructor(IDTX _token, IMasterChef _masterchef, address _airdropContract, address _airdropContractLocked) {
 		token = _token;
 		masterchef = _masterchef;
-		creditingContractCount = 7;
+		creditingContractCount = 9;
 		deductingContractCount = 5; 
 		creditingContract[] = true; // set for all crediting contracts (all staking pools)
 		creditingContract[] = true;
@@ -39,6 +39,8 @@ contract VotingCredit {
 		creditingContract[] = true;
 		creditingContract[] = true;
 		creditingContract[] = true; // senateContract
+		creditingContract[airdropContract] = true;
+		creditingContract[airdropContractLocked] = true;
 		deductingContract[] = true; // set for all deducting contracts (rewardBoost, consensus, basicSettings, farms, nftAllocation)
 		deductingContract[] = true;
 		deductingContract[] = true;
