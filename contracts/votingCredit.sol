@@ -11,8 +11,8 @@ contract VotingCredit {
 	IDTX public immutable token;
 	IMasterChef public masterchef;
 	
-	address public immutable airdropContract;
-	address public immutable airdropContractLocked;
+	address public airdropContract;
+	address public airdropContractLocked;
 	
 	mapping(address => uint256) public userCredit;
 	
@@ -32,18 +32,18 @@ contract VotingCredit {
 		masterchef = _masterchef;
 		creditingContractCount = _creditingContractCount; //7
 		deductingContractCount = _deductingContractCount; //5
-		creditingContract[""] = true; // set for all crediting contracts (all staking pools)
-		creditingContract[""] = true;
-		creditingContract[""] = true;
-		creditingContract[""] = true;
-		creditingContract[""] = true;
-		creditingContract[""] = true;
-		creditingContract[""] = true; // senateContract
-		deductingContract[""] = true; // set for all deducting contracts (rewardBoost, consensus, basicSettings, farms, nftAllocation)
-		deductingContract[""] = true;
-		deductingContract[""] = true;
-		deductingContract[""] = true;
-		deductingContract[""] = true;
+		creditingContract[] = true; // set for all crediting contracts (all staking pools)
+		creditingContract[] = true;
+		creditingContract[] = true;
+		creditingContract[] = true;
+		creditingContract[] = true;
+		creditingContract[] = true;
+		creditingContract[] = true; // senateContract
+		deductingContract[] = true; // set for all deducting contracts (rewardBoost, consensus, basicSettings, farms, nftAllocation)
+		deductingContract[] = true;
+		deductingContract[] = true;
+		deductingContract[] = true;
+		deductingContract[] = true;
 		airdropContract = _airdropContract; //for contributors
 		airdropContractLocked = _airdropContractLocked; // With higher penalties
 	}
