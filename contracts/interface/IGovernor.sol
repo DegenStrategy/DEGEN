@@ -10,12 +10,6 @@ interface MyInterface {
         address poolInto
     );
     event Harvest(address indexed sender, uint256 callFee);
-    event Multisig(
-        address signer,
-        address newGovernor,
-        bool sign,
-        uint256 idToVoteFor
-    );
     event SetInflation(uint256 rewardPerBlock);
     event TransferOwner(address newOwner, uint256 timestamp);
 
