@@ -68,7 +68,7 @@ contract DTXgovernor {
 
 	uint256 public referralBonus = 1000; // 10% for both referr and invitee
 
-	uint256 public constant CONTRACT_LAUNCH_DATE;
+	uint256 public constant CONTRACTLAUNCHDATE;
 	uint256 public mintingPhaseLaunchDate;
 	uint256 public tokensSentForReferralRewards;
     
@@ -122,7 +122,7 @@ contract DTXgovernor {
 			_rollBonus[_acPool4] = 250;
 			_rollBonus[_acPool5] = 350;
 			_rollBonus[_acPool6] = 500;
-			CONTRACT_LAUNCH_DATE = block.timestamp;
+			CONTRACTLAUNCHDATE = block.timestamp;
     }    
 
     
@@ -272,12 +272,6 @@ contract DTXgovernor {
 		totalFibonacciEventsAfterGrand++;
 	}
 	
-	function updateDurationForCalculation(uint256 _newDuration) external {
-	    require(msg.sender == basicContract);
-	    durationForCalculation = _newDuration;
-	}
-	
-	
 	function setThresholdFibonaccening(uint256 newThreshold) external {
 	    require(msg.sender == basicContract);
 	    thresholdFibonaccening = newThreshold;
@@ -415,7 +409,7 @@ contract DTXgovernor {
 	 * Can be ofcourse changed by replacing governor contract
 	 */
 	function newGovernorBlockDelay() public view returns (uint256) {
-		return (42772 + (((block.timestamp - CONTRACT_LAUNCH_DATE) / 86400) * 535));
+		return (42772 + (((block.timestamp - CONTRACTLAUNCHDATE) / 86400) * 535));
 	}
     
 }  
