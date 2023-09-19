@@ -51,7 +51,6 @@ contract tshareVault is ReentrancyGuard {
 	uint256 public safePeriod = 12 hours;
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
-    address public admin; //admin = governing contract!
     address public treasury; //penalties
 	uint256 public totalTshares = 1e8; // Negligible share to avoid division by 0 on first deposit. 
 	
