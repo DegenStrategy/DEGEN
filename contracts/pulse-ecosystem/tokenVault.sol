@@ -75,14 +75,12 @@ contract tokenVault is ReentrancyGuard {
         IERC20 _stakeToken,
         IMasterChef _masterchef,
         uint256 _poolId,
-	IERC20 _token,
-	address _feeAddress
+	IERC20 _token
     ) {
         stakeToken = _stakeToken;
         masterchef = _masterchef;
         poolID = _poolId;
 	token = _token;
-	treasury = _feeAddress;
 
 		poolPayout[].amount = 100;
         poolPayout[].minServe = 864000;
