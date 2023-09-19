@@ -94,6 +94,7 @@ contract DTXfarms {
 		token = _DTX;
 		masterchef = _masterchef;
 		lastReducePulseAllocation = _launch + 7 days;
+		poolAllocation[10] = 9000; // Begin with allocation to Hex miners(T-shares)
 	}
 
 	//ability to change max allocations without launching new contract
