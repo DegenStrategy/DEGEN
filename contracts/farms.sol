@@ -69,7 +69,7 @@ contract DTXfarms {
     
 	uint256 public maxNftAllocation = 1500;
 	
-	uint256 public maxPulseEcoAllocation = 3300; //max 33% per pool
+	uint256 public maxPulseEcoAllocation = 6000; //max 60% per pool
 	uint256 public maxPulseEcoTotalAllocation = 9000; // max 90% total (at beginning)
 	uint256 public lastReducePulseAllocation; //block timestamp when maximum pulse ecosystem allocation is reduced
     
@@ -104,19 +104,23 @@ contract DTXfarms {
         maxPulseEcoTotalAllocation = _maxPulseTotal;
 	}
 	
-	function rebalancePool(uint256[] calldata _poolId) external {
-	for(uint i=0; i < _poolId.length; i++) {
-			if(poolAllocation[_poolId[i]] > 0) {
-				uint256 _newAlloc = IMasterChef(masterchef).totalAllocPoint() * poolAllocation[_poolId[i]] / 10000;
-				IGovernor(owner()).setPool(_poolId[i], _newAlloc, 0, false);
-			}
+	function rebalancePools() public {
+		//get allocations for staking pools. then give allocated percentage to each (6-11)
+		uint256 _totalAllocatedToXPDMiners;
+		uint256 _allocation;
+		for(uint i = 0; i <= 5; i++) {
+			(_allocation, , ) = IMasterChef(masterchef).poolInfo(i);
+			_totalAllocatedToXPDMiners+= _allocation;
+		}
+		for(uint i=6; i <= 11; i++) {
+			uint256 _newAlloc = _totalAllocatedToXPDMiners * poolAllocation[i] / 10000;
+			IGovernor(owner()).setPool(poolAllocation[i], _newAlloc, 0, false);
 		}
 		IMasterChef(masterchef).massUpdatePools();
 	}
     
     /**
-     * Regulatory process to regulate farm rewards 
-     * And Meme pools
+     * Regulatory process to regulate rewards for PulseChain Ecosystem
     */    
     function initiateFarmProposal(
             uint256 depositingTokens, uint256 poolid, uint256 newAllocation, uint16 depositFee, uint256 delay
@@ -126,7 +130,7 @@ contract DTXfarms {
     	require(poolid > 5 && poolid <= 11, "only allowed for these pools"); 
 		
 		//6,7,8,9,10 are  PLS,PLSX,HEX,INC,T-Share
-		//11 is for NFT staking(nfts and virtual land)
+		//11 is for NFT mining
     	if(poolid == 11) {
 			require(
     	        newAllocation <= maxNftAllocation,
@@ -176,7 +180,7 @@ contract DTXfarms {
     /**
      * Updates the rewards for the corresponding farm in the proposal
     */
-    function updateFarm(uint256 proposalID) public {
+    function updateFarm(uint256 proposalID, bool _withUpdate) public {
         require(proposalFarmUpdate[proposalID].valid, "invalid proposal");
         require(
             proposalFarmUpdate[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + proposalFarmUpdate[proposalID].delay  < block.timestamp,
@@ -184,25 +188,28 @@ contract DTXfarms {
             );
 		uint256 _poolID = proposalFarmUpdate[proposalID].poolid;
 		uint256 _pulseEcoCount = 0;
-		uint256 _newAllocation = IMasterChef(masterchef).totalAllocPoint() * proposalFarmUpdate[proposalID].newAllocation / 10000;
+		uint256 _newAllocation = proposalFarmUpdate[proposalID].newAllocation;
         
 		if(proposalFarmUpdate[proposalID].valueSacrificedForVote >= proposalFarmUpdate[proposalID].valueSacrificedAgainst) {
-			if(_poolID > 5) { //Rewards outside PulseDAO CD mining
-				for(uint256 i= 6; i<=11; i++) {
-					if(_poolID != i) { 
-						(uint256 _allocPoint, ,) = IMasterChef(masterchef).poolInfo(i);
-						_pulseEcoCount+= _allocPoint;
-					} else {
-						_pulseEcoCount+= _newAllocation;
-					}
+
+			//check so it does not exceed total
+			for(uint256 i= 6; i<=11; i++) {
+				if(_poolID != i) { 
+					_pulseEcoCount+= poolAllocation[i];
+				} else {
+					_pulseEcoCount+= _newAllocation;
 				}
-				require(_pulseEcoCount <= (IMasterChef(masterchef).totalAllocPoint() * maxPulseEcoTotalAllocation / 10000), "exceeds maximum allowed allocation for pulse ecosystem");
 			}
-			IGovernor(owner()).setPool(_poolID, _newAllocation, proposalFarmUpdate[proposalID].newDepositFee, true);
-			poolAllocation[_poolID] = proposalFarmUpdate[proposalID].newAllocation;
+			require(_pulseEcoCount <= maxPulseEcoTotalAllocation, "exceeds maximum allowed allocation for pulse ecosystem");
+
+			poolAllocation[_poolID] = _newAllocation;
 			proposalFarmUpdate[proposalID].valid = false;
 			
 			emit EnforceProposal(0, proposalID, msg.sender, true);
+			
+			if(_withUpdate) {
+				rebalancePools();
+			}
 		} else {
 			vetoFarmProposal(proposalID);
 		}
@@ -282,9 +289,7 @@ contract DTXfarms {
 	
 	//in case masterchef is changed
    function setMasterchef() external {
-		address _chefo = IMasterChef(token).owner();
-		
-        masterchef = _chefo;
+        masterchef = IGovernor(owner()).masterchef();
     }
    
     //transfers ownership of this contract to new governor
@@ -355,7 +360,7 @@ contract DTXfarms {
 		}
     }
 	
-		    //process for setting deposit fee, funding fee and referral commission	
+		    //process for setting deposit fee, funding fee and referral reward	
     function proposeVault(uint256 depositingTokens, uint256 _type, uint256 _amount, uint256 delay) external {	
         require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");	
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");	
