@@ -21,22 +21,21 @@ contract DTXgovernor {
 
     //masterchef address
     address public immutable masterchef = ENTERNEWCHEF;
-	
+
+	address public immutable basicContract = ;
+	address public immutable farmContract = ;
+	address public immutable fibonacceningContract = ; //reward boost contract
     address public immutable consensusContract = ;
-    address public immutable farmContract = ;
-    address public immutable fibonacceningContract = ; //reward boost contract
-    address public immutable basicContract = ;
-	address public immutable senateContract = ;
 	
 	address public immutable creditContract = ;
 	
 	address public immutable nftStakingContract = ;
 	address public immutable nftAllocationContract = ;
     
-    //Addresses for treasuryWallet and NFT wallet
     address public treasuryWallet = ;
     address public nftWallet = ;
 
+	address public immutable senateContract = ;
 	address public immutable rewardContract = ; //for referral rewards
     
     //addresses for time-locked deposits(autocompounding pools)
@@ -59,8 +58,8 @@ contract DTXgovernor {
 	
 	address public immutable plsVault = ;
 	address public immutable plsxVault = ;
-	address public immutable hexVault = ;
 	address public immutable incVault = ;
+	address public immutable hexVault = ;
 	address public immutable tshareVault = ;
 
 	address public immutable tokenDistributionContract = ;
@@ -69,7 +68,7 @@ contract DTXgovernor {
 
 	uint256 public referralBonus = 1000; // 10% for both referr and invitee
 
-	uint256 public CONSTANT CONTRACT_LAUNCH_DATE;
+	uint256 public constant CONTRACT_LAUNCH_DATE;
 	uint256 public mintingPhaseLaunchDate;
 	uint256 public tokensSentForReferralRewards;
     
@@ -155,7 +154,7 @@ contract DTXgovernor {
 		IMasterChef(masterchef).set(acPool1ID, (100000 * 5333 * total / 10000 * balancePool1) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool2ID, (100000 * 8000 * balancePool2) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool3ID, (100000 * 12000 * balancePool3) / (total * 10000), 0, false);
-    	IMasterChef(masterchef).set(acPool4ID, (100000 * 26660 * balancePool4) / (total * 10000), 0, false);;
+    	IMasterChef(masterchef).set(acPool4ID, (100000 * 26660 * balancePool4) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool5ID, (100000 * 34666 * balancePool5) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool6ID, (100000 * 40000 * balancePool6) / (total * 10000), 0, false); 
 
