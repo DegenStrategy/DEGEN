@@ -107,7 +107,6 @@ contract DTXgovernor {
     event EnforceGovernor(address _newGovernor, address indexed enforcer);
     event GiveRolloverBonus(address recipient, uint256 amount, address poolInto);
 	event Harvest(address indexed sender, uint256 callFee);
-	event Multisig(address signer, address newGovernor, bool sign, uint256 idToVoteFor);
     
     constructor(
 		address _acPool1,
