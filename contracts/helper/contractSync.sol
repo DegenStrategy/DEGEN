@@ -73,6 +73,7 @@ contract DTXsyncContracts {
         IChange(IGovernor(governor).farmContract()).syncCreditContract();
         IChange(IGovernor(governor).fibonacceningContract()).syncCreditContract();
         IChange(IGovernor(governor).basicContract()).syncCreditContract();
+	IChange(IGovernor(governor).nftAllocationContract()).syncCreditContract();
     }
 
     //updates allocation contract owner, nft staking(admin)
