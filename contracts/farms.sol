@@ -99,7 +99,6 @@ contract DTXfarms {
 	//ability to change max allocations without launching new contract
 	function changeMaxAllocations(uint256 _lp, uint256 _nft, uint256 _maxPulse, uint256 _maxPulseTotal) external {
         require(msg.sender == owner(), "owner only");
-		maxLpAllocation = _lp;
 		maxNftAllocation = _nft;
         maxPulseEcoAllocation = _maxPulse;
         maxPulseEcoTotalAllocation = _maxPulseTotal;
