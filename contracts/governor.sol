@@ -64,6 +64,7 @@ contract DTXgovernor {
 	address public immutable tshareVault = ;
 
 	address public immutable tokenDistributionContract = ;
+	address public immutable tokenDistributionContractExtraPenalty = ;
     
     mapping(address => uint256) private _rollBonus;
 
