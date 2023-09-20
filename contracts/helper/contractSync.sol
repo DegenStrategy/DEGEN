@@ -15,6 +15,7 @@ interface IChange {
     function setAdmin() external;
     function setMasterchef() external;
 	function syncCreditContract() external;
+    function updateTreasury() external;
 }
 
 interface INFTstaking {
@@ -67,6 +68,15 @@ contract DTXsyncContracts {
         IacPool(acPool4).setAdmin();
         IacPool(acPool5).setAdmin();
         IacPool(acPool6).setAdmin();
+    }
+
+    function updateTreasuryInWallets() public {
+        address governor = IDTX(tokenDTX).governor();
+        IChange(IGovernor(governor).plsVault()).updateTreasury();
+        IChange(IGovernor(governor).plsxVault()).updateTreasury();
+        IChange(IGovernor(governor).incVault()).updateTreasury();
+        IChange(IGovernor(governor).hexVault()).updateTreasury();
+        IChange(IGovernor(governor).tshareVault()).updateTreasury();
     }
 
 	function updatePoolsDistributionContract() public {
