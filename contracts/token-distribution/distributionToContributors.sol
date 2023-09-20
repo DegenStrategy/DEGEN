@@ -103,7 +103,7 @@ contract AirDrop is ReentrancyGuard {
 
 		merkleRoot = _merkle;
 		IGovernor(owner()).beginMintingPhase();
-		masterchef.transferCredit(msg.sender, 225000000 * 1e18); // for initial liquidity
+		masterchef.transferCredit(msg.sender, 180000000 * 1e18); // for initial liquidity
 		masterchef.transferCredit(secondDistributionContract, 900000000 * 1e18 - _totalCreditToContributors); // for referral and giveaways
 		IDistribution(secondDistributionContract).setMerkle(_merkleForSecondDistributionContract);
 	}
