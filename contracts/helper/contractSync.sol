@@ -8,6 +8,7 @@ import "../interface/IGovernor.sol";
 import "../interface/IDTX.sol";
 import "../interface/IacPool.sol";
 import "../interface/IMasterChef.sol";
+import "../interface/INFTMining.sol";
 
 interface IChange {
     function changeGovernor() external;
@@ -16,10 +17,6 @@ interface IChange {
     function setMasterchef() external;
 	function syncCreditContract() external;
     function updateTreasury() external;
-}
-
-interface INFTstaking {
-	function setAdmin() external;
 }
 
 contract DTXsyncContracts {
@@ -128,7 +125,7 @@ contract DTXsyncContracts {
 		address _stakingContract = IGovernor(governor).nftStakingContract();
 
         IChange(IGovernor(governor).nftAllocationContract()).changeGovernor();
-        INFTstaking(_stakingContract).setAdmin();
+        INFTMining(_stakingContract).setAdmin();
     }
 	
     
