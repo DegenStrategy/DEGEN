@@ -384,6 +384,8 @@ contract DTXgovernor {
 	function beginMintingPhase() external {
 		require(msg.sender == tokenDistributionContract, "only distribution contract!");
 		mintingPhase = true;
+		mintingPhaseLaunchDate = block.timestamp;
+		IMasterChef(masterchef).updateStartBlock(block.number+17111); // Minting phase begins in 48 hoours
 	}
 
 	// Prior the minting phase begins, deployer can make changes in case of a security-related issue
@@ -391,8 +393,6 @@ contract DTXgovernor {
         require(msg.sender == deployer, "Deployer only!");
 		require(!mintingPhase, "Minting phase has already begun!");
 
-		mintingPhaseLaunchDate = block.timestamp;
-		IMasterChef(masterchef).updateStartBlock(block.number+17111); // Minting phase begins in 48 hoours
 		IMasterChef(masterchef).setFeeAddress(_newGovernor);
         IMasterChef(masterchef).dev(_newGovernor);
         IMasterChef(masterchef).transferOwnership(_newGovernor); //transfer masterchef ownership
