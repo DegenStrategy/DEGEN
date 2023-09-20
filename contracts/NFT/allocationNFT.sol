@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interface/IGovernor.sol";
 import "../interface/IDTX.sol";
 import "../interface/IConsensus.sol";
-import "../interface/INFTstaking.sol";
 import "../interface/IMasterChef.sol";
 import "../interface/IVoting.sol";
 
