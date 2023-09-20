@@ -44,6 +44,10 @@ contract DTXsyncContracts {
         INC = _inc;
     }
 
+	/// @notice Fallback functions to receive native tokens
+    receive() external payable { } 
+    fallback() external payable { }
+
     function updateAllInitialize() external payable {
 		updatePools();
 		updatePoolsDistributionContract();
