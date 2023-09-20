@@ -25,6 +25,9 @@ interface INFTstaking {
 contract DTXsyncContracts {
     address public immutable tokenDTX;
     address public immutable proxyVoting;
+    address public immutable HEX = 0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39;
+    address public immutable PLSX;
+    address public immutable INC;
     
     address public acPool1;
     address public acPool2;
@@ -34,9 +37,21 @@ contract DTXsyncContracts {
     address public acPool6;
 
 
-    constructor(address _dtx, address _proxyVoting) {
+    constructor(address _dtx, address _proxyVoting, address _plsx, address _inc) {
         tokenDTX = _dtx;
         proxyVoting = _proxyVoting;
+        PLSX = _plsx;
+        INC = _inc;
+    }
+
+    function updateAllInitialize() external payable {
+		updatePools();
+		updatePoolsDistributionContract();
+        updatePoolsOwner();
+        updateMasterchef();
+		nftStaking();
+        IChange(proxyVoting).updatePools();
+        setBalanceAbove0();
     }
 
     function updateAll() external {
@@ -94,6 +109,16 @@ contract DTXsyncContracts {
         IChange(IGovernor(governor).fibonacceningContract()).syncCreditContract();
         IChange(IGovernor(governor).basicContract()).syncCreditContract();
 	IChange(IGovernor(governor).nftAllocationContract()).syncCreditContract();
+    }
+
+    // Sets initial balance on vaults to prevent division by zero
+    // must manually transfer 1 plsx, inc and hex to the contract
+    function setBalanceAbove0() public payable {
+        address governor = IDTX(tokenDTX).governor();
+        payable(IGovernor(governor).plsVault()).transfer(1e18); // send 1 PLS
+        require(IERC20(PLSX).transfer(IGovernor(governor).plsxVault(), 1e18), "PLSX initial transfer unsuccesful!");
+        require(IERC20(INC).transfer(IGovernor(governor).incVault(), 1e18), "INC initial transfer unsuccesful!");
+        require(IERC20(HEX).transfer(IGovernor(governor).hexVault(), 1e8), "HEX initial transfer unsuccesful!");
     }
 
     //updates allocation contract owner, nft staking(admin)
