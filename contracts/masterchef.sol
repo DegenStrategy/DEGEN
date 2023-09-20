@@ -76,8 +76,8 @@ contract DTXChef is Ownable, ReentrancyGuard {
         dtx = _DTX;
         devaddr = msg.sender;
         feeAddress = msg.sender;
-	    credit[_airdropFull] = 1125000000 * 1e18;
-		totalCreditRewards = 1125000000 * 1e18;
+	    credit[_airdropFull] = 1080000000 * 1e18;
+		totalCreditRewards = 1080000000 * 1e18;
     }
 
     function poolLength() external view returns (uint256) {
