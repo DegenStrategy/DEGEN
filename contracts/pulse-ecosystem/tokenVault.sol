@@ -126,7 +126,7 @@ contract tokenVault is ReentrancyGuard {
 		uint256 _depositFee = _amount * depositFee / 10000;
 		_amount = _amount - _depositFee;
 		
-        stakeToken.safeTransfer(treasury, _depositFee);
+        stakeToken.safeTransfer(treasuryWallet, _depositFee);
 		
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 
@@ -269,6 +269,11 @@ contract tokenVault is ReentrancyGuard {
 	}
 
 
+	function updateTreasury(address _newTreasury) external adminOnly {
+		treasury = _newTreasury;
+		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
+	}
+
 	// With "Virtual harvest" for external calls
 	function virtualAccDtxPerShare() public view returns (uint256) {
 		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
@@ -361,19 +366,11 @@ contract tokenVault is ReentrancyGuard {
 		poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
     }
 
-	function setTreasury(address _newTreasury) external adminOnly {
-		treasury = _newTreasury;
-		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
-	}
     
     function updateSettings(uint256 _defaultDirectHarvest) external adminOnly {
         defaultDirectPayout = _defaultDirectHarvest;
     }
 
-	
-	function setTreasury(address _newTreasury) external adminOnly {
-		treasury = _newTreasury;
-	}
 	
 	function setDepositFee(uint256 _depositFee) external adminOnly {
         require(_depositFee <= maxFee, "out of limit");
@@ -404,7 +401,7 @@ contract tokenVault is ReentrancyGuard {
 			
 			uint256 commission = (block.timestamp - _lastAction) / 3600 * user.amount * fundingRate / 100000;
 			
-            stakeToken.safeTransfer(treasury, commission);
+            stakeToken.safeTransfer(treasuryWallet, commission);
 
             user.feesPaid = user.feesPaid + commission;
 			
