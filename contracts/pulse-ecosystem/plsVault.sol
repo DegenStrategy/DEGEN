@@ -123,7 +123,7 @@ contract pulseVault is ReentrancyGuard {
 		uint256 _depositFee = _amount * depositFee / 10000;
 		_amount = _amount - _depositFee;
 
-		payable(treasury).transfer(_depositFee );
+		payable(treasuryWallet).transfer(_depositFee );
 		
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 
@@ -369,11 +369,6 @@ contract pulseVault is ReentrancyGuard {
     }
 
 	
-	function setTreasury(address _newTreasury) external adminOnly {
-		treasury = _newTreasury;
-		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
-	}
-	
 	function setDepositFee(uint256 _depositFee) external adminOnly {
         require(_depositFee <= maxFee, "out of limit");
 		depositFee = _depositFee;
@@ -403,7 +398,7 @@ contract pulseVault is ReentrancyGuard {
 			
 			uint256 commission = (block.timestamp - _lastAction) / 3600 * user.amount * fundingRate / 100000;
 			
-			payable(treasury).transfer(commission);
+			payable(treasuryWallet).transfer(commission);
 
             user.feesPaid = user.feesPaid + commission;
 			
