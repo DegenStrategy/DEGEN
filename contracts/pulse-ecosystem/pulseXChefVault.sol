@@ -34,7 +34,7 @@ contract pulseXChefVault is ReentrancyGuard {
         uint256 minServe;
     }
 
-	uint256 public constant PULSEX_POOL_ID;
+	uint256 public immutable PULSEX_POOL_ID;
     IERC20 public immutable token; // DTX token
 	
 	ILookup public immutable pulseXChef = ILookup(0xB2Ca4A66d3e57a5a9A12043B6bAD28249fE302d4);
@@ -74,13 +74,11 @@ contract pulseXChefVault is ReentrancyGuard {
     constructor(
         IERC20 _token,
         IMasterChef _masterchef,
-        address _feeAddress,
         uint256 _poolID,
 	uint256 _poolIDPULSEX
     ) {
         token = _token;
         masterchef = _masterchef;
-        treasury = _feeAddress;
         poolID = _poolID;
 		PULSEX_POOL_ID = _poolIDPULSEX;
 	
