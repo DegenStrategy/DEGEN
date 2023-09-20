@@ -47,7 +47,8 @@ contract pulseVault is ReentrancyGuard {
  
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
-    address public treasury;
+    address public treasury; // Governing contract
+	address public treasuryWallet; // Actual treasury wallet
 
     uint256 public defaultDirectPayout = 50; //5% if withdrawn into wallet
 	
@@ -266,6 +267,12 @@ contract pulseVault is ReentrancyGuard {
 	}
 
 
+	function updateTreasury() external {
+        treasury = IMasterChef(masterchef).feeAddress();
+		treasuryWallet = IGovernor(
+    }
+
+
 	// With "Virtual harvest" for external calls
 	function virtualAccDtxPerShare() public view returns (uint256) {
 		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
@@ -364,6 +371,7 @@ contract pulseVault is ReentrancyGuard {
 	
 	function setTreasury(address _newTreasury) external adminOnly {
 		treasury = _newTreasury;
+		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
 	}
 	
 	function setDepositFee(uint256 _depositFee) external adminOnly {
