@@ -69,10 +69,6 @@ contract DTXNFTallocationProxy is Ownable {
     event UpdateVotes(address contractAddress, uint256 uintValue, uint256 weightedVote);
     event NotifyVote(address _contract, uint256 uintValue, address enforcer);
 
-	event SetPoolPayout(uint256 proposalID, uint256 depositingTokens, address forPool, uint256 payoutAmount, uint256 minServe, address enforcer, uint256 delay);
-	event AddVotes(uint256 proposalID, address enforcer, uint256 tokensSacrificed, bool _for);
-	event EnforceProposal(uint256 proposalID, address enforcer, bool _isSuccess);
-
     function getAllocation(address _tokenAddress, uint256 _tokenID, address _allocationContract) external view returns (uint256) {
         uint256 _alloc = IAllocation(_allocationContract).nftAllocation(_tokenAddress, _tokenID);
 	if(allocationContract[_allocationContract] && _alloc >= 1e18) { //allocation must be equal or greater than 1e18
@@ -83,8 +79,10 @@ contract DTXNFTallocationProxy is Ownable {
     }
 
     // notify "start of voting" on the frontend
+	// serves as signal to other users to help accumulate votes in favor
     function notifyVote(address _contract) external {
     	require(isContract(_contract), "Address must be a contract!");
+    	IVoting(creditContract).deductCredit(msg.sender, IGovernor(owner()).costToVote() * 50);
         emit NotifyVote(_contract, addressToUint256(_contract), msg.sender);
     }
 
@@ -154,75 +152,6 @@ contract DTXNFTallocationProxy is Ownable {
             allocationContract[_contract] = true;
             emit SetAllocationContract(_contract, true);
         }
-    }
-
-  /**
-     * Regulatory process for setting pool payout and min serve(basically to determine penalty 
-	 * depending on which pool the user is harvesting their earned interest into
-	 * address(0)-address(2) are used to set default harvest threshold, fee to pay, direct withdraw fee
-    */
-    function initiatePoolPayout(uint256 depositingTokens, address _forPoolAddress, uint256 _payout, uint256 _minServe, uint256 delay) external { 
-		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-    	require(depositingTokens >= IGovernor(owner()).costToVote(), "minimum cost to vote");
-		require(
-			IMasterChef(masterchef).trustedContract(_forPoolAddress) || _forPoolAddress == address(0) ||
-					_forPoolAddress == address(1) || _forPoolAddress == address(2),
-			"pools/trusted contracts only");
-    
-    	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
-    	payoutProposal.push(
-    	    ProposalStructure(true, block.timestamp, depositingTokens, 0, delay, _forPoolAddress, _payout, _minServe)
-    	    );  
-    	    
-        emit SetPoolPayout(payoutProposal.length - 1, depositingTokens, _forPoolAddress, _payout, _minServe, msg.sender, delay);
-    }
-	function votePoolPayoutY(uint256 proposalID, uint256 withTokens) external {
-		require(payoutProposal[proposalID].valid, "invalid");
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		payoutProposal[proposalID].valueSacrificedForVote+= withTokens;
-
-		emit AddVotes(proposalID, msg.sender, withTokens, true);
-	}
-	function votePoolPayoutN(uint256 proposalID, uint256 withTokens, bool withAction) external {
-		require(payoutProposal[proposalID].valid, "invalid");
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		payoutProposal[proposalID].valueSacrificedAgainst+= withTokens;
-		if(withAction) { vetoPoolPayout(proposalID); }
-
-		emit AddVotes(proposalID, msg.sender, withTokens, false);
-	}
-    function vetoPoolPayout(uint256 proposalID) public {
-    	require(payoutProposal[proposalID].valid, "already invalid"); 
-		require(payoutProposal[proposalID].firstCallTimestamp + payoutProposal[proposalID].delay < block.timestamp, "pending delay");
-		require(payoutProposal[proposalID].valueSacrificedForVote < payoutProposal[proposalID].valueSacrificedAgainst, "needs more votes");
- 
-    	payoutProposal[proposalID].valid = false;  
-    	
-    	emit EnforceProposal(proposalID, msg.sender, false);
-    }
-
-    function executePoolPayout(uint256 proposalID) public {
-    	require(
-    	    payoutProposal[proposalID].valid &&
-    	    payoutProposal[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + payoutProposal[proposalID].delay < block.timestamp,
-    	    "conditions not met"
-    	);
-
-		if(payoutProposal[proposalID].valueSacrificedForVote >= payoutProposal[proposalID].valueSacrificedAgainst) {
-			address _stakingContract = IGovernor(owner()).nftStakingContract();
-
-			INFTstaking(_stakingContract).setPoolPayout(payoutProposal[proposalID].poolAddress, payoutProposal[proposalID].payoutAmount, payoutProposal[proposalID].minServe);
-
-			payoutProposal[proposalID].valid = false; 
-			
-			emit EnforceProposal(proposalID, msg.sender, true);
-		} else {
-			vetoPoolPayout(proposalID);
-		}
     }
 
     //allocation contract can also be set through the governing address
