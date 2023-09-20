@@ -49,7 +49,8 @@ contract tokenVault is ReentrancyGuard {
  
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
-    address public treasury; 
+    address public treasury; // Governing contract
+	address public treasuryWallet; // Actual treasury wallet
 
     uint256 public defaultDirectPayout = 50; //0.5% if withdrawn into wallet
 	
@@ -359,6 +360,11 @@ contract tokenVault is ReentrancyGuard {
 		poolPayout[_poolAddress].amount = _amount;
 		poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
     }
+
+	function setTreasury(address _newTreasury) external adminOnly {
+		treasury = _newTreasury;
+		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
+	}
     
     function updateSettings(uint256 _defaultDirectHarvest) external adminOnly {
         defaultDirectPayout = _defaultDirectHarvest;
