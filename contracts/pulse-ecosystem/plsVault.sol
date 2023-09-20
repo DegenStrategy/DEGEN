@@ -269,7 +269,7 @@ contract pulseVault is ReentrancyGuard {
 
 	function updateTreasury() external {
         treasury = IMasterChef(masterchef).feeAddress();
-		treasuryWallet = IGovernor(
+		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
     }
 
 
