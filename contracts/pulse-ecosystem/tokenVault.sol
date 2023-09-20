@@ -269,7 +269,7 @@ contract tokenVault is ReentrancyGuard {
 	}
 
 
-	function updateTreasury(address _newTreasury) external {
+	function updateTreasury() external {
 		treasury = IMasterChef(masterchef).feeAddress();
 		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
 	}
