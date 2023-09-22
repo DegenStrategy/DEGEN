@@ -229,10 +229,6 @@ contract DTXrewardBoost {
 		masterchef = IMasterChef(address(token)).owner();
     }
     
-    //masterchef is the token owner, governor is the owner of masterchef
-    function owner() public view returns (address) {
-		return _owner;
-    }
 
 	function syncOwner() external {
 		_owner = IDTX(token).governor();
@@ -242,6 +238,13 @@ contract DTXrewardBoost {
 		creditContract = IGovernor(owner()).creditContract();
 	}
 
+	/**
+	 * Can be used for building database from scratch (opposed to using event logs)
+	 * also to make sure all data and latest events are synced correctly
+	 */
+	function proposalLengths() external view returns(uint256) {
+		return(fibonacceningProposals.length);
+	}
     
     /**
      * After the Reward Boost event ends, global inflation reduces
@@ -266,13 +269,9 @@ contract DTXrewardBoost {
 			return rewardPerBlock;
 		}
     }
-	
-	
-	/**
-	 * Can be used for building database from scratch (opposed to using event logs)
-	 * also to make sure all data and latest events are synced correctly
-	 */
-	function proposalLengths() external view returns(uint256) {
-		return(fibonacceningProposals.length);
-	}
+
+	//masterchef is the token owner, governor is the owner of masterchef
+    function owner() public view returns (address) {
+		return _owner;
+    }
 }
