@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: NONE
-pragma solidity 0.8.0;
+pragma solidity 0.8.20;
 
 import "./interface/IGovernor.sol";
 import "./interface/IDTX.sol";
@@ -9,6 +9,7 @@ import "./interface/IMasterChef.sol";
 
 contract Senate {
 	address public immutable token;
+	address private _owner;
 	address private immutable deployer;
 	
 	address[] public senators;
@@ -215,8 +216,12 @@ contract Senate {
 		return senators.length;
 	}
 	
-	function owner() public view returns (address) {
-		return (IDTX(token).governor());
+    function owner() public view returns (address) {
+		return _owner;
+    }
+
+	function syncOwner() external {
+		_owner = IDTX(token).governor();
     }
 	
 	function toUint(address self) public pure returns(uint256) {
