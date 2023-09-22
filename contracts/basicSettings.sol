@@ -459,12 +459,6 @@ contract DTXbasics {
 		}
     }
 
-
-    //masterchef is the token owner, governor is the owner of masterchef
-    function owner() public view returns (address) {
-		return _owner;
-    }
-
 	function syncOwner() external {
 		_owner = IDTX(token).governor();
     }
@@ -487,4 +481,9 @@ contract DTXbasics {
 			minThresholdFibonacceningProposal.length
 		);
 	}
+
+	//masterchef is the token owner, governor is the owner of masterchef
+    function owner() public view returns (address) {
+		return _owner;
+    }
 }
