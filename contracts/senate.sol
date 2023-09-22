@@ -164,8 +164,24 @@ contract Senate {
 			IConsensus(_contract).senateVetoTreasury(treasuryProposalId);
 		}
 	}
+	
+	function setSenatorCount(uint256 _min, uint256 _max) external {
+		require(msg.sender == owner(), " decentralized voting only! ");
+		
+		minSenators = _min;
+		maxSenators = _max;
+	}
 
-	function multiCall() public view returns (address[] memory, uint256[][] memory, uint256[] memory, uint256, uint256[] memory) {
+	function initializeSenators(address[] calldata _senators) external {
+		require(msg.sender == deployer, "deployer only!");
+		require(senators.length == 0, "already initialized!");
+		for (uint256 i = 0; i < _senators.length; i++) {
+			senators.push(_senators[i]);
+			emit AddSenator(_senators[i]);
+		}
+	}
+
+	function multiCall() external view returns (address[] memory, uint256[][] memory, uint256[] memory, uint256, uint256[] memory) {
 		uint256[][] memory allVotes = new uint256[][](senators.length);
 		uint256[] memory allCredits = new uint256[](senators.length);
 		uint256[] memory mintableCredit = new uint256[](senators.length);
@@ -187,36 +203,20 @@ contract Senate {
 		return (senators, allVotes, allCredits, _reward, mintableCredit);
 	}
 	
-	function setSenatorCount(uint256 _min, uint256 _max) external {
-		require(msg.sender == owner(), " decentralized voting only! ");
-		
-		minSenators = _min;
-		maxSenators = _max;
-	}
-
-	function initializeSenators(address[] calldata _senators) external {
-		require(msg.sender == deployer, "deployer only!");
-		require(senators.length == 0, "already initialized!");
-		for (uint256 i = 0; i < _senators.length; i++) {
-			senators.push(_senators[i]);
-			emit AddSenator(_senators[i]);
-		}
-	}
-	
 	function viewSenators() external view returns(address[] memory) {
 		return senators;
 	}
 	
+	function syncOwner() external {
+		_owner = IDTX(token).governor();
+    }
+
 	function senatorCount() public view returns (uint256) {
 		return senators.length;
 	}
 	
     function owner() public view returns (address) {
 		return _owner;
-    }
-
-	function syncOwner() external {
-		_owner = IDTX(token).governor();
     }
 	
 	function toUint(address self) public pure returns(uint256) {
