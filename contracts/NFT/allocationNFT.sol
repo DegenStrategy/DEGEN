@@ -174,10 +174,6 @@ contract DTXNFTallocationProxy is Ownable {
         rejectionPeriod = _period;
     }
 
-    function addressToUint256(address _address) public pure returns (uint256) {
-        return(uint256(uint160(_address)));
-    }
-
 	function syncOwner() external {
 		_transferOwnership(IDTX(token).governor());
 	}
@@ -201,4 +197,8 @@ contract DTXNFTallocationProxy is Ownable {
 	    }
 	    return (codeSize > 0);
 	}
+
+	function addressToUint256(address _address) public pure returns (uint256) {
+        return(uint256(uint160(_address)));
+    }
 }
