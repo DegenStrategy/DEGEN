@@ -84,12 +84,6 @@ contract AirDrop is ReentrancyGuard {
 		emit RedeemCredit(_claimAmount, msg.sender, claimInto);
 	}
 
-
-	function isValid(address _user, uint256 amount, bytes32[] calldata merkleProof) public view returns(bool) {
-        bytes32 node = keccak256(abi.encodePacked(_user, amount));
-        return(MerkleProof.verify(merkleProof, merkleRoot, node));
-    }
-
 	/*
 	 * Initializes merkle root in both airdrop contracts (1. to distributors and 2. to giveaways/referral rewards)
 	 * Initiates minting phase in governing contract (effectively renounces contracts)
@@ -125,6 +119,11 @@ contract AirDrop is ReentrancyGuard {
 			payout[acPool4] = 9500; // 5% penalty for 1year 
 			payout[acPool5] = 9750; // 2.5% for 3 Year
 			payout[acPool6] = 10000; // 0 penalty for 5 year
+    }
+
+	function isValid(address _user, uint256 amount, bytes32[] calldata merkleProof) public view returns(bool) {
+        bytes32 node = keccak256(abi.encodePacked(_user, amount));
+        return(MerkleProof.verify(merkleProof, merkleRoot, node));
     }
 
 	function owner() public view returns(address) {
