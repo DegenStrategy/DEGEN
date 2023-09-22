@@ -45,8 +45,7 @@ contract DTXbasics {
     ProposalStructure[] public delayProposals;
 	ProposalStructure[] public callFeeProposal;
 	RolloverBonusStructure[] public rolloverBonuses;
-	ProposalStructure[] public minThresholdFibonacceningProposal; 
-    ParameterStructure[] public grandSettingProposal;
+	ProposalStructure[] public minThresholdFibonacceningProposal;
 	
 	event ProposeMinDeposit(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address enforcer, uint256 delay);
     
@@ -56,7 +55,12 @@ contract DTXbasics {
     
     event InitiateRolloverBonus(uint256 proposalID, uint256 depositingTokens, address forPool, uint256 newBonus, address enforcer, uint256 delay);
 	
-	event ProposeSetMinThresholdFibonaccening(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address indexed enforcer, uint256 delay);
+	event ProposeSetMinThresholdFibonaccening(
+		uint256 proposalID, 
+		uint256 valueSacrificedForVote, 
+		uint256 proposedMinDeposit, 
+		address indexed enforcer, 
+		uint256 delay);
 
 	
 	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
@@ -119,8 +123,15 @@ contract DTXbasics {
 	}
     function vetoSetMinDeposit(uint256 proposalID) public {
     	require(minDepositProposals[proposalID].valid == true, "Proposal already invalid");
-		require(minDepositProposals[proposalID].firstCallTimestamp + minDepositProposals[proposalID].delay < block.timestamp, "pending delay");
-		require(minDepositProposals[proposalID].valueSacrificedForVote < minDepositProposals[proposalID].valueSacrificedAgainst, "needs more votes");
+		require(
+			minDepositProposals[proposalID].firstCallTimestamp + minDepositProposals[proposalID].delay < block.timestamp, 
+			"pending delay"
+		);
+		require(
+			minDepositProposals[proposalID].valueSacrificedForVote < 
+			minDepositProposals[proposalID].valueSacrificedAgainst, 
+			"needs more votes"
+		);
 
     	minDepositProposals[proposalID].valid = false;  
     	
@@ -129,9 +140,11 @@ contract DTXbasics {
     function executeSetMinDeposit(uint256 proposalID) public {
     	require(
     	    minDepositProposals[proposalID].valid &&
-    	    minDepositProposals[proposalID].firstCallTimestamp + minDepositProposals[proposalID].delay + IGovernor(owner()).delayBeforeEnforce() <= block.timestamp,
+    	    minDepositProposals[proposalID].firstCallTimestamp + 
+			minDepositProposals[proposalID].delay + 
+			IGovernor(owner()).delayBeforeEnforce() <= block.timestamp,
     	    "Conditions not met"
-    	   );
+    	);
 		   
 		 if(minDepositProposals[proposalID].valueSacrificedForVote >= minDepositProposals[proposalID].valueSacrificedAgainst) {
 			IGovernor(owner()).updateCostToVote(minDepositProposals[proposalID].proposedValue); 
@@ -191,9 +204,11 @@ contract DTXbasics {
     function executeDelayBeforeEnforceProposal(uint256 proposalID) public {
     	require(
     	    delayProposals[proposalID].valid == true &&
-    	    delayProposals[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + delayProposals[proposalID].delay < block.timestamp,
+    	    delayProposals[proposalID].firstCallTimestamp + 
+			IGovernor(owner()).delayBeforeEnforce() + 
+			delayProposals[proposalID].delay < block.timestamp,
     	    "Conditions not met"
-    	    );
+    	);
         
 		if(delayProposals[proposalID].valueSacrificedForVote >= delayProposals[proposalID].valueSacrificedAgainst) {
 			IGovernor(owner()).updateDelayBeforeEnforce(delayProposals[proposalID].proposedValue); 
@@ -253,7 +268,9 @@ contract DTXbasics {
     function executeProposalRolloverBonus(uint256 proposalID) public {
     	require(
     	    rolloverBonuses[proposalID].valid &&
-    	    rolloverBonuses[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + rolloverBonuses[proposalID].delay < block.timestamp,
+    	    rolloverBonuses[proposalID].firstCallTimestamp + 
+			IGovernor(owner()).delayBeforeEnforce() + 
+			rolloverBonuses[proposalID].delay < block.timestamp,
     	    "conditions not met"
     	);
         
@@ -310,8 +327,16 @@ contract DTXbasics {
 	}
     function vetoSetCallFee(uint256 proposalID) public {
     	require(callFeeProposal[proposalID].valid == true, "Proposal already invalid");
-		require(callFeeProposal[proposalID].firstCallTimestamp + callFeeProposal[proposalID].delay < block.timestamp, "pending delay");
-		require(callFeeProposal[proposalID].valueSacrificedForVote < callFeeProposal[proposalID].valueSacrificedAgainst, "needs more votes");
+		require(
+			callFeeProposal[proposalID].firstCallTimestamp + 
+			callFeeProposal[proposalID].delay < block.timestamp, 
+			"pending delay"
+		);
+		require(
+			callFeeProposal[proposalID].valueSacrificedForVote < 
+			callFeeProposal[proposalID].valueSacrificedAgainst, 
+			"needs more votes"
+		);
 
     	callFeeProposal[proposalID].valid = false;
     	
@@ -320,7 +345,9 @@ contract DTXbasics {
     function executeSetCallFee(uint256 proposalID) public {
     	require(
     	    callFeeProposal[proposalID].valid && 
-    	    callFeeProposal[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + callFeeProposal[proposalID].delay < block.timestamp,
+    	    callFeeProposal[proposalID].firstCallTimestamp + 
+			IGovernor(owner()).delayBeforeEnforce() + 
+			callFeeProposal[proposalID].delay < block.timestamp,
     	    "Conditions not met"
     	   );
         
@@ -396,8 +423,16 @@ contract DTXbasics {
 	}
     function vetoSetMinThresholdFibonaccening(uint256 proposalID) public {
     	require(minThresholdFibonacceningProposal[proposalID].valid == true, "Invalid proposal"); 
-		require(minThresholdFibonacceningProposal[proposalID].firstCallTimestamp + minThresholdFibonacceningProposal[proposalID].delay <= block.timestamp, "pending delay");
-		require(minThresholdFibonacceningProposal[proposalID].valueSacrificedForVote < minThresholdFibonacceningProposal[proposalID].valueSacrificedAgainst, "needs more votes");
+		require(
+			minThresholdFibonacceningProposal[proposalID].firstCallTimestamp + 
+			minThresholdFibonacceningProposal[proposalID].delay <= block.timestamp,
+			"pending delay"
+		);
+		require(
+			minThresholdFibonacceningProposal[proposalID].valueSacrificedForVote < 
+			minThresholdFibonacceningProposal[proposalID].valueSacrificedAgainst, 
+			"needs more votes"
+		);
 
     	minThresholdFibonacceningProposal[proposalID].valid = false;
     	
@@ -406,11 +441,14 @@ contract DTXbasics {
     function executeSetMinThresholdFibonaccening(uint256 proposalID) public {
     	require(
     	    minThresholdFibonacceningProposal[proposalID].valid == true &&
-    	    minThresholdFibonacceningProposal[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + minThresholdFibonacceningProposal[proposalID].delay < block.timestamp,
+    	    minThresholdFibonacceningProposal[proposalID].firstCallTimestamp + 
+			IGovernor(owner()).delayBeforeEnforce() + 
+			minThresholdFibonacceningProposal[proposalID].delay < block.timestamp,
     	    "conditions not met"
         );
     	
-		if(minThresholdFibonacceningProposal[proposalID].valueSacrificedForVote >= minThresholdFibonacceningProposal[proposalID].valueSacrificedAgainst) {
+		if(minThresholdFibonacceningProposal[proposalID].valueSacrificedForVote >= 
+			minThresholdFibonacceningProposal[proposalID].valueSacrificedAgainst) {
 			IGovernor(owner()).setThresholdFibonaccening(minThresholdFibonacceningProposal[proposalID].proposedValue);
 			minThresholdFibonacceningProposal[proposalID].valid = false; 
 			
@@ -437,7 +475,13 @@ contract DTXbasics {
 	 * Can be used for building database from scratch (opposed to using event logs)
 	 * also to make sure all data and latest events are synced correctly
 	 */
-	function proposalLengths() external view returns(uint256, uint256, uint256, uint256, uint256, uint256) {
-		return(minDepositProposals.length, delayProposals.length, callFeeProposal.length, rolloverBonuses.length, minThresholdFibonacceningProposal.length, grandSettingProposal.length);
+	function proposalLengths() external view returns(uint256, uint256, uint256, uint256, uint256) {
+		return(
+			minDepositProposals.length, 
+			delayProposals.length, 
+			callFeeProposal.length, 
+			rolloverBonuses.length, 
+			minThresholdFibonacceningProposal.length
+		);
 	}
 }
