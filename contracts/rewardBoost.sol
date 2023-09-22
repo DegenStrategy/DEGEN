@@ -53,8 +53,15 @@ contract DTXrewardBoost {
 	bool public expiredGrandFibonaccening;
 
 
-    event ProposeFibonaccening(uint256 proposalID, uint256 valueSacrificedForVote, uint256 startTime, uint256 durationInBlocks, uint256 newRewardPerBlock , address indexed enforcer, uint256 delay);
-
+    event ProposeFibonaccening(
+        uint256 proposalID,
+        uint256 valueSacrificedForVote,
+        uint256 startTime,
+        uint256 durationInBlocks,
+        uint256 newRewardPerBlock,
+        address indexed enforcer,
+        uint256 delay
+    );
     event EndFibonaccening(uint256 proposalID, address indexed enforcer);
     event CancleFibonaccening(uint256 proposalID, address indexed enforcer);
     
@@ -74,7 +81,15 @@ contract DTXrewardBoost {
     /**
      * Regulatory process for scheduling a "fibonaccening event"
     */    
-    function proposeFibonaccening(uint256 depositingTokens, uint256 newRewardPerBlock, uint256 durationInBlocks, uint256 startTimestamp, uint256 delay) external {
+    function proposeFibonaccening(
+		uint256 depositingTokens, 
+		uint256 newRewardPerBlock, 
+		uint256 durationInBlocks, 
+		uint256 startTimestamp, 
+		uint256 delay
+	) 
+		external
+	{
         require(depositingTokens >= IGovernor(owner()).costToVote(), "costs to submit decisions");
         require(IERC20(token).balanceOf(owner()) >= IGovernor(owner()).thresholdFibonaccening(), "need to collect penalties before calling");
         require(!(IGovernor(owner()).eventFibonacceningActive()), "Event already running");
