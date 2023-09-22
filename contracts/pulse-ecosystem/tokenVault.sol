@@ -65,7 +65,7 @@ contract tokenVault is ReentrancyGuard {
 
     event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
 	
-	event CollectedFee(uint256 amount);
+	event CollectedFee(address from, uint256 amount);
 
     /**
      * @notice Constructor
