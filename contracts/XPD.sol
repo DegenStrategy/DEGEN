@@ -35,28 +35,27 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 	_burn(account, amount);
 	return true;
     }
-
 	
 	//Standard ERC20 makes name and symbol immutable
 	//We add potential to rebrand for full flexibility if stakers choose to do so through voting
 	function rebrandName(string memory _newName) external decentralizedVoting {
 		_name = _newName;
 	}
+
 	function rebrandSymbol(string memory _newSymbol) external decentralizedVoting {
         _symbol = _newSymbol;
-	}
-	
-	// Governor is a smart contract that allows the control of the entire system in a decentralized manner
-	//DTX token is owned by masterchef and masterchef is owned by Governor
-	function governor() public view returns (address) {
-		return IMasterChef(owner()).owner();
 	}
 	
 	// masterchef is the owner of the token (handles token minting/inflation)
 	function masterchefAddress() external view returns (address) {
 		return owner();
 	}
-	
+
+	// Governor is a smart contract that allows the control of the entire system in a decentralized manner
+	//DTX token is owned by masterchef and masterchef is owned by Governor
+	function governor() public view returns (address) {
+		return IMasterChef(owner()).owner();
+	}
 	
     /**
      * @dev Returns the name of the token.
