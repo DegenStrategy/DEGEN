@@ -61,10 +61,9 @@ contract pulseVault is ReentrancyGuard {
     event Withdraw(address indexed sender, uint256 stakeID, uint256 harvestAmount, uint256 penalty);
     event UserSettingUpdate(address indexed user, address poolAddress, uint256 threshold, uint256 feeToPay);
 
-    event Harvest(address indexed harvester, address indexed benficiary, uint256 stakeID, address harvestInto, uint256 harvestAmount, uint256 penalty, uint256 callFee); //harvestAmount contains the callFee
     event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
 	
-	event CollectedFee(uint256 amount);
+	event CollectedFee(address from, uint256 amount);
 
     constructor(
         IMasterChef _masterchef,
@@ -404,7 +403,7 @@ contract pulseVault is ReentrancyGuard {
 			
 			user.amount = user.amount - commission;
 			
-			emit CollectedFee(commission);
+			emit CollectedFee(_userAddress, commission);
 		}
 	}
 
