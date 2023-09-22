@@ -122,13 +122,6 @@ contract DTXgovernor {
 			_rollBonus[_acPool5] = 350;
 			_rollBonus[_acPool6] = 500;
     }    
-
-    
-    
-    function getRollBonus(address _bonusForPool) external view returns (uint256) {
-        return _rollBonus[_bonusForPool];
-    }
-    
    
    
      /**
@@ -176,17 +169,6 @@ contract DTXgovernor {
 
 		emit Harvest(msg.sender, totalFee);
     }
-	
-	function pendingHarvestRewards() public view returns (uint256) {
-		uint256 totalRewards = 
-			IacPool(acPool1).calculateHarvestDTXRewards() +
-			IacPool(acPool2).calculateHarvestDTXRewards() + 
-			IacPool(acPool3).calculateHarvestDTXRewards() +
-			IacPool(acPool4).calculateHarvestDTXRewards() + 
-			IacPool(acPool5).calculateHarvestDTXRewards() + 
-			IacPool(acPool6).calculateHarvestDTXRewards();
-		return totalRewards;
-	}
     
     /**
      * Mechanism, where the governor gives the bonus 
@@ -402,6 +384,21 @@ contract DTXgovernor {
         IMasterChef(masterchef).dev(_newGovernor);
         IMasterChef(masterchef).transferOwnership(_newGovernor); //transfer masterchef ownership
     }
+
+	function getRollBonus(address _bonusForPool) external view returns (uint256) {
+        return _rollBonus[_bonusForPool];
+    }
+
+	function pendingHarvestRewards() public view returns (uint256) {
+		uint256 totalRewards = 
+			IacPool(acPool1).calculateHarvestDTXRewards() +
+			IacPool(acPool2).calculateHarvestDTXRewards() + 
+			IacPool(acPool3).calculateHarvestDTXRewards() +
+			IacPool(acPool4).calculateHarvestDTXRewards() + 
+			IacPool(acPool5).calculateHarvestDTXRewards() + 
+			IacPool(acPool6).calculateHarvestDTXRewards();
+		return totalRewards;
+	}
 	
 	/*
 	 * newGovernorBlockDelay is the delay during which the governor proposal can be voted against
