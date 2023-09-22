@@ -440,7 +440,7 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 currentAmount = (balanceOf().mul(user.shares)).div(totalShares); 
         uint256 toPay = currentAmount.mul(IGovernor(admin).getRollBonus(_poolInto)).div(10000);
 
-        require(IERC20(token).balanceOf(admin) >= toPay, "governor reserves are currently insufficient");
+        require(IDTX(token).balanceOf(admin) >= toPay, "governor reserves are currently insufficient");
         
         if(_poolInto == address(this)) {
             IGovernor(admin).stakeRolloverBonus(msg.sender, _poolInto, toPay, _stakeID); //gov sends tokens to extend the stake
