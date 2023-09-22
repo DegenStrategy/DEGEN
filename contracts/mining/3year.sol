@@ -788,14 +788,6 @@ contract TimeDeposit is ReentrancyGuard {
 		minimumGift = _amount;
 		updateMinGiftGovernor = _setting;
 	}
-	
-	/**
-	 * option to withdraw wrongfully sent tokens(but requires change of the governing contract to do so)
-	 * If you send wrong tokens to the contract address, consider them lost. Though there is possibility of recovery
-	 */
-	function withdrawStuckTokens(address _tokenAddress) external adminOnly {
-		IERC20(_tokenAddress).transfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
-	}
 
 	/**
      * Returns number of stakes for a user
