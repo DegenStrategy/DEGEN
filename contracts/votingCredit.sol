@@ -58,7 +58,7 @@ contract VotingCredit {
 	
 	// WARNING: the deductingContract should ALWAYS and only set the msg.sender as "address from"
 	// This is the condition to be added as a deductingContract
-	function deductCredit(address from, uint256 amount) public returns (bool) {
+	function deductCredit(address from, uint256 amount) external returns (bool) {
 		require(deductingContract[msg.sender], "invalid sender, trusted contracts only");
 		
 		if(userCredit[from] >= amount) {
@@ -127,13 +127,13 @@ contract VotingCredit {
 	function updateChef() external {
 		masterchef = IMasterChef(token.owner());
 	}
-	
-	//masterchef is the token owner, governor is the owner of masterchef
-    function owner() public view returns (address) {
-		return _owner;
-    }
 
 	function syncOwner() external {
 		_owner = token.governor();
+    }
+
+	//masterchef is the token owner, governor is the owner of masterchef
+    function owner() public view returns (address) {
+		return _owner;
     }
 }
