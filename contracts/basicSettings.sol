@@ -11,6 +11,7 @@ import "./interface/IVoting.sol";
 //compile with optimization enabled(60runs)
 contract DTXbasics {
     address public immutable token; //DTX token (address)
+	address private _owner;
 	
 	address public creditContract;
     
@@ -459,12 +460,14 @@ contract DTXbasics {
     }
 
 
-    //transfers ownership of this contract to new governor
     //masterchef is the token owner, governor is the owner of masterchef
     function owner() public view returns (address) {
-		return (IDTX(token).governor());
+		return _owner;
     }
 
+	function syncOwner() external {
+		_owner = IDTX(token).governor();
+    }
 	
 	function syncCreditContract() external {
 		creditContract = IGovernor(owner()).creditContract();
