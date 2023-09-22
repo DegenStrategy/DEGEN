@@ -178,8 +178,13 @@ contract DTXgovernor {
     }
 	
 	function pendingHarvestRewards() public view returns (uint256) {
-		uint256 totalRewards = IacPool(acPool1).calculateHarvestDTXRewards() + IacPool(acPool2).calculateHarvestDTXRewards() + IacPool(acPool3).calculateHarvestDTXRewards() +
-        					IacPool(acPool4).calculateHarvestDTXRewards() + IacPool(acPool5).calculateHarvestDTXRewards() + IacPool(acPool6).calculateHarvestDTXRewards();
+		uint256 totalRewards = 
+			IacPool(acPool1).calculateHarvestDTXRewards() +
+			IacPool(acPool2).calculateHarvestDTXRewards() + 
+			IacPool(acPool3).calculateHarvestDTXRewards() +
+			IacPool(acPool4).calculateHarvestDTXRewards() + 
+			IacPool(acPool5).calculateHarvestDTXRewards() + 
+			IacPool(acPool6).calculateHarvestDTXRewards();
 		return totalRewards;
 	}
     
