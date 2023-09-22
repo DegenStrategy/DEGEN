@@ -270,68 +270,6 @@ contract pulseVault is ReentrancyGuard {
         treasury = IMasterChef(masterchef).feeAddress();
 		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
     }
-
-
-	// With "Virtual harvest" for external calls
-	function virtualAccDtxPerShare() public view returns (uint256) {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
-		return (accDtxPerShare + _pending * 1e12  / address(this).balance);
-	}
-
-    function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
-		UserInfo storage _stake = userInfo[_user][_stakeID];
-        uint256 _pending = _stake.amount * virtualAccDtxPerShare() / 1e12 - _stake.debt;
-        return _pending;
-    }
-
-    function viewUserTotalEarnings(address _user) external view returns (uint256) {
-        UserInfo[] storage _stake = userInfo[_user];
-        uint256 nrOfUserStakes = _stake.length;
-
-		uint256 _totalPending = 0;
-		
-		for(uint256 i=0; i < nrOfUserStakes; i++) {
-			_totalPending+= _stake[i].amount * virtualAccDtxPerShare() / 1e12 - _stake[i].debt;
-		}
-		
-		return _totalPending;
-    }
-	//we want user deposit, we want total deposited, we want pending rewards, 
-	function multiCall(address _user, uint256 _stakeID) external view returns(uint256, uint256, uint256, uint256) {
-		UserInfo storage user = userInfo[_user][_stakeID];
-		uint256 _pending = user.amount * virtualAccDtxPerShare() / 1e12 - user.debt;
-		return(user.amount, user.feesPaid, address(this).balance, _pending);
-	}
-
-    /**
-     * Returns number of stakes for a user
-     */
-    function getNrOfStakes(address _user) public view returns (uint256) {
-        return userInfo[_user].length;
-    }
-
-    /**
-     * @return Returns total pending dtx rewards
-     */
-    function calculateTotalPendingDTXRewards() external view returns (uint256) {
-        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
-    }
-	
-
-	//public lookup for UI
-    function publicBalanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
-		uint256 _credit = IMasterChef(masterchef).credit(address(this));
-        return _credit + amount; 
-    }
-
-	function viewPoolPayout(address _contract) external view returns (uint256) {
-		return poolPayout[_contract].amount;
-	}
-	
-	function viewPoolMinServe(address _contract) external view returns (uint256) {
-		return poolPayout[_contract].minServe;
-	}
 	
 	/*
 	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
@@ -379,6 +317,65 @@ contract pulseVault is ReentrancyGuard {
 		lastFundingChangeTimestamp = block.timestamp;
 	}
 
+    function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
+		UserInfo storage _stake = userInfo[_user][_stakeID];
+        uint256 _pending = _stake.amount * virtualAccDtxPerShare() / 1e12 - _stake.debt;
+        return _pending;
+    }
+
+    function viewUserTotalEarnings(address _user) external view returns (uint256) {
+        UserInfo[] storage _stake = userInfo[_user];
+        uint256 nrOfUserStakes = _stake.length;
+
+		uint256 _totalPending = 0;
+		
+		for(uint256 i=0; i < nrOfUserStakes; i++) {
+			_totalPending+= _stake[i].amount * virtualAccDtxPerShare() / 1e12 - _stake[i].debt;
+		}
+		
+		return _totalPending;
+    }
+	//we want user deposit, we want total deposited, we want pending rewards, 
+	function multiCall(address _user, uint256 _stakeID) external view returns(uint256, uint256, uint256, uint256) {
+		UserInfo storage user = userInfo[_user][_stakeID];
+		uint256 _pending = user.amount * virtualAccDtxPerShare() / 1e12 - user.debt;
+		return(user.amount, user.feesPaid, address(this).balance, _pending);
+	}
+
+    /**
+     * @return Returns total pending dtx rewards
+     */
+    function calculateTotalPendingDTXRewards() external view returns (uint256) {
+        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
+    }
+
+	function viewPoolPayout(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].amount;
+	}
+	
+	function viewPoolMinServe(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].minServe;
+	}
+
+	//public lookup for UI
+    function publicBalanceOf() public view returns (uint256) {
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
+		uint256 _credit = IMasterChef(masterchef).credit(address(this));
+        return _credit + amount; 
+    }
+
+	/**
+     * Returns number of stakes for a user
+     */
+    function getNrOfStakes(address _user) public view returns (uint256) {
+        return userInfo[_user].length;
+    }
+
+	// With "Virtual harvest" for external calls
+	function virtualAccDtxPerShare() public view returns (uint256) {
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+		return (accDtxPerShare + _pending * 1e12  / address(this).balance);
+	}
 
     function payFee(UserInfo storage user, address _userAddress) private {
 		uint256 _lastAction = user.lastAction;
