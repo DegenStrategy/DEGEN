@@ -178,7 +178,7 @@ contract DTXNFTallocationProxy is Ownable {
         return(uint256(uint160(_address)));
     }
 
-	function changeGovernor() external {
+	function syncOwner() external {
 		_transferOwnership(IDTX(token).governor());
 	}
 
