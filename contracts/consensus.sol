@@ -409,19 +409,30 @@ contract DTXconsensus {
     	emit TreasuryEnforce(proposalID, msg.sender, false);
 	}
 
-
-    //masterchef is the token owner, governor is the owner of masterchef
-    function owner() public view returns (address) {
-		return _owner;
-    }
-
 	function syncOwner() external {
 		_owner = IDTX(token).governor();
     }
 
+	function syncCreditContract() external {
+		creditContract = IGovernor(owner()).creditContract();
+	}
+
 	function treasuryRequestsCount() external view returns (uint256) {
 		return treasuryProposal.length;
 	}
+
+	/**
+	 * Can be used for building database from scratch (opposed to using event logs)
+	 * also to make sure all data and latest events are synced correctly
+	 */
+	function proposalLengths() external view returns(uint256, uint256) {
+		return(treasuryProposal.length, consensusProposal.length);
+	}
+
+	//masterchef is the token owner, governor is the owner of masterchef
+    function owner() public view returns (address) {
+		return _owner;
+    }
 
     /**
      * Returns total DTX staked accross all pools.
@@ -454,18 +465,6 @@ contract DTXconsensus {
                                 IacPool(IGovernor(owner()).acPool6()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool6()).getPricePerFullShare() / 1e19 * 15
         );
     }
-	
-	function syncCreditContract() external {
-		creditContract = IGovernor(owner()).creditContract();
-	}
-	
-	/**
-	 * Can be used for building database from scratch (opposed to using event logs)
-	 * also to make sure all data and latest events are synced correctly
-	 */
-	function proposalLengths() external view returns(uint256, uint256) {
-		return(treasuryProposal.length, consensusProposal.length);
-	}
 
 	function isContract(address _address) public view returns (bool) {
 	    uint256 codeSize;
