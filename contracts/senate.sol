@@ -36,7 +36,7 @@ contract Senate {
 	event AddVote(address voter, uint256 proposalId);
 	event RemoveVote(address voter, uint256 proposalId);
 	
-	function addSenator(address _newSenator) public {
+	function addSenator(address _newSenator) external {
 		require(msg.sender == owner(), "only through decentralized voting");
 		require(!isSenator[_newSenator], "already a senator!");
 		require(!addedSenator[_newSenator], "already added");
@@ -48,11 +48,6 @@ contract Senate {
 		emit AddSenator(_newSenator);
 	}
 	
-	function massAdd(address[] calldata _senators) external {
-		for(uint i=0; i < _senators.length; i++) {
-			addSenator(_senators[i]);
-		}
-	}
 	
 	function expandSenate(address _newSenator) external {
 		require(senators.length < maxSenators, "maximum Number of senators achieved");
