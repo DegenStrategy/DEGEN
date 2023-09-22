@@ -10,6 +10,7 @@ import "./interface/IacPool.sol";
 
 contract RedeemReferralRewards {
 	address public immutable token;
+	address private _governor;
 	mapping(address => uint256) public amountRedeemed;
 	
 	event ClaimReferralReward(address indexed user, address claimInto, uint256 amount);
@@ -49,7 +50,16 @@ contract RedeemReferralRewards {
 	}
 	
 
-	
+	function withdrawTokens(uint256 _amount) external {
+		require(msg.sender == governor(), "decentralized voting only");
+		IERC20(token).transfer(governor(), _amount);
+	}
+
+
+	syncOwner() external {
+		_governor = IDTX(token).governor();
+	}
+
 	function totalUserRewards(address _user) public view returns (uint256) {
 		address _governor = governor();
 		uint256 _vault1 = IVault(IGovernor(_governor).plsVault()).referralPoints(_user);
@@ -61,12 +71,7 @@ contract RedeemReferralRewards {
 		return (_vault1 + _vault2 + _vault3 + _vault4 + _vault5);
 	}
 
-	function withdrawTokens(uint256 _amount) external {
-		require(msg.sender == governor(), "decentralized voting only");
-		IERC20(token).transfer(governor(), _amount);
-	}
-	
 	function governor() public view returns (address) {
-		return IDTX(token).governor();
+		return _governor;
 	}
 }
