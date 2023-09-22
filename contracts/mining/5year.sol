@@ -588,15 +588,6 @@ contract TimeDeposit is ReentrancyGuard {
 		emit StakeAllowanceRevoke(msg.sender, spender, allowanceID);
 	}
 	
-    function nrOfstakeAllowances(address owner, address spender) public view returns (uint256) {
-        return _stakeAllowances[owner][spender].length;
-    }
-	
-    function stakeAllowances(address owner, address spender, uint256 allowanceID) public view returns (uint256, uint256, uint256) {
-        StakeTransfer storage stakeStore = _stakeAllowances[owner][spender][allowanceID];
-        return (stakeStore.shares, stakeStore.lastDepositedTime, stakeStore.mandatoryTimeToServe);
-    }
-	
     /**
      * A third party can transfer the stake(allowance required)
 	 * Allows smart contract inter-operability similar to how regular tokens work
@@ -710,75 +701,6 @@ contract TimeDeposit is ReentrancyGuard {
             migrateStake(_staker, i);
         }
     }
-	
-    
-    /**
-     * Returns number of stakes for a user
-     */
-    function getNrOfStakes(address _user) external view returns (uint256) {
-        return userInfo[_user].length;
-    }
-    
-    /**
-     * Returns all shares for a user
-     */
-    function getUserTotalShares(address _user) public view returns (uint256) {
-        UserInfo[] storage _stake = userInfo[_user];
-        uint256 nrOfUserStakes = _stake.length;
-
-		uint256 countShares = 0;
-		
-		for(uint256 i=0; i < nrOfUserStakes; i++) {
-			countShares += _stake[i].shares;
-		}
-		
-		return countShares;
-    }
-	
-    /**
-     * @notice Calculates the expected harvest reward from third party
-     * @return Expected reward to collect in DTX
-     */
-    function calculateHarvestDTXRewards() external view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this));
-        uint256 currentCallFee = amount.mul(callFee).div(10000);
-
-        return currentCallFee;
-    }
-
-    /**
-     * @return Returns total pending dtx rewards
-     */
-    function calculateTotalPendingDTXRewards() external view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this));
-
-        return amount;
-    }
-
-    /**
-     * @notice Calculates the price per share
-     */
-    function getPricePerFullShare() external view returns (uint256) {
-        return totalShares == 0 ? 1e18 : balanceOf().mul(1e18).div(totalShares);
-    }
-    
-    /**
-     * @notice returns number of shares for a certain stake of an user
-     */
-    function getUserShares(address _wallet, uint256 _stakeID) public view returns (uint256) {
-        return userInfo[_wallet][_stakeID].shares;
-    }
-	
-    /**
-     * @notice Calculates the total underlying tokens
-     * @dev It includes tokens held by the contract and held in MasterChef
-     */
-    function balanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
-        uint256 _credit = IMasterChef(masterchef).credit(address(this));
-        return amount.add(_credit); 
-    }
-	
     
 	//enables or disables ability to draw stake from another wallet(allowance required)
 	function enableDisableStakeTransferFrom(bool _setting) external adminOnly {
@@ -872,10 +794,6 @@ contract TimeDeposit is ReentrancyGuard {
 		updateMinGiftGovernor = _setting;
 	}
 	
-    function votingCreditAddress() public view returns (address) {
-    	return IGovernor(admin).creditContract();
-    }
-	
 	/**
 	 * option to withdraw wrongfully sent tokens(but requires change of the governing contract to do so)
 	 * If you send wrong tokens to the contract address, consider them lost. Though there is possibility of recovery
@@ -883,7 +801,86 @@ contract TimeDeposit is ReentrancyGuard {
 	function withdrawStuckTokens(address _tokenAddress) external adminOnly {
 		IERC20(_tokenAddress).transfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
 	}
+
+	/**
+     * Returns number of stakes for a user
+     */
+    function getNrOfStakes(address _user) external view returns (uint256) {
+        return userInfo[_user].length;
+    }
 	
+    /**
+     * @notice Calculates the expected harvest reward from third party
+     * @return Expected reward to collect in DTX
+     */
+    function calculateHarvestDTXRewards() external view returns (uint256) {
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+        uint256 currentCallFee = amount.mul(callFee).div(10000);
+
+        return currentCallFee;
+    }
+
+    /**
+     * @return Returns total pending dtx rewards
+     */
+    function calculateTotalPendingDTXRewards() external view returns (uint256) {
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+
+        return amount;
+    }
+
+    /**
+     * @notice Calculates the price per share
+     */
+    function getPricePerFullShare() external view returns (uint256) {
+        return totalShares == 0 ? 1e18 : balanceOf().mul(1e18).div(totalShares);
+    }
+
+	/**
+     * Returns all shares for a user
+     */
+    function getUserTotalShares(address _user) public view returns (uint256) {
+        UserInfo[] storage _stake = userInfo[_user];
+        uint256 nrOfUserStakes = _stake.length;
+
+		uint256 countShares = 0;
+		
+		for(uint256 i=0; i < nrOfUserStakes; i++) {
+			countShares += _stake[i].shares;
+		}
+		
+		return countShares;
+    }
+    
+    /**
+     * @notice returns number of shares for a certain stake of an user
+     */
+    function getUserShares(address _wallet, uint256 _stakeID) public view returns (uint256) {
+        return userInfo[_wallet][_stakeID].shares;
+    }
+	
+    /**
+     * @notice Calculates the total underlying tokens
+     * @dev It includes tokens held by the contract and held in MasterChef
+     */
+    function balanceOf() public view returns (uint256) {
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
+		uint256 _credit = IMasterChef(masterchef).credit(address(this));
+        return amount.add(_credit); 
+    }
+    
+    function votingCreditAddress() public view returns (address) {
+    	return IGovernor(admin).creditContract();
+    }
+
+	function nrOfstakeAllowances(address owner, address spender) public view returns (uint256) {
+        return _stakeAllowances[owner][spender].length;
+    }
+	
+    function stakeAllowances(address owner, address spender, uint256 allowanceID) public view returns (uint256, uint256, uint256) {
+        StakeTransfer storage stakeStore = _stakeAllowances[owner][spender][allowanceID];
+        return (stakeStore.shares, stakeStore.lastDepositedTime, stakeStore.mandatoryTimeToServe);
+    }
 	
     //Note: allowanceID (and not ID of the stake!)
 	function _revokeStakeAllowance(address owner, uint256 allowanceID) private {
