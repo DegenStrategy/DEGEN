@@ -36,7 +36,7 @@ contract Senate {
 	event RemoveVote(address voter, uint256 proposalId);
 	
 	function addSenator(address _newSenator) public {
-		require(msg.sender == owner(), "only through decentralized voring");
+		require(msg.sender == owner(), "only through decentralized voting");
 		require(!isSenator[_newSenator], "already a senator!");
 		require(!addedSenator[_newSenator], "already added");
 		
