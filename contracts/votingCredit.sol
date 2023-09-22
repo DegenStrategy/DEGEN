@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/utils/Context.sol";
 
@@ -10,6 +10,7 @@ import "./interface/IMasterChef.sol";
 contract VotingCredit {
 	IDTX public immutable token;
 	IMasterChef public masterchef;
+	address private _owner;
 	
 	address public airdropContract;
 	address public airdropContractLocked;
@@ -127,7 +128,12 @@ contract VotingCredit {
 		masterchef = IMasterChef(token.owner());
 	}
 	
-	function owner() public view returns (address) {
-		return token.governor();
-	}
+	//masterchef is the token owner, governor is the owner of masterchef
+    function owner() public view returns (address) {
+		return _owner;
+    }
+
+	function syncOwner() external {
+		_owner = token.governor();
+    }
 }
