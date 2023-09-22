@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
@@ -62,6 +62,7 @@ contract DTXfarms {
 	mapping(uint256 => uint256) public poolAllocation;
     
     address public immutable token; //DTX token(address!)
+	address private _owner;
 	
 	address public creditContract;
 	
@@ -301,10 +302,13 @@ contract DTXfarms {
         masterchef = IGovernor(owner()).masterchef();
     }
    
-    //transfers ownership of this contract to new governor
     //masterchef is the token owner, governor is the owner of masterchef
     function owner() public view returns (address) {
-		return IDTX(token).governor();
+		return _owner;
+    }
+
+	function syncOwner() external {
+		_owner = IDTX(token).governor();
     }
 	
 	//Proposals to set governor 'tax'(in masterchef, on every mint this % of inflation goes to the governor)
