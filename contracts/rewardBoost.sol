@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
@@ -28,6 +28,8 @@ contract DTXrewardBoost {
         uint256 duration;
         uint256 startTime;
     }
+
+	address private _owner;
     
     FibonacceningProposal[] public fibonacceningProposals;
 
@@ -227,10 +229,13 @@ contract DTXrewardBoost {
 		masterchef = IMasterChef(address(token)).owner();
     }
     
-    //transfers ownership of this contract to new governor
     //masterchef is the token owner, governor is the owner of masterchef
     function owner() public view returns (address) {
-		return IDTX(address(token)).governor();
+		return _owner;
+    }
+
+	function syncOwner() external {
+		_owner = IDTX(token).governor();
     }
 	
 	function syncCreditContract() external {
