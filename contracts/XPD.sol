@@ -32,8 +32,8 @@ contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
     }
 	
     function burnToken(address account, uint256 amount) external onlyOwner returns (bool) {
-	_burn(account, amount);
-	return true;
+		_burn(account, amount);
+		return true;
     }
 	
 	//Standard ERC20 makes name and symbol immutable
