@@ -249,32 +249,6 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);
     }
 	
-	
-    function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
-		UserInfo storage _stake = userInfo[_user][_stakeID];
-        uint256 _pending = _stake.allocation * virtualaccDtxPerShare() / 1e12 - _stake.debt;
-        return _pending;
-    }
-
-    function viewUserTotalEarnings(address _user) external view returns (uint256) {
-        UserInfo[] storage _stake = userInfo[_user];
-        uint256 nrOfUserStakes = _stake.length;
-
-		uint256 _totalPending = 0;
-		
-		for(uint256 i=0; i < nrOfUserStakes; i++) {
-			_totalPending+= _stake[i].allocation * virtualaccDtxPerShare() / 1e12 - _stake[i].debt;
-		}
-		
-		return _totalPending;
-    }
-	//we want user deposit, we want total deposited, we want pending rewards, 
-	function multiCall(address _user, uint256 _stakeID) external view returns(uint256, uint256, uint256, address, uint256) {
-		UserInfo storage user = userInfo[_user][_stakeID];
-		uint256 _pending = user.allocation * virtualaccDtxPerShare() / 1e12 - user.debt;
-		return(user.allocation, totalAllocation, _pending, user.tokenAddress, user.tokenID);
-	}
-	
 
     // if allocation for the NFT changes, anyone can rebalance
 	// if allocation contract is replaced(rare event), an "evil" third party can push the NFT out of the staking
@@ -313,11 +287,6 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         }
     }
 	
-	// Adding virtual harvest for the external viewing
-	function virtualaccDtxPerShare() public view returns (uint256) {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
-		return (accDtxPerShare + _pending * 1e12  / totalAllocation);
-	}
 	
 	// emergency withdraw, without caring about rewards
 	function emergencyWithdraw(uint256 _stakeID) public {
@@ -355,28 +324,6 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
     function updateSettings(uint256 _defaultDirectPayout) external adminOnly {
         defaultDirectPayout = _defaultDirectPayout;
     }
-
-    /**
-     * Returns number of stakes for a user
-     */
-    function getNrOfStakes(address _user) public view returns (uint256) {
-        return userInfo[_user].length;
-    }
-	
-
-    /**
-     * @return Returns total pending XPD rewards
-     */
-    function calculateTotalpendingDtxRewards() external view returns (uint256) {
-        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
-    }
-
-	
-	//public lookup for UI
-    function publicBalanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
-        return token.balanceOf(address(this)) + amount; 
-    }
 	
 	/*
 	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
@@ -398,6 +345,59 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 		
 		IERC20(_tokenAddress).safeTransfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
 	}
+
+	// Adding virtual harvest for the external viewing
+	function virtualaccDtxPerShare() public view returns (uint256) {
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+		return (accDtxPerShare + _pending * 1e12  / totalAllocation);
+	}
+
+	function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
+		UserInfo storage _stake = userInfo[_user][_stakeID];
+        uint256 _pending = _stake.allocation * virtualaccDtxPerShare() / 1e12 - _stake.debt;
+        return _pending;
+    }
+
+    function viewUserTotalEarnings(address _user) external view returns (uint256) {
+        UserInfo[] storage _stake = userInfo[_user];
+        uint256 nrOfUserStakes = _stake.length;
+
+		uint256 _totalPending = 0;
+		
+		for(uint256 i=0; i < nrOfUserStakes; i++) {
+			_totalPending+= _stake[i].allocation * virtualaccDtxPerShare() / 1e12 - _stake[i].debt;
+		}
+		
+		return _totalPending;
+    }
+	//we want user deposit, we want total deposited, we want pending rewards, 
+	function multiCall(address _user, uint256 _stakeID) external view returns(uint256, uint256, uint256, address, uint256) {
+		UserInfo storage user = userInfo[_user][_stakeID];
+		uint256 _pending = user.allocation * virtualaccDtxPerShare() / 1e12 - user.debt;
+		return(user.allocation, totalAllocation, _pending, user.tokenAddress, user.tokenID);
+	}
+	
+
+    /**
+     * @return Returns total pending XPD rewards
+     */
+    function calculateTotalpendingDtxRewards() external view returns (uint256) {
+        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
+    }
+
+	/**
+     * Returns number of stakes for a user
+     */
+    function getNrOfStakes(address _user) public view returns (uint256) {
+        return userInfo[_user].length;
+    }
+
+	
+	//public lookup for UI
+    function publicBalanceOf() public view returns (uint256) {
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
+        return token.balanceOf(address(this)) + amount; 
+    }
 
     
     /**
