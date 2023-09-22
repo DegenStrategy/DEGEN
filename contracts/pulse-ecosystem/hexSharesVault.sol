@@ -258,33 +258,6 @@ contract tshareVault is ReentrancyGuard {
 		}
 	}
 
-    function viewStakeEarnings(address _user) external view returns (uint256) {
-		UserInfo storage _stake = userInfo[_user];
-        uint256 _pending = _stake.amount * virtualAccDtxPerShare() / 1e12 - _stake.debt;
-        return _pending;
-    }
-
-	//we want user deposit, we want total deposited, we want pending rewards, 
-	function multiCall(address _user) external view returns(uint256, uint256, uint256, uint256) {
-		UserInfo storage user = userInfo[_user];
-		uint256 _pending = user.amount * virtualAccDtxPerShare() / 1e12 - user.debt;
-		return(user.amount, totalTshares, _pending, user.lastAction);
-	}
-
-	// With "Virtual harvest" for external calls
-	function virtualAccDtxPerShare() public view returns (uint256) {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
-		return (accDtxPerShare + _pending * 1e12  / totalTshares);
-	}
-
-	function viewPoolPayout(address _contract) external view returns (uint256) {
-		return poolPayout[_contract].amount;
-	}
-
-	function viewPoolMinServe(address _contract) external view returns (uint256) {
-		return poolPayout[_contract].minServe;
-	}
-
     //need to set pools before launch or perhaps during contract launch
     //determines the payout depending on the pool. could set a governance process for it(determining amounts for pools)
 	//allocation contract contains the decentralized proccess for updating setting, but so does the admin(governor)
@@ -297,22 +270,6 @@ contract tshareVault is ReentrancyGuard {
     function updateSettings(uint256 _defaultDirectHarvest) external adminOnly {
         defaultDirectPayout = _defaultDirectHarvest;
     }
-
-
-    /**
-     * @return Returns total pending dtx rewards
-     */
-    function calculateTotalPendingDTXRewards() external view returns (uint256) {
-        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
-    }
-	
-
-	//public lookup for UI
-    function publicBalanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
-        uint256 _credit = IMasterChef(masterchef).credit(address(this));
-        return _credit + amount; 
-    }
 	
 	/*
 	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
@@ -324,8 +281,6 @@ contract tshareVault is ReentrancyGuard {
 		poolID = _newPoolID; //in case pool ID changes
 	}
 	
-
-	
 	// tx can run out of gas. Only calculates shares based on the first (maxStakes) number of stakes
 	function setMaxStakes(uint256 _amount) external adminOnly {
 		maxStakes = _amount;
@@ -335,8 +290,6 @@ contract tshareVault is ReentrancyGuard {
 		safePeriod = _amount;
 	}
 	
-	
-	
 	/**
 	 * option to withdraw wrongfully sent tokens(but requires change of the governing contract to do so)
 	 * If you send wrong tokens to the contract address, consider them lost. Though there is possibility of recovery
@@ -345,5 +298,46 @@ contract tshareVault is ReentrancyGuard {
 		require(_tokenAddress != address(token), "illegal token");
 		
 		IERC20(_tokenAddress).safeTransfer(IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
+	}
+
+	function viewStakeEarnings(address _user) external view returns (uint256) {
+		UserInfo storage _stake = userInfo[_user];
+        uint256 _pending = _stake.amount * virtualAccDtxPerShare() / 1e12 - _stake.debt;
+        return _pending;
+    }
+
+	//we want user deposit, we want total deposited, we want pending rewards, 
+	function multiCall(address _user) external view returns(uint256, uint256, uint256, uint256) {
+		UserInfo storage user = userInfo[_user];
+		uint256 _pending = user.amount * virtualAccDtxPerShare() / 1e12 - user.debt;
+		return(user.amount, totalTshares, _pending, user.lastAction);
+	}
+
+	function viewPoolPayout(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].amount;
+	}
+
+	function viewPoolMinServe(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].minServe;
+	}
+
+	/**
+     * @return Returns total pending dtx rewards
+     */
+    function calculateTotalPendingDTXRewards() external view returns (uint256) {
+        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
+    }
+	
+	//public lookup for UI
+    function publicBalanceOf() public view returns (uint256) {
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
+        uint256 _credit = IMasterChef(masterchef).credit(address(this));
+        return _credit + amount; 
+    }
+
+	// With "Virtual harvest" for external calls
+	function virtualAccDtxPerShare() public view returns (uint256) {
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+		return (accDtxPerShare + _pending * 1e12  / totalTshares);
 	}
 }
