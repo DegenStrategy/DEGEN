@@ -37,6 +37,7 @@ contract DTXconsensus {
 	uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
     address public immutable token; //DTX token (address)
 	uint256 public governorCount; //count number of proposals
+	address private _owner;
 
 	address public creditContract;
 
@@ -409,10 +410,13 @@ contract DTXconsensus {
 	}
 
 
-    //transfers ownership of this contract to new governor
     //masterchef is the token owner, governor is the owner of masterchef
     function owner() public view returns (address) {
-		return (IDTX(token).governor());
+		return _owner;
+    }
+
+	function syncOwner() external {
+		_owner = IDTX(token).governor();
     }
 
 	function treasuryRequestsCount() external view returns (uint256) {
