@@ -80,15 +80,34 @@ contract TimeDeposit is ReentrancyGuard {
 	uint256 public trustedPoolCount;
 
     event Deposit(address indexed sender, uint256 amount, uint256 shares, uint256 lastDepositedTime);
-    event GiftDeposit(address indexed sender, address indexed recipient, uint256 amount, uint256 shares, uint256 lastDepositedTime);
-    event AddAndExtendStake(address indexed sender, address indexed recipient, uint256 amount, uint256 stakeID, uint256 shares, uint256 lastDepositedTime);
+    event GiftDeposit(
+        address indexed sender, 
+        address indexed recipient, 
+        uint256 amount, 
+        uint256 shares, 
+        uint256 lastDepositedTime
+    );
+    event AddAndExtendStake(
+        address indexed sender, 
+        address indexed recipient, 
+        uint256 amount, 
+        uint256 stakeID, 
+        uint256 shares, 
+        uint256 lastDepositedTime
+    );
     event Withdraw(address indexed sender, uint256 amount, uint256 penalty, uint256 shares);
     
 	event TransferStake(address indexed sender, address indexed recipient, uint256 shares, uint256 stakeID);
     event HopPool(address indexed sender, uint256 DTXamount, uint256 shares, address indexed newPool);
     event MigrateStake(address indexed goodSamaritan, uint256 DTXamount, uint256 shares, address indexed recipient);
    
-    event HopDeposit(address indexed recipient, uint256 amount, uint256 shares, uint256 previousLastDepositedTime, uint256 mandatoryTime);
+    event HopDeposit(
+        address indexed recipient, 
+        uint256 amount, 
+        uint256 shares, 
+        uint256 previousLastDepositedTime, 
+        uint256 mandatoryTime
+    );
 	
     event RemoveVotes(address indexed voter, uint256 proposalID, uint256 change);
     event AddVotes(address indexed voter, uint256 proposalID, uint256 change);
@@ -96,7 +115,14 @@ contract TimeDeposit is ReentrancyGuard {
 	event TrustedSender(address contractAddress, bool setting);
 	event TrustedPool(address contractAddress, bool setting);
 	
-	event StakeApproval(address owner, address spender, uint256 allowanceID, uint256 shareAllowance, uint256 lastDeposit, uint256 mandatoryTime);
+	event StakeApproval(
+        address owner, 
+        address spender, 
+        uint256 allowanceID, 
+        uint256 shareAllowance, 
+        uint256 lastDeposit, 
+        uint256 mandatoryTime
+    );
 	event StakeAllowanceRevoke(address owner, address spender, uint256 allowanceID);
 	event TransferStakeFrom(address _from, address _to, uint256 _stakeID, uint256 _allowanceID);
 	
@@ -532,7 +558,8 @@ contract TimeDeposit is ReentrancyGuard {
 		emit SetDelegate(_wallet, _delegate);
     }
 	
-	//allows third party stake transfer(stake IDs can be changed, so instead of being identified through ID, it's identified by shares, lastdeposit and mandatory time
+	// allows third party stake transfer(stake IDs can be changed, 
+	// so instead of being identified through ID, it's identified by shares, lastdeposit and mandatory time
     function giveStakeAllowance(address spender, uint256 _stakeID) external {
 		UserInfo storage user = userInfo[msg.sender][_stakeID];
 		require(user.shares.mul(balanceOf()).div(totalShares) >= minimumGift, "below minimum threshold");
@@ -643,7 +670,7 @@ contract TimeDeposit is ReentrancyGuard {
 		emit Withdraw(treasury, currentAmount, 0, _shares);
 
 		IMasterChef(masterchef).publishTokens(treasury, currentAmount);
-		IVoting(votingCreditAddress()).addCredit(currentAmount, msg.sender); //in the votingCreditAddress() regulate how much is credited, depending on where it's coming from (msg.sender)
+		IVoting(votingCreditAddress()).addCredit(currentAmount, msg.sender); 
     } 
 
 	
