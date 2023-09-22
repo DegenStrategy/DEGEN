@@ -799,21 +799,6 @@ contract TimeDeposit is ReentrancyGuard {
 	function withdrawStuckTokens(address _tokenAddress) external adminOnly {
 		IERC20(_tokenAddress).transfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
 	}
-	
-	
-    //Note: allowanceID (and not ID of the stake!)
-	function _revokeStakeAllowance(address owner, uint256 allowanceID) private {
-		StakeTransfer[] storage allowances = _stakeAllowances[owner][msg.sender];
-        uint256 lastAllowanceID = allowances.length.sub(1);
-        
-        if(allowanceID != lastAllowanceID) {
-            allowances[allowanceID] = allowances[lastAllowanceID];
-        }
-        
-        allowances.pop();
-		
-		emit StakeAllowanceRevoke(owner, msg.sender, allowanceID);
-	}
 
 	/**
      * Returns number of stakes for a user
@@ -894,6 +879,20 @@ contract TimeDeposit is ReentrancyGuard {
         StakeTransfer storage stakeStore = _stakeAllowances[owner][spender][allowanceID];
         return (stakeStore.shares, stakeStore.lastDepositedTime, stakeStore.mandatoryTimeToServe);
     }
+
+	//Note: allowanceID (and not ID of the stake!)
+	function _revokeStakeAllowance(address owner, uint256 allowanceID) private {
+		StakeTransfer[] storage allowances = _stakeAllowances[owner][msg.sender];
+        uint256 lastAllowanceID = allowances.length.sub(1);
+        
+        if(allowanceID != lastAllowanceID) {
+            allowances[allowanceID] = allowances[lastAllowanceID];
+        }
+        
+        allowances.pop();
+		
+		emit StakeAllowanceRevoke(owner, msg.sender, allowanceID);
+	}
 	
     /**
      * updates votes(whenever there is transfer of funds)
