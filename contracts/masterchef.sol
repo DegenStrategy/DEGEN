@@ -79,10 +79,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	    credit[_airdropFull] = 1080000000 * 1e18;
 		totalCreditRewards = 1080000000 * 1e18;
     }
-
-    function poolLength() external view returns (uint256) {
-        return poolInfo.length;
-    }
 	
 	function publishTokens(address _to, uint256 _amount) external {
 		require(credit[msg.sender] >= _amount, "Insufficient credit");
@@ -98,23 +94,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		totalPrincipalBurned+= _amount;
 		return true;
 	}
-	
-    // Add a new lp to the pool. Can only be called by the owner.
-    function add(uint256 _allocPoint, address _participant, bool _withUpdate) public onlyOwner {
-		require(!existingParticipant[_participant], "contract already participating");
-		
-        if (_withUpdate) {
-            massUpdatePools();
-        }
-        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
-        totalAllocPoint = totalAllocPoint.add(_allocPoint);
-		existingParticipant[_participant] = true;
-        poolInfo.push(PoolInfo({
-            allocPoint: _allocPoint,
-            lastRewardBlock: lastRewardBlock,
-            participant: _participant
-        }));
-    }
     
     function massAdd(uint256[] calldata _allocPoint, address[] calldata _participant, bool[] calldata _withUpdate) external {
         require(_allocPoint.length == _participant.length && _allocPoint.length == _withUpdate.length);
@@ -123,69 +102,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
         }
     }
 
-    // Update the given pool's DTX allocation point and deposit fee. Can only be called by the owner.
-	// Notice: DepositFee is completely irrelevant, but it's been left as it would otherwise mess up our setup
-    function set(uint256 _pid, uint256 _allocPoint, uint16 _depositFeeBP, bool _withUpdate) public onlyOwner {
-        if (_withUpdate) {
-            massUpdatePools();
-        }
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
-        poolInfo[_pid].allocPoint = _allocPoint;
-    }
-
-
-    // View function to see pending DTXs on frontend.
-    function pendingDtx(uint256 _pid, address _user) external view returns (uint256) {
-        PoolInfo storage pool = poolInfo[_pid];
-        if (block.number > pool.lastRewardBlock && pool.participant != address(0)) {
-            uint256 multiplier = block.number.sub(pool.lastRewardBlock);
-            uint256 dtxReward = multiplier.mul(DTXPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-            return dtxReward;
-        }
-        return 0;
-    }
-
-    // Update reward variables for all pools. Be careful of gas spending!
-    function massUpdatePools() public {
-        uint256 length = poolInfo.length;
-        for (uint256 pid = 0; pid < length; ++pid) {
-            updatePool(pid);
-        }
-    }
-
-    // Update reward variables of the given pool to be up-to-date.
-    function updatePool(uint256 _pid) public {
-        PoolInfo storage pool = poolInfo[_pid];
-        if (block.number <= pool.lastRewardBlock) {
-            return;
-        }
-        if (pool.participant == address(0) || pool.allocPoint == 0) {
-            pool.lastRewardBlock = block.number;
-            return;
-        }
-        uint256 multiplier = block.number.sub(pool.lastRewardBlock);
-        uint256 dtxReward = multiplier.mul(DTXPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-        dtx.mint(devaddr, dtxReward.mul(governorFee).div(10000));
-		credit[pool.participant] = credit[pool.participant] + dtxReward;
-		totalCreditRewards+=dtxReward;
-        pool.lastRewardBlock = block.number;
-    }
-
-    function stopPublishing(uint256 _pid) external onlyOwner {
-        updatePool(_pid);
-        poolInfo[_pid].participant = address(0);
-        poolInfo[_pid].allocPoint = 0;
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
-    }
-
-	function startPublishing(uint256 _pid, address _participant, uint256 _alloc) external onlyOwner {
-		require(poolInfo[_pid].allocPoint == 0 && poolInfo[_pid].participant == address(0), "already earning");
-        updatePool(_pid);
-        poolInfo[_pid].participant = _participant;
-        poolInfo[_pid].allocPoint = _alloc;
-        totalAllocPoint = totalAllocPoint.add(_alloc);
-    }
-	
 	// In case pools are changed (on migration old contract transfers it's credit to the new one)
 	function transferCredit(address _to, uint256 _amount) external {
         require(credit[msg.sender] >= _amount, "insufficient credit for transfer!");
@@ -193,53 +109,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		credit[_to] = credit[_to] + _amount;
 		emit TransferCredit(msg.sender, _to, _amount);
 	}
-	
-	//only owner can set trusted Contracts
-	function setTrustedContract(address _contractAddress, bool _setting) external onlyOwner {
-		if(trustedContract[_contractAddress] != _setting) { 
-			trustedContract[_contractAddress] = _setting;
-			_setting ? trustedContractCount++ : trustedContractCount--;
-			emit TrustedContract(_contractAddress, _setting);
-		}
-	}
-
-	function setGovernorFee(uint256 _amount) public onlyOwner {
-		require(_amount <= 1000 && _amount >= 0);
-		governorFee = _amount;
-	}
-
-    // Update dev address by the previous dev.
-    function dev(address _devaddr) public onlyOwner {
-        devaddr = _devaddr;
-    }
-
-    function setFeeAddress(address _feeAddress) public onlyOwner {
-        feeAddress = _feeAddress;
-    }
-
-    //Pancake has to add hidden dummy pools inorder to alter the emission, here we make it simple and transparent to all.
-    function updateEmissionRate(uint256 _DTXPerBlock) public onlyOwner {
-        if(!maxSupplyReached) {
-			massUpdatePools();
-	        DTXPerBlock = _DTXPerBlock;
-		} else {
-			DTXPerBlock = 0;
-		}
-		
-		emit UpdateEmissions(tx.origin, _DTXPerBlock);
-    }
-
-    //Only update before start of farm
-    function updateStartBlock(uint256 _startBlock) public onlyOwner {
-        require(block.number < startBlock, "already started");
-		startBlock = _startBlock;
-    }
-	
-	//For flexibility(can transfer to new masterchef if need be!)
-	function tokenChangeOwnership(address _newOwner) external onlyOwner {
-		dtx.transferOwnership(_newOwner);
-	}
-
 
 	function fairMintSenate() external {
 		require(senatorRewards, "senator rewards are turned off");
@@ -262,10 +131,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		totalCreditRewards+= senators.length * _amount;
 	}
 
-	function rewardSenators(bool _e) external onlyOwner {
-		senatorRewards = _e;
-	}
-
 	// renounce rewards once maximum supply would be breached
 	// if there is an "overflow", tokens can simply be burned from the governing contract
 	function renounceRewards() external {
@@ -273,6 +138,139 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		DTXPerBlock = 0;
 		maxSupplyReached = true;
 	}
+
+    // Update the given pool's DTX allocation point and deposit fee. Can only be called by the owner.
+	// Notice: DepositFee is completely irrelevant, but it's been left as it would otherwise mess up our setup
+    function set(uint256 _pid, uint256 _allocPoint, uint16 _depositFeeBP, bool _withUpdate) external onlyOwner {
+        if (_withUpdate) {
+            massUpdatePools();
+        }
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        poolInfo[_pid].allocPoint = _allocPoint;
+    }
+
+	function startPublishing(uint256 _pid, address _participant, uint256 _alloc) external onlyOwner {
+		require(poolInfo[_pid].allocPoint == 0 && poolInfo[_pid].participant == address(0), "already earning");
+        updatePool(_pid);
+        poolInfo[_pid].participant = _participant;
+        poolInfo[_pid].allocPoint = _alloc;
+        totalAllocPoint = totalAllocPoint.add(_alloc);
+    }
+
+    function stopPublishing(uint256 _pid) external onlyOwner {
+        updatePool(_pid);
+        poolInfo[_pid].participant = address(0);
+        poolInfo[_pid].allocPoint = 0;
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
+    }
+
+	//only owner can set trusted Contracts
+	function setTrustedContract(address _contractAddress, bool _setting) external onlyOwner {
+		if(trustedContract[_contractAddress] != _setting) { 
+			trustedContract[_contractAddress] = _setting;
+			_setting ? trustedContractCount++ : trustedContractCount--;
+			emit TrustedContract(_contractAddress, _setting);
+		}
+	}
+
+	function setGovernorFee(uint256 _amount) external onlyOwner {
+		require(_amount <= 1000 && _amount >= 0);
+		governorFee = _amount;
+	}
+
+    // Update dev address by the previous dev.
+    function dev(address _devaddr) external onlyOwner {
+        devaddr = _devaddr;
+    }
+
+    function setFeeAddress(address _feeAddress) external onlyOwner {
+        feeAddress = _feeAddress;
+    }
+
+    //Pancake has to add hidden dummy pools inorder to alter the emission, here we make it simple and transparent to all.
+    function updateEmissionRate(uint256 _DTXPerBlock) external onlyOwner {
+        if(!maxSupplyReached) {
+			massUpdatePools();
+	        DTXPerBlock = _DTXPerBlock;
+		} else {
+			DTXPerBlock = 0;
+		}
+		
+		emit UpdateEmissions(tx.origin, _DTXPerBlock);
+    }
+
+    //Only update before start of farm
+    function updateStartBlock(uint256 _startBlock) external onlyOwner {
+        require(block.number < startBlock, "already started");
+		startBlock = _startBlock;
+    }
+	
+	//For flexibility(can transfer to new masterchef if need be!)
+	function tokenChangeOwnership(address _newOwner) external onlyOwner {
+		dtx.transferOwnership(_newOwner);
+	}
+
+	function rewardSenators(bool _e) external onlyOwner {
+		senatorRewards = _e;
+	}
+
+	// Update reward variables for all pools. Be careful of gas spending!
+    function massUpdatePools() public {
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            updatePool(pid);
+        }
+    }
+
+	// Update reward variables of the given pool to be up-to-date.
+    function updatePool(uint256 _pid) public {
+        PoolInfo storage pool = poolInfo[_pid];
+        if (block.number <= pool.lastRewardBlock) {
+            return;
+        }
+        if (pool.participant == address(0) || pool.allocPoint == 0) {
+            pool.lastRewardBlock = block.number;
+            return;
+        }
+        uint256 multiplier = block.number.sub(pool.lastRewardBlock);
+        uint256 dtxReward = multiplier.mul(DTXPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+        dtx.mint(devaddr, dtxReward.mul(governorFee).div(10000));
+		credit[pool.participant] = credit[pool.participant] + dtxReward;
+		totalCreditRewards+=dtxReward;
+        pool.lastRewardBlock = block.number;
+    }
+
+	// Add a new lp to the pool. Can only be called by the owner.
+    function add(uint256 _allocPoint, address _participant, bool _withUpdate) public onlyOwner {
+		require(!existingParticipant[_participant], "contract already participating");
+		
+        if (_withUpdate) {
+            massUpdatePools();
+        }
+        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
+        totalAllocPoint = totalAllocPoint.add(_allocPoint);
+		existingParticipant[_participant] = true;
+        poolInfo.push(PoolInfo({
+            allocPoint: _allocPoint,
+            lastRewardBlock: lastRewardBlock,
+            participant: _participant
+        }));
+    }
+
+	// View function to see pending DTXs on frontend.
+    function pendingDtx(uint256 _pid, address _user) external view returns (uint256) {
+        PoolInfo storage pool = poolInfo[_pid];
+        if (block.number > pool.lastRewardBlock && pool.participant != address(0)) {
+            uint256 multiplier = block.number.sub(pool.lastRewardBlock);
+            uint256 dtxReward = multiplier.mul(DTXPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+            return dtxReward;
+        }
+        return 0;
+    }
+
+	function poolLength() external view returns (uint256) {
+        return poolInfo.length;
+    }
 
 	function virtualTotalSupply() public view returns (uint256) {
 		return (dtx.totalSupply() + totalCreditRewards + totalPrincipalBurned - totalPublished);
