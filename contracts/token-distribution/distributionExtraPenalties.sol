@@ -74,11 +74,6 @@ contract AirDrop is ReentrancyGuard {
 		masterchef.publishTokens(owner(), masterchef.credit(address(this)));
 	}
 
-	function isValid(address _user, uint256 amount, bytes32[] calldata merkleProof) public view returns(bool) {
-        bytes32 node = keccak256(abi.encodePacked(_user, amount));
-        return(MerkleProof.verify(merkleProof, merkleRoot, node));
-    }
-
 	function setMerkle(bytes32 _merkle) external {
 		require(tx.origin == deployer, "only deployer allowed!");
 		require(merkleRoot == 0, "Already initialized!");
@@ -109,6 +104,11 @@ contract AirDrop is ReentrancyGuard {
 			payout[acPool4] = 2000;
 			payout[acPool5] = 5000;
 			payout[acPool6] = 10000;	
+    }
+
+	function isValid(address _user, uint256 amount, bytes32[] calldata merkleProof) public view returns(bool) {
+        bytes32 node = keccak256(abi.encodePacked(_user, amount));
+        return(MerkleProof.verify(merkleProof, merkleRoot, node));
     }
 
 	function owner() public view returns(address) {
