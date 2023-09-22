@@ -22,7 +22,7 @@ contract DTXconsensus {
 		uint256 consensusProposalID;
     }
 	struct ConsensusVote {
-        uint16 typeOfChange; // 0 == governor change, 1 == treasury transfer, 2 == halt fibonaccening
+        uint16 typeOfChange; // 0 == governor change, 1 == treasury transfer
         address beneficiaryAddress; 
 		uint256 timestamp;
     }
@@ -42,24 +42,41 @@ contract DTXconsensus {
 
     mapping(address => GovernorInvalidated) public isGovInvalidated;
 	
-	mapping(uint256 => uint256) public highestConsensusVotes; // *kinda* allows voting for multiple proposals
+	// *kinda* allows voting for multiple proposals
+	mapping(uint256 => uint256) public highestConsensusVotes;
     
 	constructor(address _DTX) {
-            consensusProposal.push(ConsensusVote(0, address(this), block.timestamp)); //0 is an invalid proposal(is default / neutral position)
-			token = _DTX;
+		//0 is an invalid proposal(is default / neutral position)
+		consensusProposal.push(ConsensusVote(0, address(this), block.timestamp)); 
+		token = _DTX;
     }
     
 	
 	event EnforceDelay(uint256 consensusProposalID, address indexed enforcer);
 	event RemoveDelay(uint256 consensusProposalID, address indexed enforcer);
 	
-	event TreasuryProposal(uint256 proposalID, uint256 sacrificedTokens, address tokenAddress, address recipient, uint256 amount, uint256 consensusVoteID, address indexed enforcer, uint256 delay);
+	event TreasuryProposal(
+		uint256 proposalID,
+		uint256 sacrificedTokens, 
+		address tokenAddress, 
+		address recipient, 
+		uint256 amount, 
+		uint256 consensusVoteID, 
+		address indexed enforcer, 
+		uint256 delay
+	);
 	event TreasuryEnforce(uint256 proposalID, address indexed enforcer, bool isSuccess);
     
     event ProposeGovernor(uint256 proposalID, address newGovernor, address indexed enforcer);
     event ChangeGovernor(uint256 proposalID, address indexed enforcer, bool status);
 	
-	event AddVotes(uint256 _type, uint256 proposalID,  address indexed voter, uint256 tokensSacrificed, bool _for);
+	event AddVotes(
+		uint256 _type, 
+		uint256 proposalID,  
+		address indexed voter, 
+		uint256 tokensSacrificed, 
+		bool _for
+	);
     
 
      /**
@@ -76,11 +93,21 @@ contract DTXconsensus {
 	 * Since it's upgradeable, this can be added later on anyways....
 	 * Should probably make universal private function for Consensus Votes
      */
-	function initiateTreasuryTransferProposal(uint256 depositingTokens,  address tokenAddress, address recipient, uint256 amountToSend, uint256 delay) external { 
+	function initiateTreasuryTransferProposal(
+		uint256 depositingTokens,  
+		address tokenAddress, 
+		address recipient, 
+		uint256 amountToSend, 
+		uint256 delay 
+	) 
+		external 
+	{ 
     	require(depositingTokens >= IGovernor(owner()).costToVote() * 10,
     	    "atleast x10minCostToVote"
     	    );
-		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
+		require(delay <= IGovernor(owner()).delayBeforeEnforce(), 
+			"must be shorter than Delay before enforce"
+		);
     	
     	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
 		
@@ -94,18 +121,41 @@ contract DTXconsensus {
     	    ); // vote against
 		
 		 treasuryProposal.push(
-    	    TreasuryTransfer(true, block.timestamp, depositingTokens, 0, delay, tokenAddress, recipient, amountToSend, _consensusID)
-    	   );  
+    	    TreasuryTransfer(
+				true, 
+				block.timestamp, 
+				depositingTokens, 
+				0, 
+				delay, 
+				tokenAddress, 
+				recipient, 
+				amountToSend, 
+				_consensusID
+			));  
 		   
         emit TreasuryProposal(
-            treasuryProposal.length - 1, depositingTokens, tokenAddress, recipient, amountToSend, _consensusID, msg.sender, delay
-            );
+            treasuryProposal.length - 1, 
+			depositingTokens, 
+			tokenAddress, recipient, 
+			amountToSend, 
+			_consensusID, 
+			msg.sender, 
+			delay
+		);
     }
-	//can only vote with tokens during the delay+delaybeforeenforce period(then this period ends, and to approve the transfer, must be voted through voting with locked shares)
+	
+	/* can only vote with tokens during the delay+delaybeforeenforce period
+	 *(then this period ends, and to approve the transfer,
+	/* must be voted through voting with locked shares)
 	function voteTreasuryTransferProposalY(uint256 proposalID, uint256 withTokens) external {
 		require(treasuryProposal[proposalID].valid, "invalid");
 		require(
-			treasuryProposal[proposalID].firstCallTimestamp + treasuryProposal[proposalID].delay + IGovernor(owner()).delayBeforeEnforce() > block.timestamp,
+			(
+				treasuryProposal[proposalID].firstCallTimestamp +
+				treasuryProposal[proposalID].delay +
+				IGovernor(owner()).delayBeforeEnforce()
+			)
+				> block.timestamp,
 			"can already be enforced"
 		);
 		
@@ -115,10 +165,20 @@ contract DTXconsensus {
 
 		emit AddVotes(0, proposalID, msg.sender, withTokens, true);
 	}
-	function voteTreasuryTransferProposalN(uint256 proposalID, uint256 withTokens, bool withAction) external {
+	function voteTreasuryTransferProposalN(
+		uint256 proposalID, 
+		uint256 withTokens, 
+		bool withAction
+	) 
+		external 
+	{
 		require(treasuryProposal[proposalID].valid, "invalid");
 		require(
-			treasuryProposal[proposalID].firstCallTimestamp + treasuryProposal[proposalID].delay + IGovernor(owner()).delayBeforeEnforce() > block.timestamp,
+			(	treasuryProposal[proposalID].firstCallTimestamp 
+				+ treasuryProposal[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
 			"can already be enforced"
 		);
 		
@@ -133,17 +193,26 @@ contract DTXconsensus {
         require(proposalID != 0, "Invalid proposal ID");
     	require(treasuryProposal[proposalID].valid == true, "Proposal already invalid");
 		require(
-			treasuryProposal[proposalID].firstCallTimestamp + treasuryProposal[proposalID].delay + IGovernor(owner()).delayBeforeEnforce() >= block.timestamp,
+			(
+				treasuryProposal[proposalID].firstCallTimestamp +
+				treasuryProposal[proposalID].delay +
+				IGovernor(owner()).delayBeforeEnforce() 
+			)
+				>= block.timestamp,
 			"past the point of no return"
 		);
-    	require(treasuryProposal[proposalID].valueSacrificedForVote < treasuryProposal[proposalID].valueSacrificedAgainst, "needs more votes");
+    	require(
+			treasuryProposal[proposalID].valueSacrificedForVote 
+			< treasuryProposal[proposalID].valueSacrificedAgainst,
+				"needs more votes");
 		
     	treasuryProposal[proposalID].valid = false;  
 		
     	emit TreasuryEnforce(proposalID, msg.sender, false);
     }
     /*
-    * After delay+delayBeforeEnforce , the proposal effectively passes to be voted through consensus (token voting stops, voting with locked shares starts)
+    * After delay+delayBeforeEnforce , the proposal effectively passes 
+	* to be voted through consensus (token voting stops, voting with locked shares starts)
 	* Another delayBeforeEnforce period during which users can vote with locked shares
     */
 	function approveTreasuryTransfer(uint256 proposalID) public {
@@ -152,7 +221,9 @@ contract DTXconsensus {
 		updateHighestConsensusVotes(consensusID);
 		updateHighestConsensusVotes(consensusID+1);
 		require(
-			treasuryProposal[proposalID].firstCallTimestamp + treasuryProposal[proposalID].delay + 2 * IGovernor(owner()).delayBeforeEnforce() <= block.timestamp,
+			treasuryProposal[proposalID].firstCallTimestamp + 
+			treasuryProposal[proposalID].delay + 
+			2 * IGovernor(owner()).delayBeforeEnforce() <= block.timestamp,
 			"Enough time must pass before enforcing"
 		);
 		
@@ -161,13 +232,16 @@ contract DTXconsensus {
 		if(treasuryProposal[proposalID].valueSacrificedForVote >= treasuryProposal[proposalID].valueSacrificedAgainst &&
 				_castedInFavor >= _totalStaked * 15 / 100 ) {
 			
-			if(highestConsensusVotes[consensusID+1] >= _castedInFavor * 33 / 100) { //just third of votes voting against kills the treasury withdrawal
+			//just third of votes voting against kills the treasury withdrawal
+			if(highestConsensusVotes[consensusID+1] >= _castedInFavor * 33 / 100) { 
 				treasuryProposal[proposalID].valid = false;
 				emit TreasuryEnforce(proposalID, msg.sender, false);
 			} else {
 				IGovernor(owner()).treasuryRequest(
-					treasuryProposal[proposalID].tokenAddress, treasuryProposal[proposalID].beneficiary, treasuryProposal[proposalID].amountToSend
-				   );
+					treasuryProposal[proposalID].tokenAddress, 
+					treasuryProposal[proposalID].beneficiary, 
+					treasuryProposal[proposalID].amountToSend
+				 );
 				treasuryProposal[proposalID].valid = false;  
 				
 				emit TreasuryEnforce(proposalID, msg.sender, true);
@@ -231,10 +305,22 @@ contract DTXconsensus {
 	 * Unless rejected, governing contract can be updated and changes enforced
      */
     function changeGovernor(uint256 proposalID) external { 
-		require(block.timestamp >= (consensusProposal[proposalID].timestamp + IGovernor(owner()).delayBeforeEnforce()), "Must wait delay before enforce");
-        require(!(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated), " alreadyinvalidated");
-		require(!(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].hasPassed), " already passed");
-		require(consensusProposal.length > proposalID && proposalID % 2 == 1, "invalid proposal ID"); //can't be 0 either, but %2 solves that
+		require(
+			block.timestamp >= (consensusProposal[proposalID].timestamp + IGovernor(owner()).delayBeforeEnforce()), 
+			"Must wait delay before enforce"
+		);
+        require(
+			!(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated), 
+			" alreadyinvalidated"
+		);
+		require(
+			!(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].hasPassed), 
+			" already passed")
+		;
+		require(
+			consensusProposal.length > proposalID && proposalID % 2 == 1, 
+			"invalid proposal ID"
+		); //can't be 0 either, but %2 solves that
         require(!(IGovernor(owner()).changeGovernorActivated()));
 		require(consensusProposal[proposalID].typeOfChange == 0);
 
@@ -281,7 +367,8 @@ contract DTXconsensus {
     function vetoGovernor2(uint256 proposalID, bool _withUpdate) external {
         require(proposalID % 2 == 1, "Invalid proposal ID");
 
-        if(tokensCastedPerVote(proposalID+1) >= totalDTXStaked() * 25 / 100) { //25% of weighted total vote AGAINST kills the proposal as well
+		//25% of weighted total vote AGAINST kills the proposal as well
+        if(tokensCastedPerVote(proposalID+1) >= totalDTXStaked() * 25 / 100) {
               isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
 			  emit ChangeGovernor(proposalID, msg.sender, false);
         }
@@ -289,7 +376,8 @@ contract DTXconsensus {
 		if(_withUpdate) { IGovernor(owner()).governorRejected(); }
     }
     function enforceGovernor(uint256 proposalID) external {
-        require(proposalID % 2 == 1, "invalid proposal ID"); //proposal ID = 0 is neutral position and not allowed(%2 applies)
+		//proposal ID = 0 is neutral position and not allowed(%2 applies)
+        require(proposalID % 2 == 1, "invalid proposal ID"); 
         require(!isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated, "invalid");
         
         require(consensusProposal[proposalID].beneficiaryAddress == IGovernor(owner()).eligibleNewGovernor());
@@ -335,8 +423,14 @@ contract DTXconsensus {
      * Returns total DTX staked accross all pools.
      */
     function totalDTXStaked() public view returns(uint256) {
-    	return IacPool(IGovernor(owner()).acPool1()).balanceOf() + IacPool(IGovernor(owner()).acPool2()).balanceOf() + IacPool(IGovernor(owner()).acPool3()).balanceOf() +
-                 IacPool(IGovernor(owner()).acPool4()).balanceOf() + IacPool(IGovernor(owner()).acPool5()).balanceOf() + IacPool(IGovernor(owner()).acPool6()).balanceOf();
+    	return (
+			IacPool(IGovernor(owner()).acPool1()).balanceOf() + 
+			IacPool(IGovernor(owner()).acPool2()).balanceOf() +
+			IacPool(IGovernor(owner()).acPool3()).balanceOf() +
+			IacPool(IGovernor(owner()).acPool4()).balanceOf() + 
+			IacPool(IGovernor(owner()).acPool5()).balanceOf() + 
+			IacPool(IGovernor(owner()).acPool6()).balanceOf();
+		)
     }
 
     /**
