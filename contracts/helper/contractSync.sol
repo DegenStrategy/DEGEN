@@ -1,7 +1,7 @@
 
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interface/IGovernor.sol";
@@ -17,6 +17,7 @@ interface IChange {
     function setMasterchef() external;
 	function syncCreditContract() external;
     function updateTreasury() external;
+	function syncOwner() external;
 }
 
 contract DTXsyncContracts {
@@ -50,6 +51,8 @@ contract DTXsyncContracts {
 		nftStaking();
         IChange(proxyVoting).updatePools();
         setBalanceAbove0();
+		updateTreasury();
+		syncOwners();
     }
 
     function updateAll() external {
@@ -59,6 +62,8 @@ contract DTXsyncContracts {
         updateMasterchef();
 		nftStaking();
         IChange(proxyVoting).updatePools();
+		updateTreasury();
+		syncOwners();
     }
 
     function updatePools() public {
@@ -72,6 +77,7 @@ contract DTXsyncContracts {
         acPool6 = IGovernor(governor).acPool6();
     }
 
+	// sets admin and treasury synchronously
     function updatePoolsOwner() public {
         updatePools();
 
@@ -83,7 +89,7 @@ contract DTXsyncContracts {
         IacPool(acPool6).setAdmin();
     }
 
-    function updateTreasuryInWallets() public {
+    function updateTreasury() public {
         address governor = IDTX(tokenDTX).governor();
         IChange(IGovernor(governor).plsVault()).updateTreasury();
         IChange(IGovernor(governor).plsxVault()).updateTreasury();
@@ -118,6 +124,18 @@ contract DTXsyncContracts {
         require(IERC20(INC).transfer(IGovernor(governor).incVault(), 1e18), "INC initial transfer unsuccesful!");
         require(IERC20(HEX).transfer(IGovernor(governor).hexVault(), 1e8), "HEX initial transfer unsuccesful!");
     }
+
+	function syncOwners() public {
+		IGovernor governor = IGovernor(IDTX(tokenDTX).governor());
+		IChange(governor.basicContract()).syncOwner();
+		IChange(governor.farmContract()).syncOwner();
+		IChange(governor.rewardContract()).syncOwner();
+		IChange(governor.fibonacceningContract()).syncOwner();
+		IChange(governor.senateContract()).syncOwner();
+		IChange(governor.creditContract()).syncOwner();
+		IChange(governor.nftAllocationContract()).syncOwner();
+		IChange(governor.consensusContract()).syncOwner();
+	}
 
     //updates allocation contract owner, nft staking(admin)
     function nftStaking() public {
