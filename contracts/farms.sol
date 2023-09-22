@@ -301,11 +301,6 @@ contract DTXfarms {
    function setMasterchef() external {
         masterchef = IGovernor(owner()).masterchef();
     }
-   
-    //masterchef is the token owner, governor is the owner of masterchef
-    function owner() public view returns (address) {
-		return _owner;
-    }
 
 	function syncOwner() external {
 		_owner = IDTX(token).governor();
@@ -463,5 +458,10 @@ contract DTXfarms {
 	 */
 	function proposalLengths() external view returns(uint256, uint256, uint256, uint256) {
 		return(proposalFarmUpdate.length, vaultProposals.length, governorTransferProposals.length, govTaxProposals.length);
-	}	
+	}
+
+	//masterchef is the token owner, governor is the owner of masterchef
+    function owner() public view returns (address) {
+		return _owner;
+    }
 }
