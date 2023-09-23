@@ -102,7 +102,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
     /**
      * @notice Checks if the msg.sender is the admin
      */
-    modifier adminOnly() {
+    modifier decentralizedVoting() {
         require(msg.sender == admin, "admin: wut?");
         _;
     }
@@ -321,7 +321,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 		poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
     }
     
-    function updateSettings(uint256 _defaultDirectPayout) external adminOnly {
+    function updateSettings(uint256 _defaultDirectPayout) external decentralizedVoting {
         defaultDirectPayout = _defaultDirectPayout;
     }
 	
@@ -330,7 +330,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 	 * masterchef = IMasterChef(token.owner());
 	 * Must stop earning first(withdraw tokens from old chef)
 	*/
-	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external adminOnly {
+	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external decentralizedVoting {
 		masterchef = _masterchef;
 		poolID = _newPoolID; //in case pool ID changes
 	}
@@ -340,7 +340,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 	 * option to withdraw wrongfully sent tokens(but requires change of the governing contract to do so)
 	 * If you send wrong tokens to the contract address, consider them lost. Though there is possibility of recovery
 	 */
-	function withdrawStuckTokens(address _tokenAddress) external adminOnly {
+	function withdrawStuckTokens(address _tokenAddress) external decentralizedVoting {
 		require(_tokenAddress != address(token), "wrong token");
 		
 		IERC20(_tokenAddress).safeTransfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
