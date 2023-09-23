@@ -273,16 +273,6 @@ contract tokenVault is ReentrancyGuard {
 		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
 	}
 	
-	/*
-	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
-	 * masterchef = IMasterChef(token.owner());
-	 * Must stop earning first(withdraw tokens from old chef)
-	*/
-	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external adminOnly {
-		masterchef = _masterchef;
-		poolID = _newPoolID; //in case pool ID changes
-	}
-	
 	
 	/**
 	 * option to withdraw wrongfully sent tokens(but requires change of the governing contract to do so)
@@ -293,6 +283,16 @@ contract tokenVault is ReentrancyGuard {
         require(_tokenAddress != address(stakeToken), "illegal token");
 		
 		IERC20(_tokenAddress).safeTransfer(IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
+	}
+
+	/*
+	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
+	 * masterchef = IMasterChef(token.owner());
+	 * Must stop earning first(withdraw tokens from old chef)
+	*/
+	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external adminOnly {
+		masterchef = _masterchef;
+		poolID = _newPoolID; //in case pool ID changes
 	}
 
     //need to set pools before launch or perhaps during contract launch
