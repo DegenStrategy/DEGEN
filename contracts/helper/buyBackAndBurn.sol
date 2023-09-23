@@ -8,7 +8,7 @@ import "../interface/IDTX.sol";
 import "../interface/IGovernor.sol";
 
 contract BuybackDTX {
-	uint256 public constant MAX_SWAP = 100 000 000 * 1e18;
+	uint256 public constant MAX_SWAP = 100000000 * 1e18;
     address public constant UNISWAP_ROUTER_ADDRESS = ;
     address public immutable DTX = ;
     address public immutable wPLS = ;
