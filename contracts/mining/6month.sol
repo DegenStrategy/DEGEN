@@ -36,7 +36,7 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 mandatoryTimeToServe; 
 	}
 
-    IERC20 public immutable token; // DTX token
+    IDTX public immutable token; // DTX token
 
     IMasterChef public masterchef;  
     
