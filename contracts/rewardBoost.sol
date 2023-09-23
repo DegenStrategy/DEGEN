@@ -35,7 +35,7 @@ contract DTXrewardBoost {
 
     //WARNING: careful where we are using 1e18 and where not
     uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
-    IERC20 public immutable token; //DTX token
+    address public immutable token; //DTX token
 	
     
     //masterchef address
@@ -74,7 +74,7 @@ contract DTXrewardBoost {
     
     event ChangeGovernor(address newGovernor);
 	
-	constructor (IERC20 _DTX, address _masterchef) {
+	constructor (address _DTX, address _masterchef) {
 		token = _DTX;
 		masterchef = _masterchef;
 	}
