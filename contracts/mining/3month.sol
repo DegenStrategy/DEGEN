@@ -147,7 +147,7 @@ contract TimeDeposit is ReentrancyGuard {
     /**
      * @notice Checks if the msg.sender is the admin
      */
-    modifier adminOnly() {
+    modifier decentralizedVoting() {
         require(msg.sender == admin, "admin: wut?");
         _;
     }
@@ -702,7 +702,7 @@ contract TimeDeposit is ReentrancyGuard {
     }
     
 	//enables or disables ability to draw stake from another wallet(allowance required)
-	function enableDisableStakeTransferFrom(bool _setting) external adminOnly {
+	function enableDisableStakeTransferFrom(bool _setting) external decentralizedVoting {
 		allowStakeTransferFrom = _setting;
 	}
 
@@ -710,7 +710,7 @@ contract TimeDeposit is ReentrancyGuard {
      * @notice Sets call fee 
      * @dev Only callable by the contract admin.
      */
-    function setCallFee(uint256 _callFee) external adminOnly {
+    function setCallFee(uint256 _callFee) external decentralizedVoting {
         callFee = _callFee;
     }
 
@@ -718,7 +718,7 @@ contract TimeDeposit is ReentrancyGuard {
      * set trusted senders, other pools that we can receive from (that can hopDeposit)
      * guaranteed to be trusted (they rely lastDepositTime)
      */
-    function setTrustedSender(address[] calldata _sender, bool _setting) external adminOnly {
+    function setTrustedSender(address[] calldata _sender, bool _setting) external decentralizedVoting {
         for(uint i=0; i < _sender.length; i++) {
 		if(trustedSender[_sender[i]] != _setting) {
 				trustedSender[_sender[i]] = _setting;
@@ -734,7 +734,7 @@ contract TimeDeposit is ReentrancyGuard {
      * set trusted pools, the smart contracts that we can send the tokens to without penalty
 	 * NOTICE: new pool must be set as trusted contract(to be able to draw balance without allowance)
      */
-    function setTrustedPool(address[] calldata _pool, bool _setting) external adminOnly {
+    function setTrustedPool(address[] calldata _pool, bool _setting) external decentralizedVoting {
         for(uint i=0; i < _pool.length; i++) {
 		if(trustedPool[_pool[i]] != _setting) {
 			trustedPool[_pool[i]] = _setting;
@@ -752,21 +752,21 @@ contract TimeDeposit is ReentrancyGuard {
 	 * !!! NOTICE !!!
      *  new pool must be set as trusted contract in the token contract by the governor(to be able to draw balance without allowance)
      */
-    function setMigrationPool(address _newPool) external adminOnly {
+    function setMigrationPool(address _newPool) external decentralizedVoting {
 		migrationPool = _newPool;
     }
     
      /**
      * Enable or disable partial withdrawals from stakes
      */
-    function modifyPartialWithdrawals(bool _decision) external adminOnly {
+    function modifyPartialWithdrawals(bool _decision) external decentralizedVoting {
         partialWithdrawals = _decision;
     }
-	function modifyPartialTransfers(bool _decision) external adminOnly {
+	function modifyPartialTransfers(bool _decision) external decentralizedVoting {
         partialTransfers = _decision;
     }
 	
-	function enableDisableStakeTransfer(bool _setting) external adminOnly {
+	function enableDisableStakeTransfer(bool _setting) external decentralizedVoting {
 		allowStakeTransfer = _setting;
 	}
 
@@ -776,19 +776,19 @@ contract TimeDeposit is ReentrancyGuard {
 	 * masterchef = IMasterChef(token.owner());
 	 * Must stop earning first(withdraw tokens from old chef)
 	*/
-	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external adminOnly {
+	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external decentralizedVoting {
 		masterchef = _masterchef;
 		poolID = _newPoolID; //in case pool ID changes
 	}
 	
 	
-	function allowTxOrigin(bool _setting) external adminOnly {
+	function allowTxOrigin(bool _setting) external decentralizedVoting {
 		allowOrigin = _setting;
 	}
 	
 	//sets minimum amount(for sending gift, transferring to another wallet,...)
 	//if setting is enabled, minimumGift can be auto-updated to costToVote from governor by anybody
-	function setMinimumGiftDeposit(uint256 _amount, bool _setting) external adminOnly {
+	function setMinimumGiftDeposit(uint256 _amount, bool _setting) external decentralizedVoting {
 		minimumGift = _amount;
 		updateMinGiftGovernor = _setting;
 	}
