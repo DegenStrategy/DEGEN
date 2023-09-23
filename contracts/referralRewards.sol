@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.1;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interface/IGovernor.sol";
@@ -56,7 +56,7 @@ contract RedeemReferralRewards {
 	}
 
 
-	syncOwner() external {
+	function syncOwner() external {
 		_governor = IDTX(token).governor();
 	}
 
