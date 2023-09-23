@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+import "../interface/IDTX.sol";
 import "../interface/IMasterChef.sol";
 import "../interface/IacPool.sol";
 import "../interface/IGovernor.sol";
