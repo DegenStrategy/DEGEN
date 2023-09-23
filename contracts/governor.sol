@@ -271,15 +271,6 @@ contract DTXgovernor {
 	    require(msg.sender == basicContract);
 	    IacPool(_acPool).setCallFee(_newCallFee);
 	}
-
-	function updateDelayBetweenEvents(uint256 _amount) external {
-	    require(msg.sender == basicContract);
-		IRewardBoost(fibonacceningContract).updateDelayBetweenEvents(_amount);
-	}
-	function updateGrandEventLength(uint256 _amount) external {
-	    require(msg.sender == basicContract);
-		IRewardBoost(fibonacceningContract).updateGrandEventLength(_amount);
-	}
 	
 	function updateCostToVote(uint256 newCostToVote) external {
 	    require(msg.sender == basicContract);
