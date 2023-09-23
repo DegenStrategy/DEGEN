@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: NONE
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interface/IGovernor.sol";
@@ -444,8 +444,8 @@ contract DTXconsensus {
 			IacPool(IGovernor(owner()).acPool3()).balanceOf() +
 			IacPool(IGovernor(owner()).acPool4()).balanceOf() + 
 			IacPool(IGovernor(owner()).acPool5()).balanceOf() + 
-			IacPool(IGovernor(owner()).acPool6()).balanceOf();
-		)
+			IacPool(IGovernor(owner()).acPool6()).balanceOf()
+		);
     }
 
     /**
