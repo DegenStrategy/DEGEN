@@ -100,7 +100,7 @@ contract tshareVault is ReentrancyGuard {
     /**
      * @notice Checks if the msg.sender is the admin
      */
-    modifier adminOnly() {
+    modifier decentralizedVoting() {
         require(msg.sender == IMasterChef(masterchef).owner(), "admin: wut?");
         _;
     }
@@ -261,13 +261,13 @@ contract tshareVault is ReentrancyGuard {
     //need to set pools before launch or perhaps during contract launch
     //determines the payout depending on the pool. could set a governance process for it(determining amounts for pools)
 	//allocation contract contains the decentralized proccess for updating setting, but so does the admin(governor)
-    function setPoolPayout(address _poolAddress, uint256 _amount, uint256 _minServe) external adminOnly {
+    function setPoolPayout(address _poolAddress, uint256 _amount, uint256 _minServe) external decentralizedVoting {
 		require(_amount <= 10000, "out of range"); 
 		poolPayout[_poolAddress].amount = _amount;
 	poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
     }
     
-    function updateSettings(uint256 _defaultDirectHarvest) external adminOnly {
+    function updateSettings(uint256 _defaultDirectHarvest) external decentralizedVoting {
         defaultDirectPayout = _defaultDirectHarvest;
     }
 	
@@ -276,17 +276,17 @@ contract tshareVault is ReentrancyGuard {
 	 * masterchef = IMasterChef(token.owner());
 	 * Must stop earning first(withdraw tokens from old chef)
 	*/
-	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external adminOnly {
+	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external decentralizedVoting {
 		masterchef = _masterchef;
 		poolID = _newPoolID; //in case pool ID changes
 	}
 	
 	// tx can run out of gas. Only calculates shares based on the first (maxStakes) number of stakes
-	function setMaxStakes(uint256 _amount) external adminOnly {
+	function setMaxStakes(uint256 _amount) external decentralizedVoting {
 		maxStakes = _amount;
 	}
 
-	function setSafePeriod(uint256 _amount) external adminOnly {
+	function setSafePeriod(uint256 _amount) external decentralizedVoting {
 		safePeriod = _amount;
 	}
 	
