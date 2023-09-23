@@ -135,7 +135,7 @@ contract TimeDeposit is ReentrancyGuard {
      * @param _masterchef: MasterChef contract
      */
     constructor(
-        IERC20 _token,
+        IDTX _token,
         IMasterChef _masterchef
     ) public {
         token = _token;
