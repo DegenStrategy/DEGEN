@@ -17,7 +17,7 @@ interface IDistribution {
 
 // merkle-tree airdrop
 // Distribution with penalties to encourage long term participation in the protocol
-contract AirDrop is ReentrancyGuard {
+contract AirDropFull is ReentrancyGuard {
 	address private immutable deployer;
 	IDTX public immutable DTX;
 
