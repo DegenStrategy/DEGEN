@@ -47,23 +47,23 @@ contract DTXsyncContracts {
 		updatePools();
 		updatePoolsDistributionContract();
         updatePoolsOwner();
+        syncOwners();
         updateMasterchef();
 		nftStaking();
         IChange(proxyVoting).updatePools();
         setBalanceAbove0();
 		updateTreasury();
-		syncOwners();
     }
 
     function updateAll() external {
 		updatePools();
 		updatePoolsDistributionContract();
         updatePoolsOwner();
+        syncOwners();
         updateMasterchef();
 		nftStaking();
         IChange(proxyVoting).updatePools();
 		updateTreasury();
-		syncOwners();
     }
 
     function updatePools() public {
@@ -142,7 +142,7 @@ contract DTXsyncContracts {
         address governor = IDTX(tokenDTX).governor();
 		address _stakingContract = IGovernor(governor).nftStakingContract();
 
-        IChange(IGovernor(governor).nftAllocationContract()).changeGovernor();
+        IChange(IGovernor(governor).nftAllocationContract()).syncOwner();
         INFTMining(_stakingContract).setAdmin();
     }
 	
