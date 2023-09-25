@@ -81,8 +81,6 @@ interface IGovernor {
         view
         returns (uint256);
 
-    function goldenRatio() external view returns (uint256);
-
     function governorRejected() external;
 
     function harvest() external;
