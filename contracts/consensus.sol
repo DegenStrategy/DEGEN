@@ -34,7 +34,6 @@ contract DTXconsensus {
 	TreasuryTransfer[] public treasuryProposal;
 	ConsensusVote[] public consensusProposal;
 	
-	uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
     address public immutable token; //DTX token (address)
 	uint256 public governorCount; //count number of proposals
 	address private _owner;
