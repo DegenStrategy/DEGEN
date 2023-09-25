@@ -71,7 +71,7 @@ contract DTXgovernor {
 	uint256 public mintingPhaseLaunchDate;
 	uint256 public tokensSentForReferralRewards;
     
-    uint256 public costToVote = 1000 * 1e18;  // 10K coins. All proposals are valid unless rejected. This is a minimum to prevent spam
+    uint256 public costToVote = 1000 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 2 days; //minimum number of TIME between when proposal is initiated and executed
     
     //fibonaccening event can be scheduled once minimum threshold of tokens have been collected
