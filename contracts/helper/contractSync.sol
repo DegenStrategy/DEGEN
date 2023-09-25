@@ -53,6 +53,7 @@ contract DTXsyncContracts {
         IChange(proxyVoting).updatePools();
         setBalanceAbove0();
 		updateTreasury();
+		syncCreditContract();
     }
 
     function updateAll() external {
@@ -64,6 +65,7 @@ contract DTXsyncContracts {
 		nftStaking();
         IChange(proxyVoting).updatePools();
 		updateTreasury();
+		syncCreditContract();
     }
 
     function updatePools() public {
