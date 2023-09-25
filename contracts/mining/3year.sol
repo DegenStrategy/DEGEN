@@ -60,7 +60,7 @@ contract TimeDeposit is ReentrancyGuard {
     address public migrationPool; //if pools are to change
 	
 	
-	uint256 public minimumGift = 1000000 * 1e18;
+	uint256 public minimumGift = 1000 * 1e18;
 	bool public updateMinGiftGovernor = true; //allows automatic update by anybody to costToVote from governing contract
     
     uint256 public callFee = 5; // call fee paid for rebalancing pools
