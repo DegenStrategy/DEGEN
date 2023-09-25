@@ -368,8 +368,6 @@ contract DTXgovernor {
         require(msg.sender == deployer, "Deployer only!");
 		require(!mintingPhase, "Minting phase has already begun!");
 
-		IMasterChef(masterchef).setFeeAddress(_newGovernor);
-        IMasterChef(masterchef).dev(_newGovernor);
         IMasterChef(masterchef).transferOwnership(_newGovernor); //transfer masterchef ownership
     }
 
