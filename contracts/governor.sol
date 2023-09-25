@@ -15,12 +15,11 @@ import "./interface/IVault.sol";
 
 contract DTXgovernor {
     address private immutable deployer;
-    uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
-    address public immutable token = ENTERNEWTOKEN; //DTX token
+    address public immutable token = ; //DTX token
 
 
     //masterchef address
-    address public immutable masterchef = ENTERNEWCHEF;
+    address public immutable masterchef = ;
 
 	address public immutable basicContract = ;
 	address public immutable farmContract = ;
@@ -72,20 +71,20 @@ contract DTXgovernor {
 	uint256 public mintingPhaseLaunchDate;
 	uint256 public tokensSentForReferralRewards;
     
-    uint256 public costToVote = 500000 * 1e18;  // 500K coins. All proposals are valid unless rejected. This is a minimum to prevent spam
-    uint256 public delayBeforeEnforce = 3 days; //minimum number of TIME between when proposal is initiated and executed
+    uint256 public costToVote = 1000 * 1e18;  // 10K coins. All proposals are valid unless rejected. This is a minimum to prevent spam
+    uint256 public delayBeforeEnforce = 2 days; //minimum number of TIME between when proposal is initiated and executed
     
     //fibonaccening event can be scheduled once minimum threshold of tokens have been collected
-    uint256 public thresholdFibonaccening = 28750000 * 1e18; // roughly 2.5% of initial supply to begin with
+    uint256 public thresholdFibonaccening = 27000000 * 1e18; // roughly 2.5% of initial supply to begin with
     
     //delays for Fibonnaccening(Reward Boost) Events
     uint256 public immutable minDelay = 1 days; // has to be called minimum 1 day in advance
-    uint256 public immutable maxDelay = 31 days; //1month.. is that good? i think yes
+    uint256 public immutable maxDelay = 31 days; 
 
 	bool mintingPhase = false;
     
     uint256 public lastRegularReward = 850 * 1e18; //remembers the last reward used(outside of boost)
-    bool public eventFibonacceningActive = true; // prevent some functions if event is active ..threshold and durations for fibonaccening
+    bool public eventFibonacceningActive = false; // prevent some functions if event is active ..threshold and durations for fibonaccening
 
 
 	bool public isInflationStatic; // if static, inflation stays perpetually at 1.618% annually. If dynamic, it reduces by 1.618% on each reward boost
@@ -94,8 +93,6 @@ contract DTXgovernor {
     uint256 public newGovernorRequestBlock;
     address public eligibleNewGovernor; //used for changing smart contract
     bool public changeGovernorActivated;
-
-	bool public fibonacciDelayed; //used to delay fibonaccening events through vote
 	
 	uint256 public lastHarvestedTime;
 
