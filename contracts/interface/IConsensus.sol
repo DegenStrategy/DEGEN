@@ -55,8 +55,6 @@ interface IConsensus {
 
     function enforceGovernor(uint256 proposalID) external;
 
-    function goldenRatio() external view returns (uint256);
-
     function governorCount() external view returns (uint256);
 
     function highestConsensusVotes(uint256) external view returns (uint256);
