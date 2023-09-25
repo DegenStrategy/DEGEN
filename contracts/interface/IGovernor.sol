@@ -76,8 +76,6 @@ interface IGovernor {
 
     function fibonacceningContract() external view returns (address);
 
-    function fibonacciDelayed() external view returns (bool);
-
     function getRollBonus(address _bonusForPool)
         external
         view
