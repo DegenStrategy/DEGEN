@@ -4,13 +4,12 @@ pragma solidity ^0.8.20;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contracts/security/ReentrancyGuard.sol";
 
 import "./interface/IMasterChef.sol";
 import "./interface/IGovernor.sol";
 
-contract XPD is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
+contract XPD is ERC20, ERC20Burnable, Ownable {
 	uint256 public constant MAX_SUPPLY = 21000000000 * 1e18; //21 billion max supply
 	string private _name;
     string private _symbol;
