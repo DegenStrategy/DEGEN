@@ -17,7 +17,7 @@ contract AirDropLockExtra is ReentrancyGuard {
 	address private immutable deployer;
 	uint256 public constant CLAIM_PERIOD_DAYS = 180;
 
-	IDTX public immutable DTX;
+	IDTX public immutable XPD;
 
 	bytes32 public merkleRoot; //root
 
@@ -42,9 +42,9 @@ contract AirDropLockExtra is ReentrancyGuard {
 
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(IDTX _dtx) {
+	constructor(IDTX _xpd) {
 		deployer = msg.sender;
-		DTX = _dtx;
+		XPD = _xpd;
 		startTime = block.timestamp;
 	}
 
@@ -89,7 +89,7 @@ contract AirDropLockExtra is ReentrancyGuard {
 			acPool6 = IGovernor(owner()).acPool6();
 
 			votingCreditContract = IGovernor(owner()).creditContract();
-			masterchef = IMasterChef(IGovernor(owner()).masterchef());
+			masterchef = XPD.owner(); // masterchef is owner of token
 
 			minToServe[acPool1] = 864000;
 			minToServe[acPool2] = 2592000;
@@ -112,6 +112,6 @@ contract AirDropLockExtra is ReentrancyGuard {
     }
 
 	function owner() public view returns(address) {
-		return DTX.governor();
+		return XPD.governor();
 	}
 }
