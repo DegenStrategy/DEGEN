@@ -199,10 +199,15 @@ contract DTXChef is Ownable, ReentrancyGuard {
 		emit UpdateEmissions(tx.origin, _DTXPerBlock);
     }
 
-    //Only update before start of farm
+    // Once Merkle Tree Root is submitted, start block is updated
     function updateStartBlock(uint256 _startBlock) external onlyOwner {
         require(block.number < startBlock, "already started");
 		startBlock = _startBlock;
+
+		uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            poolInfo[pid].lastRewardBlock = _startBlock;
+        }
     }
 	
 	//For flexibility(can transfer to new masterchef if need be!)
