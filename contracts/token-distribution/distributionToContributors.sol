@@ -19,7 +19,7 @@ interface IDistribution {
 // Distribution with penalties to encourage long term participation in the protocol
 contract AirDropFull is ReentrancyGuard {
 	address private immutable deployer;
-	IDTX public immutable DTX;
+	IDTX public immutable XPD;
 
 	bytes32 public merkleRoot; //root
 
@@ -45,9 +45,9 @@ contract AirDropFull is ReentrancyGuard {
 
 	event RedeemCredit(uint256 amount, address user, address withdrawInto);
 
-	constructor(IDTX _dtx, address _secondDistributionContract) {
+	constructor(IDTX _xpd, address _secondDistributionContract) {
 		deployer = msg.sender;
-		DTX = _dtx;
+		XPD = _xpd;
 		secondDistributionContract = _secondDistributionContract;
 	}
 
@@ -111,7 +111,7 @@ contract AirDropFull is ReentrancyGuard {
 			acPool6 = IGovernor(owner()).acPool6();
 
 			votingCreditContract = IGovernor(owner()).creditContract();
-			masterchef = IMasterChef(IGovernor(owner()).masterchef());
+			masterchef = XPD.owner(); // masterchef is owner of token
 
 			payout[acPool1] = 8500; // 15% penalty for 1month
 			payout[acPool2] = 8750; // 12.5% penalty for 3 months
@@ -127,6 +127,6 @@ contract AirDropFull is ReentrancyGuard {
     }
 
 	function owner() public view returns(address) {
-		return DTX.governor();
+		return XPD.governor();
 	}
 }
