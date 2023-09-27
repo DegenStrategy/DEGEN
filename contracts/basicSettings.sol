@@ -228,7 +228,7 @@ contract DTXbasics {
     function initiateProposalRolloverBonus(uint256 depositingTokens, address _forPoolAddress, uint256 _newBonus, uint256 delay) external { 
 		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
     	require(depositingTokens >= IGovernor(owner()).costToVote(), "minimum cost to vote");
-		require(_newBonus <= 1500, "bonus too high, max 15%");
+		require(_newBonus <= 1000, "bonus too high, max 10%");
     
     	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
     	rolloverBonuses.push(
