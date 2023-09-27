@@ -137,12 +137,12 @@ contract DTXgovernor {
     	
    	    uint256 total = balancePool1 + balancePool2 + balancePool3 + balancePool4 + balancePool5 + balancePool6;
 
-		IMasterChef(masterchef).set(acPool1ID, (100000 * 5333 * total / 10000 * balancePool1) / (total * 10000), 0, false);
+		IMasterChef(masterchef).set(acPool1ID, (100000 * 5333 * balancePool1) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool2ID, (100000 * 8000 * balancePool2) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool3ID, (100000 * 12000 * balancePool3) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool4ID, (100000 * 26660 * balancePool4) / (total * 10000), 0, false);
     	IMasterChef(masterchef).set(acPool5ID, (100000 * 34666 * balancePool5) / (total * 10000), 0, false);
-    	IMasterChef(masterchef).set(acPool6ID, (100000 * 40000 * balancePool6) / (total * 10000), 0, false); 
+    	IMasterChef(masterchef).set(acPool6ID, (100000 * 40000 * balancePool6) / (total * 10000), 0, false);  
 
     	IMasterChef(masterchef).massUpdatePools();
     }
