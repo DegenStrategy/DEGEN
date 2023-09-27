@@ -50,7 +50,7 @@ contract pulseVault is ReentrancyGuard {
     address public treasury; // Governing contract
 	address public treasuryWallet; // Actual treasury wallet
 
-    uint256 public defaultDirectPayout = 50; //5% if withdrawn into wallet
+    uint256 public defaultDirectPayout = 50; //0.5% if withdrawn into wallet
 	
 	uint256 public depositFee = 0; // 0 
 	uint256 public fundingRate = 0;// 0
