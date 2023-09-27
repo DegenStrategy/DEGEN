@@ -360,7 +360,7 @@ contract DTXgovernor {
 
 		mintingPhase = true;
 		mintingPhaseLaunchDate = block.timestamp;
-		IMasterChef(masterchef).updateStartBlock(block.number+17111); // Minting phase begins in 48 hoours
+		IMasterChef(masterchef).updateStartBlock(block.number+59294); // Minting phase begins in 7 days
 	}
 
 	// Prior the minting phase begins, deployer can make changes in case of a security-related issue
