@@ -299,7 +299,7 @@ contract DTXfarms {
 	
 	//in case masterchef is changed
    function setMasterchef() external {
-        masterchef = IGovernor(owner()).masterchef();
+        masterchef = IDTX(token).owner();
     }
 
 	function syncOwner() external {
