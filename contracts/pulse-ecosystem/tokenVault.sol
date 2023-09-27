@@ -140,7 +140,7 @@ contract tokenVault is ReentrancyGuard {
      * Harvests into pool
      */
     function harvest() public {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
         IMasterChef(masterchef).updatePool(poolID);
 		accDtxPerShare+= _pending * 1e12  / stakeToken.balanceOf(address(this));
     }
@@ -350,7 +350,7 @@ contract tokenVault is ReentrancyGuard {
      * @return Returns total pending dtx rewards
      */
     function calculateTotalPendingDTXRewards() external view returns (uint256) {
-        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
+        return(IMasterChef(masterchef).pendingDtx(poolID));
     }
 
 	function viewPoolPayout(address _contract) external view returns (uint256) {
@@ -370,14 +370,14 @@ contract tokenVault is ReentrancyGuard {
 
 	//public lookup for UI
     function publicBalanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID); 
         uint256 _credit = IMasterChef(masterchef).credit(address(this));
         return _credit + amount;
     }
 
 	// With "Virtual harvest" for external calls
 	function virtualAccDtxPerShare() public view returns (uint256) {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
 		return (accDtxPerShare + _pending * 1e12  / stakeToken.balanceOf(address(this)));
 	}
 
