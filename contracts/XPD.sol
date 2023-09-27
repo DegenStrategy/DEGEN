@@ -10,7 +10,7 @@ import "./interface/IMasterChef.sol";
 import "./interface/IGovernor.sol";
 
 contract XPD is ERC20, ERC20Burnable, Ownable {
-	uint256 public constant MAX_SUPPLY = 21000000000 * 1e18; //21 billion max supply
+	uint256 public constant MAX_SUPPLY = 21_000_000_000 * 1e18; //21 billion max supply
 	string private _name;
     string private _symbol;
     
