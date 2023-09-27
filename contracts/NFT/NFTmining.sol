@@ -134,7 +134,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
      * Harvests into pool
      */
     function harvest() public {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
         IMasterChef(masterchef).updatePool(poolID);
 		accDtxPerShare+= _pending * 1e12  / totalAllocation;
     }
@@ -348,7 +348,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 
 	// Adding virtual harvest for the external viewing
 	function virtualaccDtxPerShare() public view returns (uint256) {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
 		return (accDtxPerShare + _pending * 1e12  / totalAllocation);
 	}
 
@@ -382,7 +382,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
      * @return Returns total pending XPD rewards
      */
     function calculateTotalpendingDtxRewards() external view returns (uint256) {
-        return(IMasterChef(masterchef).pendingDtx(poolID, address(this)));
+        return(IMasterChef(masterchef).pendingDtx(poolID));
     }
 
 	/**
@@ -395,7 +395,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 	
 	//public lookup for UI
     function publicBalanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID); 
         return token.balanceOf(address(this)) + amount; 
     }
 
