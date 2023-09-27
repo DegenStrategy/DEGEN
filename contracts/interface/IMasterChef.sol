@@ -55,7 +55,7 @@ interface IMasterChef {
 
     function owner() external view returns (address);
 
-    function pendingDtx(uint256 _pid, address _user)
+    function pendingDtx(uint256 _pid)
         external
         view
         returns (uint256);
