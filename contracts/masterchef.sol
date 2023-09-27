@@ -263,7 +263,7 @@ contract DTXChef is Ownable, ReentrancyGuard {
     }
 
 	// View function to see pending DTXs on frontend.
-    function pendingDtx(uint256 _pid, address _user) external view returns (uint256) {
+    function pendingDtx(uint256 _pid) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         if (block.number > pool.lastRewardBlock && pool.participant != address(0)) {
             uint256 multiplier = block.number.sub(pool.lastRewardBlock);
