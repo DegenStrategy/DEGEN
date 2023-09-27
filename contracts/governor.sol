@@ -128,8 +128,6 @@ contract DTXgovernor {
      * 50% more rewards compared to staking in pool 4
      */
     function rebalancePools() public {
-		uint256 totalAllocation = IMasterChef(masterchef).totalAllocPoint();
-
     	uint256 balancePool1 = IacPool(acPool1).balanceOf();
     	uint256 balancePool2 = IacPool(acPool2).balanceOf();
     	uint256 balancePool3 = IacPool(acPool3).balanceOf();
