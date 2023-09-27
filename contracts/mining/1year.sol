@@ -804,7 +804,7 @@ contract TimeDeposit is ReentrancyGuard {
      * @return Expected reward to collect in DTX
      */
     function calculateHarvestDTXRewards() external view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID);
         uint256 currentCallFee = amount.mul(callFee).div(10000);
 
         return currentCallFee;
@@ -814,7 +814,7 @@ contract TimeDeposit is ReentrancyGuard {
      * @return Returns total pending dtx rewards
      */
     function calculateTotalPendingDTXRewards() external view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID);
 
         return amount;
     }
@@ -854,7 +854,7 @@ contract TimeDeposit is ReentrancyGuard {
      * @dev It includes tokens held by the contract and held in MasterChef
      */
     function balanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID, address(this)); 
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID); 
 		uint256 _credit = IMasterChef(masterchef).credit(address(this));
         return amount.add(_credit); 
     }
