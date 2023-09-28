@@ -1,20 +1,14 @@
 // SPDX-License-Identifier: NONE
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interface/IDTX.sol";
 import "./interface/ISenate.sol";
 import "./interface/IGovernor.sol";
 
 
-contract DTXChef is Ownable, ReentrancyGuard {
-	using SafeMath for uint256;
-    using SafeERC20 for IERC20;
-
+contract DTXChef is Ownable {
     // Info of each pool.
     struct PoolInfo {       // Address of LP token contract.
         uint256 allocPoint;       // How many allocation points assigned to this pool. DTXs to distribute per block.
@@ -63,8 +57,6 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	//makes it easier to verify(without event logs)
 	uint256 public trustedContractCount; 
 
-    event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
-    event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 	event UpdateEmissions(address indexed user, uint256 newEmissions);
 	event TrustedContract(address contractAddress, bool setting);
 	event TransferCredit(address from, address to, uint256 amount);
@@ -135,13 +127,17 @@ contract DTXChef is Ownable, ReentrancyGuard {
 	// if there is an "overflow", tokens can simply be burned from the governing contract
 	function renounceRewards() external {
 		require(virtualTotalSupply() >= dtx.MAX_SUPPLY(), "Max supply not yet reached!");
+		governorFee = 0;
+		massUpdatePools();
+
 		DTXPerBlock = 0;
 		maxSupplyReached = true;
+
+		emit UpdateEmissions(tx.origin, 0);
 	}
 
-    // Update the given pool's DTX allocation point and deposit fee. Can only be called by the owner.
-	// Notice: DepositFee is completely irrelevant, but it's been left as it would otherwise mess up our setup
-    function set(uint256 _pid, uint256 _allocPoint, uint16 _depositFeeBP, bool _withUpdate) external onlyOwner {
+    // Update the given pool's XPD allocation point and deposit fee. Can only be called by the owner.
+    function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) external onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -160,8 +156,8 @@ contract DTXChef is Ownable, ReentrancyGuard {
     function stopPublishing(uint256 _pid) external onlyOwner {
         updatePool(_pid);
         poolInfo[_pid].participant = address(0);
+		totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
         poolInfo[_pid].allocPoint = 0;
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
     }
 
 	//only owner can set trusted Contracts
