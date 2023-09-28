@@ -34,6 +34,8 @@ contract DTXChef is Ownable {
 
 	// Total tokens published to senate
 	uint256 public fairTokensPublishedToSenate;
+	// Tokens already accounted for as rewards to senate
+	uint256 public totalCreditRewardsAtLastFairMint;
 
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -116,7 +118,7 @@ contract DTXChef is Ownable {
 		} else {
 			_senatorRewardAmount = 10000 / senators.length; // 1% shared between all the senators
 		}
-		uint256 _amount = ((totalCreditRewards * _senatorRewardAmount) / 1000000) - fairTokensPublishedToSenate;
+		uint256 _amount = ((totalCreditRewards - totalCreditRewardsAtLastFairMint) * _senatorRewardAmount) / 1000000;
 
 		for(uint i=0; i < senators.length; i++) {
 			credit[senators[i]]+= _amount;
@@ -124,6 +126,7 @@ contract DTXChef is Ownable {
 
 		fairTokensPublishedToSenate+= senators.length * _amount;
 		totalCreditRewards+= senators.length * _amount;
+		totalCreditRewardsAtLastFairMint = totalCreditRewards;
 	}
 
 	// renounce rewards once maximum supply would be breached
