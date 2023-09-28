@@ -144,7 +144,6 @@ interface IGovernor {
     function setPool(
         uint256 _pid,
         uint256 _allocPoint,
-        uint16 _depositFeeBP,
         bool _withUpdate
     ) external;
 
