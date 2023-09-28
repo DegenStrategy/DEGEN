@@ -24,7 +24,7 @@ contract Senate {
 	uint256 public lastTotalCreditGiven; // record of total credit given in masterchef
 	
 	uint256 public maxSenators = 100;
-	uint256 public minSenators = 25;
+	uint256 public minSenators = 20;
 	
 	constructor(address _token) {
 		token = _token;
