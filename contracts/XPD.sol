@@ -35,8 +35,8 @@ contract XPD is ERC20, ERC20Burnable, Ownable {
 		return true;
     }
 	
-	//Standard ERC20 makes name and symbol immutable
-	//We add potential to rebrand for full flexibility if stakers choose to do so through voting
+	// Standard ERC20 makes name and symbol immutable
+	// We add potential to rebrand for full flexibility if miners choose to do so
 	function rebrandName(string memory _newName) external decentralizedVoting {
 		_name = _newName;
 	}
@@ -51,7 +51,7 @@ contract XPD is ERC20, ERC20Burnable, Ownable {
 	}
 
 	// Governor is a smart contract that allows the control of the entire system in a decentralized manner
-	//DTX token is owned by masterchef and masterchef is owned by Governor
+	// XPD token is owned by masterchef and masterchef is owned by Governor
 	function governor() public view returns (address) {
 		return IMasterChef(owner()).owner();
 	}
