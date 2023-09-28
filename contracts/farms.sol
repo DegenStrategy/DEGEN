@@ -124,7 +124,7 @@ contract DTXfarms {
 
 		for(uint i=6; i <= 11; i++) {
 			uint256 _newAlloc = _newTotalAllocation * poolAllocation[i] / 10000;
-			IGovernor(owner()).setPool(i, _newAlloc, 0, false);
+			IGovernor(owner()).setPool(i, _newAlloc, false);
 		}
 		IMasterChef(masterchef).massUpdatePools();
 	}
