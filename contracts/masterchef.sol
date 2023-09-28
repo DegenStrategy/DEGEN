@@ -3,12 +3,15 @@ pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./interface/IDTX.sol";
 import "./interface/ISenate.sol";
 import "./interface/IGovernor.sol";
 
 
 contract DTXChef is Ownable {
+	using SafeMath for uint256;
+
     // Info of each pool.
     struct PoolInfo {       // Address of LP token contract.
         uint256 allocPoint;       // How many allocation points assigned to this pool. DTXs to distribute per block.
