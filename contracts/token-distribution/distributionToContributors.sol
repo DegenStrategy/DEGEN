@@ -111,7 +111,7 @@ contract AirDropFull is ReentrancyGuard {
 			acPool6 = IGovernor(owner()).acPool6();
 
 			votingCreditContract = IGovernor(owner()).creditContract();
-			masterchef = XPD.owner(); // masterchef is owner of token
+			masterchef = IMasterChef(XPD.owner()); // masterchef is owner of token
 
 			payout[acPool1] = 8500; // 15% penalty for 1month
 			payout[acPool2] = 8750; // 12.5% penalty for 3 months
