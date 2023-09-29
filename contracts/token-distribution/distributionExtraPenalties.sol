@@ -89,7 +89,7 @@ contract AirDropLockExtra is ReentrancyGuard {
 			acPool6 = IGovernor(owner()).acPool6();
 
 			votingCreditContract = IGovernor(owner()).creditContract();
-			masterchef = XPD.owner(); // masterchef is owner of token
+			masterchef = IMasterChef(XPD.owner()); // masterchef is owner of token
 
 			minToServe[acPool1] = 864000;
 			minToServe[acPool2] = 2592000;
