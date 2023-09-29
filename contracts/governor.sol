@@ -69,7 +69,7 @@ contract DTXgovernor {
 	uint256 public referralBonus = 1000; // 10% for both referr and invitee
 
 	uint256 public mintingPhaseLaunchDate;
-	uint256 public tokensSentForReferralRewards;
+	uint256 public lastTotalCredit; // Keeps track of last total credit from chef (sends 2.5% to reward contract)
     
     uint256 public costToVote = 1000 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 2 days; //minimum number of TIME between when proposal is initiated and executed
@@ -327,7 +327,7 @@ contract DTXgovernor {
 		require(block.timestamp > mintingPhaseLaunchDate + 60 days, "Only during first 2 months!");
 		
 		uint256 _total = IMasterChef(masterchef).totalCreditRewards();
-		uint256 _toTransfer = (_total * 25 / 1000) - tokensSentForReferralRewards;
+		uint256 _toTransfer = ((_total - lastTotalCredit) * 25 / 1000);
 
 		if(IDTX(token).balanceOf(address(this)) >= _toTransfer) {
 			IDTX(token).transfer(rewardContract, _toTransfer);
@@ -336,7 +336,7 @@ contract DTXgovernor {
 			IDTX(token).transfer(rewardContract, _toTransfer);
 		}
 
-		tokensSentForReferralRewards+= _toTransfer;
+		lastTotalCredit = _total;
 	}
 	
     /**
