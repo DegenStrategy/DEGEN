@@ -373,7 +373,7 @@ contract pulseVault is ReentrancyGuard {
 
 	// With "Virtual harvest" for external calls
 	function virtualAccDtxPerShare() public view returns (uint256) {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID, address(this));
+		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
 		return (accDtxPerShare + _pending * 1e12  / address(this).balance);
 	}
 
