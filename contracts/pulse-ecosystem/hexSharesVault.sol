@@ -145,6 +145,7 @@ contract tshareVault is ReentrancyGuard {
      * Harvests into pool
      */
     function harvest() public {
+		IMasterChef(masterchef).updatePool(poolID);
 		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
 		uint256 _accumulatedRewards = lastCredit - _currentCredit;
 		lastCredit = _currentCredit;
