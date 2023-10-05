@@ -59,6 +59,8 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 
     uint256 public tokenDebt; //sum of allocations of all deposited NFTs
 
+	uint256 public lastCredit; // Keep track of our latest credit score from masterchef
+
     uint256 public defaultDirectPayout = 50; //0.5% if withdrawn into wallet
 
     event Deposit(address indexed tokenAddress, uint256 indexed tokenID, address indexed depositor, uint256 shares, uint256 nftAllocation, address allocContract);
@@ -134,9 +136,11 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
      * Harvests into pool
      */
     function harvest() public {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
-        IMasterChef(masterchef).updatePool(poolID);
-		accDtxPerShare+= _pending * 1e12  / totalAllocation;
+		IMasterChef(masterchef).updatePool(poolID);
+		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
+		uint256 _accumulatedRewards = lastCredit - _currentCredit;
+		lastCredit = _currentCredit;
+		accDtxPerShare+= _accumulatedRewards * 1e12  / totalAllocation;
     }
   
     /**
@@ -183,6 +187,8 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         }
         IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 
+		lastCredit = lastCredit - (_toWithdraw + currentAmount);
+
 		emit Withdraw(msg.sender, _stakeID, _tokenAddress, _tokenID, _toWithdraw, currentAmount);
 
         IERC721(_tokenAddress).safeTransferFrom(address(this), msg.sender, _tokenID); //withdraw NFT
@@ -215,6 +221,8 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         }
         uint256 _penalty = _totalWithdraw - _payout;
         IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
+
+		lastCredit = lastCredit - (_payout + _penalty);
 
         emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);
     }
