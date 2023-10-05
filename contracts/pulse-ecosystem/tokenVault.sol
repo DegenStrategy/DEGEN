@@ -52,6 +52,8 @@ contract tokenVault is ReentrancyGuard {
     address public treasury; // Governing contract
 	address public treasuryWallet; // Actual treasury wallet
 
+	uint256 public lastCredit; // Keep track of our latest credit score from masterchef
+	
     uint256 public defaultDirectPayout = 50; //0.5% if withdrawn into wallet
 	
 	uint256 public depositFee = 0; // 0
@@ -140,9 +142,11 @@ contract tokenVault is ReentrancyGuard {
      * Harvests into pool
      */
     function harvest() public {
-		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
         IMasterChef(masterchef).updatePool(poolID);
-		accDtxPerShare+= _pending * 1e12  / stakeToken.balanceOf(address(this));
+		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
+		uint256 _accumulatedRewards = lastCredit - _currentCredit;
+		lastCredit = _currentCredit;
+		accDtxPerShare+= _accumulatedRewards * 1e12  / stakeToken.balanceOf(address(this));
     }
 
 
@@ -183,6 +187,8 @@ contract tokenVault is ReentrancyGuard {
 
         IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 		
+		lastCredit = lastCredit - (_toWithdraw + currentAmount);
+		
 		emit Withdraw(msg.sender, _stakeID, _toWithdraw, currentAmount);
 
         stakeToken.safeTransfer(msg.sender, userTokens);
@@ -219,6 +225,8 @@ contract tokenVault is ReentrancyGuard {
 
         uint256 _penalty = _toWithdraw - _payout;
 		IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
+		
+		lastCredit = lastCredit - (_payout + _penalty);
 
 		emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);        
     }
