@@ -99,7 +99,7 @@ contract pulseVault is ReentrancyGuard {
      * @notice Checks if the msg.sender is the admin
      */
     modifier decentralizedVoting() {
-        require(msg.sender == IMasterChef(masterchef).owner(), "admin: wut?");
+        require(msg.sender == IMasterChef(masterchef).owner(), "Decentralized Voting Only!");
         _;
     }
 	
@@ -365,18 +365,18 @@ contract pulseVault is ReentrancyGuard {
 		return poolPayout[_contract].minServe;
 	}
 
-	//public lookup for UI
-    function publicBalanceOf() public view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID); 
-		uint256 _credit = IMasterChef(masterchef).credit(address(this));
-        return _credit + amount; 
-    }
-
 	/**
      * Returns number of stakes for a user
      */
     function getNrOfStakes(address _user) public view returns (uint256) {
         return userInfo[_user].length;
+    }
+
+	//public lookup for UI
+    function publicBalanceOf() public view returns (uint256) {
+        uint256 amount = IMasterChef(masterchef).pendingDtx(poolID); 
+		uint256 _credit = IMasterChef(masterchef).credit(address(this));
+        return _credit + amount; 
     }
 
 	// With "Virtual harvest" for external calls
