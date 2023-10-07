@@ -146,7 +146,8 @@ contract DTXconsensus {
 	
 	/* can only vote with tokens during the delay+delaybeforeenforce period
 	 *(then this period ends, and to approve the transfer,
-	/* must be voted through voting with locked shares)
+	 *  must be voted through voting with locked shares)
+	 */
 	function voteTreasuryTransferProposalY(uint256 proposalID, uint256 withTokens) external {
 		require(treasuryProposal[proposalID].valid, "invalid");
 		require(
