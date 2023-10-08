@@ -18,6 +18,7 @@ interface IChange {
 	function syncCreditContract() external;
     function updateTreasury() external;
 	function syncOwner() external;
+	function updateFees() external;
 }
 
 contract DTXsyncContracts {
@@ -147,6 +148,13 @@ contract DTXsyncContracts {
         IChange(IGovernor(governor).nftAllocationContract()).syncOwner();
         INFTMining(_stakingContract).setAdmin();
     }
+
+	// Update Fees for vaults
+	function updateFees(address[] calldata _vaults) external {
+		for(uint256 i=0; i < _vaults.length; i++) {
+			IChange(_vaults[i]).updateFees();
+		}
+	}
 	
     
     function updateMasterchef() public {
