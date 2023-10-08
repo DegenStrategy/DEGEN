@@ -278,6 +278,11 @@ contract DTXgovernor {
 	    _rollBonus[_forPool] = _bonus;
 	}
 
+	function addNewPool(address _pool) external {
+	    require(msg.sender == basicContract);
+	    IMasterChef(masterchef).add(0, _pool, false);
+	}
+
 	function setPool(uint256 _pid, uint256 _allocPoint, bool _withUpdate) external {
 	    require(msg.sender == farmContract);
 	    IMasterChef(masterchef).set(_pid, _allocPoint, _withUpdate);
