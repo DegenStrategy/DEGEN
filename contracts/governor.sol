@@ -67,6 +67,8 @@ contract DTXgovernor {
     mapping(address => uint256) private _rollBonus;
 
 	uint256 public referralBonus = 1000; // 10% for both referr and invitee
+	uint256 depositFee = 0;
+	uint256 fundingRate = 0;
 
 	uint256 public mintingPhaseLaunchDate;
 	uint256 public lastTotalCredit; // Keeps track of last total credit from chef (sends 2.5% to reward contract)
@@ -294,15 +296,9 @@ contract DTXgovernor {
         require(msg.sender == farmContract);
 
         if(_type == 0) {
-            IVault(plsVault).setDepositFee(_amount);
-            IVault(plsxVault).setDepositFee(_amount);
-            IVault(hexVault).setDepositFee(_amount);
-			IVault(incVault).setDepositFee(_amount);
+            depositFee = _amount;
         } else if(_type == 1) {
-            IVault(plsVault).setFundingRate(_amount);
-            IVault(plsxVault).setFundingRate(_amount);
-            IVault(hexVault).setFundingRate(_amount);
-			IVault(incVault).setFundingRate(_amount);
+            fundingRate = _amount;
         } else if (_type == 2) {
 			require(_amount <= 2500, "max 25% Bonus!");
 			referralBonus = _amount;
