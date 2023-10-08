@@ -131,6 +131,10 @@ interface IGovernor {
 
     function senateContract() external view returns (address);
 
+    function depositFee() external view returns (uint256);
+
+    function fundingRate() external view returns (uint256);
+
     function setActivateFibonaccening(bool _arg) external;
 
     function setCallFee(address _acPool, uint256 _newCallFee) external;
