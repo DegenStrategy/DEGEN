@@ -273,6 +273,20 @@ contract pulseVault is ReentrancyGuard {
 		
 	}
 
+	function updateFees() external {
+		uint256 _depositFee = IGovernor(IMasterChef(masterchef).owner()).depositFee();
+		uint256 _fundingRate = IGovernor(IMasterChef(masterchef).owner()).fundingRate();
+
+		require(_depositFee <= maxFee, "out of limit");
+		require(_fundingRate <= maxFundingFee, "out of limit");
+
+		depositFee = _depositFee;
+
+		if(_fundingRate != fundingRate) {
+			fundingRate = _fundingRate;
+			lastFundingChangeTimestamp = block.timestamp;
+		} 
+	}
 
 	function updateTreasury() external {
         treasury = IMasterChef(masterchef).feeAddress();
@@ -312,18 +326,6 @@ contract pulseVault is ReentrancyGuard {
     function updateSettings(uint256 _defaultDirectHarvest) external decentralizedVoting {
         defaultDirectPayout = _defaultDirectHarvest;
     }
-
-	
-	function setDepositFee(uint256 _depositFee) external decentralizedVoting {
-        require(_depositFee <= maxFee, "out of limit");
-		depositFee = _depositFee;
-	}
-
-    function setFundingRate(uint256 _fundingRate) external decentralizedVoting {
-        require(_fundingRate <= maxFundingFee, "out of limit");
-		fundingRate = _fundingRate;
-		lastFundingChangeTimestamp = block.timestamp;
-	}
 
     function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
 		UserInfo storage _stake = userInfo[_user][_stakeID];
