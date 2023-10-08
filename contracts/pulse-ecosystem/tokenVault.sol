@@ -275,6 +275,10 @@ contract tokenVault is ReentrancyGuard {
 		
 	}
 
+	function updateFees() external {
+		depositFee = IGovernor(IMasterChef(masterchef).owner()).depositFee();
+		fundingRate = IGovernor(IMasterChef(masterchef).owner()).fundingRate();
+	}
 
 	function updateTreasury() external {
 		treasury = IMasterChef(masterchef).feeAddress();
@@ -316,18 +320,6 @@ contract tokenVault is ReentrancyGuard {
     function updateSettings(uint256 _defaultDirectHarvest) external decentralizedVoting {
         defaultDirectPayout = _defaultDirectHarvest;
     }
-
-	
-	function setDepositFee(uint256 _depositFee) external decentralizedVoting {
-        require(_depositFee <= maxFee, "out of limit");
-		depositFee = _depositFee;
-	}
-
-    function setFundingRate(uint256 _fundingRate) external decentralizedVoting {
-        require(_fundingRate <= maxFundingFee, "out of limit");
-		fundingRate = _fundingRate;
-		lastFundingChangeTimestamp = block.timestamp;
-	}
     
     function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
 		UserInfo storage _stake = userInfo[_user][_stakeID];
