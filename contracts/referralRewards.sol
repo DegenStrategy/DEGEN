@@ -7,16 +7,31 @@ import "./interface/IGovernor.sol";
 import "./interface/IDTX.sol";
 import "./interface/IVault.sol";
 import "./interface/IacPool.sol";
+import "./interface/IMasterChef.sol";
 
 contract RedeemReferralRewards {
 	address public immutable token;
 	address private _governor;
 	mapping(address => uint256) public amountRedeemed;
+
+	address[] public vaults;
 	
 	event ClaimReferralReward(address indexed user, address claimInto, uint256 amount);
 	
-	constructor (address _token) {
+	constructor (
+		address _token,
+		address _plsVault,
+		address _plsxVault,
+		address _incVault,
+		address _hexVault,
+		address _tshareVault
+	) {
 		token = _token;
+		vaults.push(_plsVault);
+		vaults.push(_plsxVault);
+		vaults.push(_incVault);
+		vaults.push(_hexVault);
+		vaults.push(_tshareVault);
 	}
 	
 	function redeemRewards(uint256 _amount, address _into) external {
@@ -48,27 +63,40 @@ contract RedeemReferralRewards {
 
 		emit ClaimReferralReward(msg.sender, _into, _payout);
 	}
+
+	// If new pool is added in MasterChef, must manually add it to view referral points
+	// Caution when adding new pool, so that .referralPoints(user) returns proper amount!
+	function addVault(uint256 _poolId) external {
+		//require not yet a vault and require it is a
+		address _masterchef = IGovernor(_governor).masterchef();
+
+		( , , address _vault) = IMasterChef(_masterchef).poolInfo(_poolId);
+
+		for(uint256 i=0; i < vaults.length; i++) {
+			require(_vault != vaults[i], "Vault already exists!");
+		}
 	
+		uint256 _checkIfReturns = IVault(_vault).referralPoints(address(this)); // will revert if vault syntax does not match
+	}
+	
+	function syncOwner() external {
+		_governor = IDTX(token).governor();
+	}
 
 	function withdrawTokens(uint256 _amount) external {
 		require(msg.sender == governor(), "decentralized voting only");
 		IERC20(token).transfer(governor(), _amount);
 	}
 
-
-	function syncOwner() external {
-		_governor = IDTX(token).governor();
-	}
-
 	function totalUserRewards(address _user) public view returns (uint256) {
 		address _governor = governor();
-		uint256 _vault1 = IVault(IGovernor(_governor).plsVault()).referralPoints(_user);
-		uint256 _vault2 = IVault(IGovernor(_governor).plsxVault()).referralPoints(_user);
-		uint256 _vault3 = IVault(IGovernor(_governor).incVault()).referralPoints(_user);
-		uint256 _vault4 = IVault(IGovernor(_governor).hexVault()).referralPoints(_user);
-		uint256 _vault5 = IVault(IGovernor(_governor).tshareVault()).referralPoints(_user);
-		
-		return (_vault1 + _vault2 + _vault3 + _vault4 + _vault5);
+		uint256 _total = 0;
+
+		for(uint256 i=0; i < vaults.length; i++) {
+			_total+= IVault(vaults[i]).referralPoints(_user);
+		}
+
+		return _total;
 	}
 
 	function governor() public view returns (address) {
