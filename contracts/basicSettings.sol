@@ -32,14 +32,13 @@ contract DTXbasics {
         address poolAddress;
         uint256 newBonus;
     }
-    struct ParameterStructure {
+    struct ProposalStructure2 {
         bool valid;
         uint256 firstCallTimestamp;
         uint256 valueSacrificedForVote;
 		uint256 valueSacrificedAgainst;
 		uint256 delay; //delay is basically time before users can vote against the proposal
-        uint256 proposedValue1; // delay between events
-        uint256 proposedValue2; // duration when the print happens
+        address newPool; // New pool to add
     }
     
     ProposalStructure[] public minDepositProposals;
@@ -47,6 +46,9 @@ contract DTXbasics {
 	ProposalStructure[] public callFeeProposal;
 	RolloverBonusStructure[] public rolloverBonuses;
 	ProposalStructure[] public minThresholdFibonacceningProposal;
+	ProposalStructure2[] public newPoolProposal;
+	
+	uint256 newPoolThresholdMultiplier = 1000;
 	
 	event ProposeMinDeposit(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address enforcer, uint256 delay);
     
@@ -55,6 +57,8 @@ contract DTXbasics {
     event InitiateSetCallFee(uint256 proposalID, uint256 depositingTokens, uint256 newCallFee, address enforcer, uint256 delay);
     
     event InitiateRolloverBonus(uint256 proposalID, uint256 depositingTokens, address forPool, uint256 newBonus, address enforcer, uint256 delay);
+	
+	event ProposeNewPool(uint256 proposalID, uint256 valueSacrificedForVote, address newPool, address enforcer, uint256 delay);
 	
 	event ProposeSetMinThresholdFibonaccening(
 		uint256 proposalID, 
@@ -67,7 +71,6 @@ contract DTXbasics {
 	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
 	event EnforceProposal(uint256 _type, uint256 proposalID, address indexed enforcer, bool isSuccess);
 
-    event ChangeGovernor(address newGovernor);
     
 	constructor(address _DTX) {
 		token = _DTX;
@@ -154,6 +157,72 @@ contract DTXbasics {
 			emit EnforceProposal(0, proposalID, msg.sender, true);
 		 } else {
 			 vetoSetMinDeposit(proposalID);
+		 }
+    }
+	
+	function initiateNewPool(uint256 depositingTokens, address _newPool, uint256 delay) external {
+		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
+		require(depositingTokens >= IGovernor(owner()).costToVote()*50, "Minimum threshold is 50x Minimum Cost to vote");
+
+		
+		newPoolProposal.push(
+    		        ProposalStructure2(true, block.timestamp, depositingTokens, 0, delay, _newPool)
+    		   ); 
+    	
+    	emit ProposeNewPool(newPoolProposal.length - 1, depositingTokens, _newPool, msg.sender, delay);
+    }
+	function voteNewPoolY(uint256 proposalID, uint256 withTokens) external {
+		require(newPoolProposal[proposalID].valid, "invalid");
+		
+		IVoting(creditContract).deductCredit(msg.sender, withTokens);
+		
+		newPoolProposal[proposalID].valueSacrificedForVote+= withTokens;
+
+		emit AddVotes(2, proposalID, msg.sender, withTokens, true);
+	}
+	function voteNewPoolN(uint256 proposalID, uint256 withTokens, bool withAction) external {
+		require(newPoolProposal[proposalID].valid, "invalid");
+		
+		IVoting(creditContract).deductCredit(msg.sender, withTokens);
+		
+		newPoolProposal[proposalID].valueSacrificedAgainst+= withTokens;
+		if(withAction) { vetoNewPool(proposalID); }
+
+		emit AddVotes(2, proposalID, msg.sender, withTokens, false);
+	}
+    function vetoNewPool(uint256 proposalID) public {
+    	require(newPoolProposal[proposalID].valid == true, "Proposal already invalid");
+		require(
+			newPoolProposal[proposalID].firstCallTimestamp + newPoolProposal[proposalID].delay < block.timestamp, 
+			"pending delay"
+		);
+		require(
+			newPoolProposal[proposalID].valueSacrificedForVote < 
+			newPoolProposal[proposalID].valueSacrificedAgainst, 
+			"needs more votes"
+		);
+
+    	newPoolProposal[proposalID].valid = false;  
+    	
+    	emit EnforceProposal(2, proposalID, msg.sender, false);
+    }
+    function executeNewPool(uint256 proposalID) public {
+    	require(
+    	    newPoolProposal[proposalID].valid &&
+    	    newPoolProposal[proposalID].firstCallTimestamp + 
+			newPoolProposal[proposalID].delay + 
+			IGovernor(owner()).delayBeforeEnforce() <= block.timestamp,
+    	    "Conditions not met"
+    	);
+		   
+		 if(newPoolProposal[proposalID].valueSacrificedForVote >= newPoolProposal[proposalID].valueSacrificedAgainst &&
+				newPoolProposal[proposalID].valueSacrificedForVote >= IGovernor(owner()).costToVote() * newPoolThresholdMultiplier) {
+			IGovernor(owner()).addNewPool(newPoolProposal[proposalID].newPool); 
+			newPoolProposal[proposalID].valid = false;
+			
+			emit EnforceProposal(2, proposalID, msg.sender, true);
+		 } else {
+			 vetoNewPool(proposalID);
 		 }
     }
 
@@ -458,6 +527,11 @@ contract DTXbasics {
 			vetoSetMinThresholdFibonaccening(proposalID);
 		}
     }
+	
+	function updateNewPoolProposalThreshold(uint256 _amount) external {
+		require(msg.sender == owner(), "Only through decentralized voting!");
+		newPoolThresholdMultiplier = _amount;
+	}
 
 	function syncOwner() external {
 		_owner = IDTX(token).governor();
@@ -472,9 +546,10 @@ contract DTXbasics {
 	 * Can be used for building database from scratch (opposed to using event logs)
 	 * also to make sure all data and latest events are synced correctly
 	 */
-	function proposalLengths() external view returns(uint256, uint256, uint256, uint256, uint256) {
+	function proposalLengths() external view returns(uint256, uint256, uint256, uint256, uint256, uint256) {
 		return(
 			minDepositProposals.length, 
+			newPoolProposal.length,
 			delayProposals.length, 
 			callFeeProposal.length, 
 			rolloverBonuses.length, 
