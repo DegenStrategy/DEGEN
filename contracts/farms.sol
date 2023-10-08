@@ -114,7 +114,8 @@ contract DTXfarms {
 		}
 
 		uint256 _percentageAllocatedToPulseEcosystem = 0; //Percentages here
-		for(uint i=6; i <= 11; i++) {
+		uint256 _poolLength = IMasterChef(masterchef).poolLength();
+		for(uint i=6; i < _poolLength; i++) {
 			_percentageAllocatedToPulseEcosystem+= poolAllocation[i];
 		}
 
@@ -122,7 +123,7 @@ contract DTXfarms {
 		uint256 _multiplier = 100000000 / _percentageAllocatedToXPDMiners;
 		uint256 _newTotalAllocation = (_totalAllocatedToXPDMiners * _multiplier) / 10000;
 
-		for(uint i=6; i <= 11; i++) {
+		for(uint i=6; i < _poolLength; i++) {
 			uint256 _newAlloc = _newTotalAllocation * poolAllocation[i] / 10000;
 			IGovernor(owner()).setPool(i, _newAlloc, false);
 		}
@@ -137,7 +138,7 @@ contract DTXfarms {
         ) external { 
     	require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
     	require(depositingTokens >= IGovernor(owner()).costToVote(), "there is a minimum cost to vote");
-    	require(poolid > 5 && poolid <= 11, "only allowed for these pools"); 
+    	require(poolid > 5 && poolid < IMasterChef(masterchef).poolLength(), "only allowed for these pools"); 
 		
 		//6,7,8,9,10 are  PLS,PLSX,HEX,INC,T-Share
 		//11 is for NFT mining
@@ -203,7 +204,8 @@ contract DTXfarms {
 		if(proposalFarmUpdate[proposalID].valueSacrificedForVote >= proposalFarmUpdate[proposalID].valueSacrificedAgainst) {
 
 			//check so it does not exceed total
-			for(uint256 i= 6; i<=11; i++) {
+			uint256 _poolLength = IMasterChef(masterchef).poolLength();
+			for(uint256 i= 6; i<_poolLength; i++) {
 				if(_poolID != i) { 
 					_pulseEcoCount+= poolAllocation[i];
 				} else {
@@ -427,13 +429,14 @@ contract DTXfarms {
 	// Reduce Allocations if they exceed allowed maximum
 	function rebalanceIfPulseAllocationExceedsMaximum() external {
 		uint256 _totalAllocation = 0;
-		for(uint i=6; i <= 11; i++) {
+		uint256 _poolLength = IMasterChef(masterchef).poolLength();
+		for(uint i=6; i < _poolLength; i++) {
 			_totalAllocation+= poolAllocation[i];
 		}
 
 		if(_totalAllocation > maxPulseEcoTotalAllocation) {
 			uint256 _exceedsBy = _totalAllocation - maxPulseEcoTotalAllocation;
-			for(uint i=6; i <= 11; i++) {
+			for(uint i=6; i < _poolLength; i++) {
 				poolAllocation[i] = (poolAllocation[i] * (maxPulseEcoTotalAllocation - _exceedsBy)) / maxPulseEcoTotalAllocation;
 			}
 		}
