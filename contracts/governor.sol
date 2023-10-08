@@ -291,8 +291,8 @@ contract DTXgovernor {
 	    IMasterChef(masterchef).set(_pid, _allocPoint, _withUpdate);
 	}
 
+	// If fees are changed, updateFees() function must be called to each vault contract to sync the update!
 	function updateVault(uint256 _type, uint256 _amount) external {
-
         require(msg.sender == farmContract);
 
         if(_type == 0) {
