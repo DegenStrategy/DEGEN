@@ -67,7 +67,6 @@ contract RedeemReferralRewards {
 	// If new pool is added in MasterChef, must manually add it to view referral points
 	// Caution when adding new pool, so that .referralPoints(user) returns proper amount!
 	function addVault(uint256 _poolId) external {
-		//require not yet a vault and require it is a
 		address _masterchef = IGovernor(_governor).masterchef();
 
 		( , , address _vault) = IMasterChef(_masterchef).poolInfo(_poolId);
