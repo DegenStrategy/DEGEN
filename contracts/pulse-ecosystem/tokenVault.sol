@@ -276,8 +276,18 @@ contract tokenVault is ReentrancyGuard {
 	}
 
 	function updateFees() external {
-		depositFee = IGovernor(IMasterChef(masterchef).owner()).depositFee();
-		fundingRate = IGovernor(IMasterChef(masterchef).owner()).fundingRate();
+		uint256 _depositFee = IGovernor(IMasterChef(masterchef).owner()).depositFee();
+		uint256 _fundingRate = IGovernor(IMasterChef(masterchef).owner()).fundingRate();
+
+		require(_depositFee <= maxFee, "out of limit");
+		require(_fundingRate <= maxFundingFee, "out of limit");
+
+		depositFee = _depositFee;
+
+		if(_fundingRate != fundingRate) {
+			fundingRate = _fundingRate;
+			lastFundingChangeTimestamp = block.timestamp;
+		} 
 	}
 
 	function updateTreasury() external {
