@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interface/IGovernor.sol";
 import "./interface/IacPool.sol";
 import "./interface/IDTX.sol";
@@ -52,11 +51,8 @@ contract DTXconsensus {
     }
     
 	
-	event EnforceDelay(uint256 consensusProposalID, address indexed enforcer);
-	event RemoveDelay(uint256 consensusProposalID, address indexed enforcer);
-	
 	event TreasuryProposal(
-		uint256 proposalID,
+		uint256 indexed proposalID,
 		uint256 sacrificedTokens, 
 		address tokenAddress, 
 		address recipient, 
@@ -65,7 +61,7 @@ contract DTXconsensus {
 		address indexed enforcer, 
 		uint256 delay
 	);
-	event TreasuryEnforce(uint256 proposalID, address indexed enforcer, bool isSuccess);
+	event TreasuryEnforce(uint256 indexed proposalID, address indexed enforcer, bool isSuccess);
     
     event ProposeGovernor(uint256 proposalID, address newGovernor, address indexed enforcer);
     event ChangeGovernor(uint256 proposalID, address indexed enforcer, bool status);
@@ -102,8 +98,8 @@ contract DTXconsensus {
 	) 
 		external 
 	{ 
-    	require(depositingTokens >= IGovernor(owner()).costToVote() * 10,
-    	    "atleast x10minCostToVote"
+    	require(depositingTokens >= IGovernor(owner()).costToVote() * 100,
+    	    "atleast x100minCostToVote"
     	    );
 		require(delay <= IGovernor(owner()).delayBeforeEnforce(), 
 			"must be shorter than Delay before enforce"
@@ -111,7 +107,7 @@ contract DTXconsensus {
     	
     	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
 		
-		uint256 _consensusID = consensusProposal.length + 1;
+		uint256 _consensusID = consensusProposal.length;
 		
 		consensusProposal.push(
 		    ConsensusVote(1, address(this), block.timestamp)
@@ -191,7 +187,6 @@ contract DTXconsensus {
 		emit AddVotes(0, proposalID, msg.sender, withTokens, false);
 	}
     function vetoTreasuryTransferProposal(uint256 proposalID) public {
-        require(proposalID != 0, "Invalid proposal ID");
     	require(treasuryProposal[proposalID].valid == true, "Proposal already invalid");
 		require(
 			(
@@ -233,7 +228,7 @@ contract DTXconsensus {
 		if(treasuryProposal[proposalID].valueSacrificedForVote >= treasuryProposal[proposalID].valueSacrificedAgainst &&
 				_castedInFavor >= _totalStaked * 15 / 100 ) {
 			
-			//just third of votes voting against kills the treasury withdrawal
+			//just third of votes voting against(a third of those in favor) kills the treasury withdrawal
 			if(highestConsensusVotes[consensusID+1] >= _castedInFavor * 33 / 100) { 
 				treasuryProposal[proposalID].valid = false;
 				emit TreasuryEnforce(proposalID, msg.sender, false);
@@ -296,7 +291,7 @@ contract DTXconsensus {
     }
     
     /**
-     * Atleast 33% of voters required
+     * Atleast 15% of voters required
      * with 75% agreement required to reach consensus
 	 * After proposing Governor, a period of time(delayBeforeEnforce) must pass 
 	 * During this time, the users can vote in favor(proposalID) or against(proposalID+1)
@@ -326,11 +321,11 @@ contract DTXconsensus {
 		require(consensusProposal[proposalID].typeOfChange == 0);
 
         require(
-            tokensCastedPerVote(proposalID) >= totalDTXStaked() * 20 / 100,
-				"Requires atleast 20% of staked(weighted) tokens"
+            tokensCastedPerVote(proposalID) >= totalDTXStaked() * 15 / 100,
+				"Requires atleast 15% of staked(weighted) tokens"
         );
 
-        //requires 2/3 agreement (+senate can reject)
+        //requires 2/3 agreement amongst votes (+senate can reject)
         if(tokensCastedPerVote(proposalID+1) >= tokensCastedPerVote(proposalID) / 3) {
             
                 isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
@@ -354,15 +349,17 @@ contract DTXconsensus {
      */
     function vetoGovernor(uint256 proposalID, bool _withUpdate) external {
         require(proposalID % 2 == 1, "Invalid proposal ID");
-        require(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].hasPassed &&
-					!isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated);
+        require(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].hasPassed ,
+					"Governor has already been passed");
+		require(!isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated,
+					"Governor has already been invalidated");
 
         if(tokensCastedPerVote(proposalID+1) >= tokensCastedPerVote(proposalID) / 5) {
               isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
 			  emit ChangeGovernor(proposalID, msg.sender, false);
+
+			  if(_withUpdate) { IGovernor(owner()).governorRejected(); }
         }
-		
-		if(_withUpdate) { IGovernor(owner()).governorRejected(); }
     }
 	//even if not approved, can be cancled at any time if 25% of weighted votes go AGAINST
     function vetoGovernor2(uint256 proposalID, bool _withUpdate) external {
@@ -372,9 +369,9 @@ contract DTXconsensus {
         if(tokensCastedPerVote(proposalID+1) >= totalDTXStaked() * 25 / 100) {
               isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
 			  emit ChangeGovernor(proposalID, msg.sender, false);
+
+			  if(_withUpdate) { IGovernor(owner()).governorRejected(); }
         }
-		
-		if(_withUpdate) { IGovernor(owner()).governorRejected(); }
     }
     function enforceGovernor(uint256 proposalID) external {
 		//proposal ID = 0 is neutral position and not allowed(%2 applies)
