@@ -191,6 +191,14 @@ contract DTXconsensus {
 		require(
 			(
 				treasuryProposal[proposalID].firstCallTimestamp +
+				treasuryProposal[proposalID].delay
+			)
+				<= block.timestamp,
+			"pending delay"
+		);
+		require(
+			(
+				treasuryProposal[proposalID].firstCallTimestamp +
 				treasuryProposal[proposalID].delay +
 				IGovernor(owner()).delayBeforeEnforce() 
 			)
