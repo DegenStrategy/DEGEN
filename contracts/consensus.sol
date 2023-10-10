@@ -410,7 +410,7 @@ contract DTXconsensus {
 
     	treasuryProposal[proposalID].valid = false;  
 		
-    	emit TreasuryEnforce(proposalID, msg.sender, false);
+    	emit TreasuryEnforce(proposalID, tx.origin, false);
 	}
 
 	function syncOwner() external {
