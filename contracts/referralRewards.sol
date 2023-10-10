@@ -76,6 +76,7 @@ contract RedeemReferralRewards {
 		}
 	
 		uint256 _checkIfReturns = IVault(_vault).referralPoints(address(this)); // will revert if vault syntax does not match
+		vaults.push(_vault);
 	}
 	
 	function syncOwner() external {
