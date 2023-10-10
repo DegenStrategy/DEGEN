@@ -282,7 +282,7 @@ contract DTXgovernor {
 
 	function addNewPool(address _pool) external {
 	    require(msg.sender == basicContract);
-		require(IMasterChef(masterchef).poolLength < 50, "Maximum pools allowed reached");
+		require(IMasterChef(masterchef).poolLength() < 50, "Maximum pools allowed reached");
 	    IMasterChef(masterchef).add(0, _pool, false);
 	}
 
