@@ -20,7 +20,6 @@ contract Senate {
 	mapping(address => uint256[]) public senatorVotes;
 	mapping(uint256 => uint256) public votesForProposal;
 	
-	uint256 public lastVotingCreditGrant; // timestamp
 	uint256 public lastTotalCreditGiven; // record of total credit given in masterchef
 	
 	uint256 public maxSenators = 100;
@@ -31,21 +30,18 @@ contract Senate {
 		deployer = msg.sender;
 	}
 
-	event AddSenator(address senator);
-	event RemoveSenator(address senator);
-	event AddVote(address voter, uint256 proposalId);
-	event RemoveVote(address voter, uint256 proposalId);
+	event AddSenator(address indexed senator);
+	event RemoveSenator(address indexed senator);
+	event AddVote(address indexed voter, uint256 indexed proposalId);
+	event RemoveVote(address indexed voter, uint256 indexed proposalId);
+	event UpdateSenatorCount(uint256 minimum, uint256 maximum);
 	
 	function addSenator(address _newSenator) external {
 		require(msg.sender == owner(), "only through decentralized voting");
 		require(!isSenator[_newSenator], "already a senator!");
 		require(!addedSenator[_newSenator], "already added");
-		
-		senators.push(_newSenator);
-		isSenator[_newSenator] = true;
-		addedSenator[_newSenator] = true;
 
-		emit AddSenator(_newSenator);
+		_addSenator(_newSenator);
 	}
 	
 	
@@ -54,36 +50,28 @@ contract Senate {
 		require(votesForProposal[toUint(_newSenator)] > senatorCount()/2, "atleast 50% of senate votes required");
 		require(!isSenator[_newSenator], "already a senator!");
 		require(!addedSenator[_newSenator], "already added");
-		
-		senators.push(_newSenator);
-		isSenator[_newSenator] = true;
-		addedSenator[_newSenator] = true;
 
-		emit AddSenator(_newSenator);
+		_addSenator(_newSenator);
 	}
 	
-	function expellSenator(address _senator) external {
-		require(senators.length > minSenators, "minimum number of 25 senate members!");
-		require(votesForProposal[toUint(_senator)+1] > senatorCount() * 50 / 100, "atleast 50% of senate votes required");
+	function expellSenator(address _senator, uint256 _senatorId) external {
+		require(senators[_senatorId] == _senator, "Senator ID does not match provided senator!");
+		require(senators.length > minSenators, "below minimum number of senate members!");
+		require(votesForProposal[toUint(_senator)+1] > senatorCount() / 2, "atleast 50% of senate votes required");
 		require(isSenator[_senator], "not a senator!");
 		
 		isSenator[_senator] = false;
 
 		emit RemoveSenator(_senator);
-		
-		for(uint i=0; i < senators.length-1; i++) {
-			if(senators[i] == _senator) {
-				senators[i] = senators[senators.length-1];
-				break;
-			}
-		}
-		
+
+		senators[_senatorId] = senators[senators.length-1];
 		senators.pop();
 	}
 	
-	function selfReplaceSenator(address _newSenator) external {
+	function selfReplaceSenator(address _newSenator, uint256 _senatorId) external {
+		require(senators[_senatorId] == _newSenator, "Senator ID does not match provided senator!");
 		require(isSenator[msg.sender], "not a senator");
-		require(!isSenator[_newSenator], "already senator");
+		require(!addedSenator[_newSenator], "already senator");
 		require(senatorVotes[msg.sender].length == 0, "can't be participating in a vote during transfer!");
 		
 		isSenator[msg.sender] = false;
@@ -92,13 +80,8 @@ contract Senate {
 		emit RemoveSenator(msg.sender);
 		emit AddSenator(_newSenator);
 		
-		for(uint i=0; i < senators.length; i++) {
-			if(senators[i] == msg.sender) {
-				senators[i] = _newSenator;
-				addedSenator[_newSenator] = true;
-				break;
-			}
-		}
+		senators[_senatorId] = _newSenator;
+		addedSenator[_newSenator] = true;
 	}
 	
 	function grantVotingCredit() external {
@@ -111,7 +94,7 @@ contract Senate {
 		
 		lastTotalCreditGiven = _totalGiven;
 		// there is a maximum number before gas limit
-		for(uint i=0; i < senators.length; i++) {
+		for(uint i=0; i < senators.length; ++i) {
 			IVoting(_contract).addCredit(_reward, senators[i]);
 		}
 	}
@@ -123,7 +106,7 @@ contract Senate {
 	function vote(uint256 proposalId) external {
 		require(isSenator[msg.sender], "not a senator");
 		
-		for(uint i=0; i < senatorVotes[msg.sender].length; i++) {
+		for(uint i=0; i < senatorVotes[msg.sender].length; ++i) {
 			require(senatorVotes[msg.sender][i] != proposalId, "already voting!");
 		}
 		
@@ -132,24 +115,18 @@ contract Senate {
 		emit AddVote(msg.sender, proposalId);
 	}
 	
-	function removeVote(uint256 proposalId) external {
+	function removeVote(uint256 proposalId, uint256 _indexId) external {
 		require(isSenator[msg.sender], "not a senator");
+		require(senatorVotes[msg.sender][_indexId] == proposalId, "incorrect ID");
 		
-		for(uint i=0; i < senatorVotes[msg.sender].length; i++) {
-			if(senatorVotes[msg.sender][i] == proposalId) {
-				if(i != senatorVotes[msg.sender].length-1) {
-					senatorVotes[msg.sender][i] = senatorVotes[msg.sender][senatorVotes[msg.sender].length-1];
-				} 
-				senatorVotes[msg.sender].pop();
-				
-				votesForProposal[proposalId]--;
-				emit RemoveVote(msg.sender, proposalId);
-				break;
-			}
-		}
+		senatorVotes[msg.sender][_indexId] = senatorVotes[msg.sender][senatorVotes[msg.sender].length-1];
+
+		senatorVotes[msg.sender].pop();
+		
+		votesForProposal[proposalId]--;
+		emit RemoveVote(msg.sender, proposalId);
 	}
 
-	// For treasury vote, vote for consensus ID, but when pushing...submit regular ID
 	function vetoProposal(uint256 consensusProposalId, uint256 treasuryProposalId) external {
 		require(votesForProposal[consensusProposalId] > senatorCount()/2, "atleast 50% of senate votes required");
 		address _contract = IGovernor(owner()).consensusContract();
@@ -170,14 +147,15 @@ contract Senate {
 		
 		minSenators = _min;
 		maxSenators = _max;
+
+		emit UpdateSenatorCount(minSenators, maxSenators);
 	}
 
 	function initializeSenators(address[] calldata _senators) external {
 		require(msg.sender == deployer, "deployer only!");
 		require(senators.length == 0, "already initialized!");
-		for (uint256 i = 0; i < _senators.length; i++) {
-			senators.push(_senators[i]);
-			emit AddSenator(_senators[i]);
+		for (uint256 i = 0; i < _senators.length; ++i) {
+			_addSenator(_senators[i]);
 		}
 	}
 
@@ -194,7 +172,7 @@ contract Senate {
 		
 		uint256 _reward = (_totalGiven - lastTotalCreditGiven) / 100;
 
-		for (uint256 i = 0; i < senators.length; i++) {
+		for (uint256 i = 0; i < senators.length; ++i) {
 			allVotes[i] = senatorVotes[senators[i]];
 			allCredits[i] = IVoting(_votingContract).userCredit(senators[i]);
 			mintableCredit[i] = IMasterChef(_chef).credit(senators[i]);
@@ -221,5 +199,12 @@ contract Senate {
 	
 	function toUint(address self) public pure returns(uint256) {
 		return uint256(uint160(self));
+	}
+
+	function _addSenator(address _senator) private {
+		senators.push(_senator);
+		isSenator[_senator] = true;
+		addedSenator[_senator] = true;
+		emit AddSenator(_senator);
 	}
 }
