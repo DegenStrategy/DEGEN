@@ -44,7 +44,7 @@ contract tokenVault is ReentrancyGuard {
 	// Referral system: Track referrer + referral points
 	mapping(address => address) public referredBy;
 	mapping(address => uint256) public referralPoints;
- 
+
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
     address public treasury; // Governing contract
@@ -129,7 +129,7 @@ contract tokenVault is ReentrancyGuard {
         	stakeToken.safeTransfer(treasuryWallet, _depositFee);
 		}
 		
-		uint256 _debt = _amount * accDtxPerShare / 1e12;
+		uint256 _debt = accDtxPerShare;
 
         userInfo[msg.sender].push(
                 UserInfo(_amount, _debt, _depositFee, block.timestamp)
@@ -157,12 +157,12 @@ contract tokenVault is ReentrancyGuard {
         harvest();
         require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
         UserInfo storage user = userInfo[msg.sender][_stakeID];
-        
-        payFee(user, msg.sender);
+
+		uint256 currentAmount = user.amount * (accDtxPerShare - user.debt) / 1e12;
+		
+		payFee(user, msg.sender);
 
 		uint256 userTokens = user.amount; 
-
-		uint256 currentAmount = userTokens * accDtxPerShare / 1e12 - user.debt;
 		
 		_removeStake(msg.sender, _stakeID);
 
@@ -172,7 +172,7 @@ contract tokenVault is ReentrancyGuard {
             _toWithdraw = currentAmount * defaultDirectPayout / 10000;
             currentAmount = currentAmount - _toWithdraw;
             IMasterChef(masterchef).publishTokens(msg.sender, _toWithdraw);
-         } else {
+        } else {
             require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
             _toWithdraw = currentAmount * poolPayout[_harvestInto].amount / 10000;
             currentAmount = currentAmount - _toWithdraw;
@@ -203,11 +203,11 @@ contract tokenVault is ReentrancyGuard {
         harvest();
         uint256 _toWithdraw = 0;
         uint256 _payout = 0;
- 
+
         for(uint256 i = 0; i<_stakeID.length; ++i) {
+            _toWithdraw+= user[_stakeID[i]].amount * (accDtxPerShare - user[_stakeID[i]].debt)/ 1e12;
 			payFee(user[_stakeID[i]], msg.sender);
-            _toWithdraw+= user[_stakeID[i]].amount * accDtxPerShare / 1e12 - user[_stakeID[i]].debt;
-			user[_stakeID[i]].debt = user[_stakeID[i]].amount * accDtxPerShare / 1e12;
+			user[_stakeID[i]].debt = accDtxPerShare;
         }
 
         if(_harvestInto == msg.sender) {
@@ -257,7 +257,7 @@ contract tokenVault is ReentrancyGuard {
 	
 	function collectCommission(address[] calldata _beneficiary, uint256[][] calldata _stakeID) external nonReentrant {
 		for(uint256 i = 0; i< _beneficiary.length; ++i) {
-			for(uint256 j = 0; j< _stakeID[i].length; ++j {
+			for(uint256 j = 0; j< _stakeID[i].length; ++j) {
                 UserInfo storage user = userInfo[_beneficiary[i]][_stakeID[i][j]];
                 payFee(user, _beneficiary[i]);
             }
@@ -336,7 +336,7 @@ contract tokenVault is ReentrancyGuard {
     
     function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
 		UserInfo storage _stake = userInfo[_user][_stakeID];
-        uint256 _pending = _stake.amount * virtualAccDtxPerShare() / 1e12 - _stake.debt;
+        uint256 _pending = _stake.amount * (virtualAccDtxPerShare() - _stake.debt) / 1e12 ;
         return _pending;
     }
 
@@ -347,7 +347,7 @@ contract tokenVault is ReentrancyGuard {
 		uint256 _totalPending = 0;
 		
 		for(uint256 i=0; i < nrOfUserStakes; ++i) {
-			_totalPending+= _stake[i].amount * virtualAccDtxPerShare() / 1e12 - _stake[i].debt;
+			_totalPending+= _stake[i].amount * (virtualAccDtxPerShare() - _stake[i].debt) / 1e12 ;
 		}
 		
 		return _totalPending;
@@ -355,7 +355,7 @@ contract tokenVault is ReentrancyGuard {
 	//we want user deposit, we want total deposited, we want pending rewards, 
 	function multiCall(address _user, uint256 _stakeID) external view returns(uint256, uint256, uint256, uint256) {
 		UserInfo storage user = userInfo[_user][_stakeID];
-		uint256 _pending = user.amount * virtualAccDtxPerShare() / 1e12 - user.debt;
+		uint256 _pending = user.amount * (virtualAccDtxPerShare() - user.debt) / 1e12 ;
 		return(user.amount, user.feesPaid, stakeToken.balanceOf(address(this)), _pending);
 	}
 
