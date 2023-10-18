@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.20;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/utils/SafeERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contracts/security/ReentrancyGuard.sol";
@@ -11,7 +10,6 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contr
 import "../interface/IGovernor.sol";
 import "../interface/IMasterChef.sol";
 import "../interface/IacPool.sol";
-import "../interface/IVoting.sol";
 
 /**
  * Token vault (hex, inc, plsx)
@@ -61,13 +59,12 @@ contract tokenVault is ReentrancyGuard {
 	uint256 public lastFundingChangeTimestamp; // save block.timestamp when funding rate is changed
 	
 
-    event Deposit(address indexed sender, uint256 amount, uint256 debt, uint256 depositFee, address referral);
+    event Deposit(address indexed sender, uint256 amount, uint256 debt, uint256 depositFee, address indexed referral);
     event Withdraw(address indexed sender, uint256 stakeID, uint256 harvestAmount, uint256 penalty);
-    event UserSettingUpdate(address indexed user, address poolAddress, uint256 threshold, uint256 feeToPay);
 
-    event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
+    event SelfHarvest(address indexed user, address indexed harvestInto, uint256 harvestAmount, uint256 penalty);
 	
-	event CollectedFee(address from, uint256 amount);
+	event CollectedFee(address indexed from, uint256 amount);
 
     /**
      * @notice Constructor
@@ -124,10 +121,13 @@ contract tokenVault is ReentrancyGuard {
 			referredBy[msg.sender] = referral;
 		}
 
-		uint256 _depositFee = _amount * depositFee / 10000;
-		_amount = _amount - _depositFee;
+		uint256 _depositFee = 0;
+		if(depositFee != 0) {
+			_depositFee = _amount * depositFee / 10000;
+			_amount = _amount - _depositFee;
 		
-        stakeToken.safeTransfer(treasuryWallet, _depositFee);
+        	stakeToken.safeTransfer(treasuryWallet, _depositFee);
+		}
 		
 		uint256 _debt = _amount * accDtxPerShare / 1e12;
 
@@ -144,7 +144,7 @@ contract tokenVault is ReentrancyGuard {
     function harvest() public {
         IMasterChef(masterchef).updatePool(poolID);
 		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
-		uint256 _accumulatedRewards = lastCredit - _currentCredit;
+		uint256 _accumulatedRewards = _currentCredit - lastCredit;
 		lastCredit = _currentCredit;
 		accDtxPerShare+= _accumulatedRewards * 1e12  / stakeToken.balanceOf(address(this));
     }
@@ -185,7 +185,9 @@ contract tokenVault is ReentrancyGuard {
 			referralPoints[referredBy[msg.sender]]+= _toWithdraw;
 		}
 
-        IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
+		if(currentAmount > 0) {
+        	IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
+		}
 		
 		lastCredit = lastCredit - (_toWithdraw + currentAmount);
 		
@@ -195,14 +197,14 @@ contract tokenVault is ReentrancyGuard {
     } 
 
 
-	function selfHarvest(uint256[] calldata _stakeID, address _harvestInto) external {
+	function selfHarvest(uint256[] calldata _stakeID, address _harvestInto) external nonReentrant {
         require(_stakeID.length <= userInfo[msg.sender].length, "incorrect Stake list");
         UserInfo[] storage user = userInfo[msg.sender];
         harvest();
         uint256 _toWithdraw = 0;
         uint256 _payout = 0;
  
-        for(uint256 i = 0; i<_stakeID.length; i++) {
+        for(uint256 i = 0; i<_stakeID.length; ++i) {
 			payFee(user[_stakeID[i]], msg.sender);
             _toWithdraw+= user[_stakeID[i]].amount * accDtxPerShare / 1e12 - user[_stakeID[i]].debt;
 			user[_stakeID[i]].debt = user[_stakeID[i]].amount * accDtxPerShare / 1e12;
@@ -232,7 +234,7 @@ contract tokenVault is ReentrancyGuard {
     }
 
 	// emergency withdraw, without caring about rewards
-	function emergencyWithdraw(uint256 _stakeID) public {
+	function emergencyWithdraw(uint256 _stakeID) public nonReentrant {
 		require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
 		UserInfo storage user = userInfo[msg.sender][_stakeID];
 
@@ -254,8 +256,8 @@ contract tokenVault is ReentrancyGuard {
 	}
 	
 	function collectCommission(address[] calldata _beneficiary, uint256[][] calldata _stakeID) external nonReentrant {
-		for(uint256 i = 0; i< _beneficiary.length; i++) {
-			for(uint256 j = 0; j< _stakeID[i].length; i++) {
+		for(uint256 i = 0; i< _beneficiary.length; ++i) {
+			for(uint256 j = 0; j< _stakeID[i].length; ++j {
                 UserInfo storage user = userInfo[_beneficiary[i]][_stakeID[i][j]];
                 payFee(user, _beneficiary[i]);
             }
@@ -263,11 +265,11 @@ contract tokenVault is ReentrancyGuard {
 	}
 	
 	function collectCommissionAuto(address[] calldata _beneficiary) external nonReentrant {
-		for(uint256 i = 0; i< _beneficiary.length; i++) {
+		for(uint256 i = 0; i< _beneficiary.length; ++i) {
 			
 			uint256 _nrOfStakes = getNrOfStakes(_beneficiary[i]);
 			
-			for(uint256 j = 0; j < _nrOfStakes; j++) {
+			for(uint256 j = 0; j < _nrOfStakes; ++j) {
                 UserInfo storage user = userInfo[_beneficiary[i]][j];
                 payFee(user, _beneficiary[i]);
             }
@@ -304,7 +306,7 @@ contract tokenVault is ReentrancyGuard {
 		require(_tokenAddress != address(token), "illegal token");
         require(_tokenAddress != address(stakeToken), "illegal token");
 		
-		IERC20(_tokenAddress).safeTransfer(IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
+		IERC20(_tokenAddress).safeTransfer(treasuryWallet, IERC20(_tokenAddress).balanceOf(address(this)));
 	}
 
 	/*
@@ -328,6 +330,7 @@ contract tokenVault is ReentrancyGuard {
 
     
     function updateSettings(uint256 _defaultDirectHarvest) external decentralizedVoting {
+		require(_defaultDirectHarvest <= 10_000, "maximum 100%");
         defaultDirectPayout = _defaultDirectHarvest;
     }
     
@@ -343,7 +346,7 @@ contract tokenVault is ReentrancyGuard {
 
 		uint256 _totalPending = 0;
 		
-		for(uint256 i=0; i < nrOfUserStakes; i++) {
+		for(uint256 i=0; i < nrOfUserStakes; ++i) {
 			_totalPending+= _stake[i].amount * virtualAccDtxPerShare() / 1e12 - _stake[i].debt;
 		}
 		
@@ -406,13 +409,19 @@ contract tokenVault is ReentrancyGuard {
 		if(secondsSinceLastaction >= 3600  && fundingRate > 0) {
 			user.lastAction = block.timestamp - (secondsSinceLastaction % 3600);
 			
-			uint256 commission = (block.timestamp - _lastAction) / 3600 * user.amount * fundingRate / 100000;
+			uint256 commission = (block.timestamp - _lastAction) / 3600 * user.amount * fundingRate / 1000000;
+
+			if(commission > user.amount * 2 / 10) {
+				commission = user.amount * 2 / 10;
+			}
 			
             stakeToken.safeTransfer(treasuryWallet, commission);
 
             user.feesPaid = user.feesPaid + commission;
 			
 			user.amount = user.amount - commission;
+
+			user.debt = user.amount * accDtxPerShare / 1e12;
 			
 			emit CollectedFee(_userAddress, commission);
 		}
