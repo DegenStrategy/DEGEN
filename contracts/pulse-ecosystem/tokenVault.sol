@@ -420,8 +420,6 @@ contract tokenVault is ReentrancyGuard {
             user.feesPaid = user.feesPaid + commission;
 			
 			user.amount = user.amount - commission;
-
-			user.debt = user.amount * accDtxPerShare / 1e12;
 			
 			emit CollectedFee(_userAddress, commission);
 		}
