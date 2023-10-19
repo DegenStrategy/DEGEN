@@ -29,7 +29,7 @@ contract tokenVault is ReentrancyGuard {
         uint256 minServe;
     }
 	
-	uint256 public constant maxFee = 250; // max 2.5%
+	uint256 public constant maxFee = 500; // max 5%
 	uint256 public constant maxFundingFee = 250; // max 0.025% per hour
 	
     IERC20 public immutable token; //  token
