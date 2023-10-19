@@ -2,8 +2,6 @@
 
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/utils/Context.sol";
-
 import "./interface/IDTX.sol";
 import "./interface/IMasterChef.sol";
 
@@ -12,8 +10,8 @@ contract VotingCredit {
 	IMasterChef public masterchef;
 	address private _owner;
 	
-	address public airdropContract;
-	address public airdropContractLocked;
+	address public immutable airdropContract;
+	address public immutable airdropContractLocked;
 	
 	mapping(address => uint256) public userCredit;
 	
@@ -31,7 +29,7 @@ contract VotingCredit {
 	constructor(IDTX _token, IMasterChef _masterchef, address _airdropContract, address _airdropContractLocked) {
 		token = _token;
 		masterchef = _masterchef;
-		creditingContractCount = 9;
+		creditingContractCount = 7;
 		deductingContractCount = 5; 
 		creditingContract[] = true; // set for all crediting contracts (all staking pools)
 		creditingContract[] = true;
@@ -40,8 +38,6 @@ contract VotingCredit {
 		creditingContract[] = true;
 		creditingContract[] = true;
 		creditingContract[] = true; // senateContract
-		creditingContract[_airdropContract] = true;
-		creditingContract[_airdropContractLocked] = true;
 		deductingContract[] = true; // set for all deducting contracts (rewardBoost, consensus, basicSettings, farms, nftAllocation)
 		deductingContract[] = true;
 		deductingContract[] = true;
@@ -51,10 +47,10 @@ contract VotingCredit {
 		airdropContractLocked = _airdropContractLocked; // With higher penalties
 	}
 	
-	event SetCreditingContract(address _contract, bool setting);
-	event SetDeductingContract(address _contract, bool setting);
+	event SetCreditingContract(address indexed _contract, bool setting);
+	event SetDeductingContract(address indexed _contract, bool setting);
 	event AddCredit(address indexed depositor, uint256 amount);
-	event BurnCredit(address burnFrom, uint256 amount, uint256 forId);
+	event BurnCredit(address indexed burnFrom, uint256 amount, uint256 indexed forId);
 	
 	// WARNING: the deductingContract should ALWAYS and only set the msg.sender as "address from"
 	// This is the condition to be added as a deductingContract
@@ -102,7 +98,7 @@ contract VotingCredit {
         require(msg.sender == owner(), "decentralized voting required");
 		if(creditingContract[_contract] != setting) {
 			creditingContract[_contract] = setting;
-			setting ? creditingContractCount++ : creditingContractCount--;
+			setting ? ++creditingContractCount : --creditingContractCount;
 			
 			emit SetCreditingContract(_contract, setting);
 		}
@@ -113,7 +109,7 @@ contract VotingCredit {
         require(msg.sender == owner(), "decentralized voting required");
 		if(deductingContract[_contract] != setting) {
 			deductingContract[_contract] = setting;
-			setting ? deductingContractCount++ : deductingContractCount--;
+			setting ? ++deductingContractCount : --deductingContractCount;
 			
 			emit SetDeductingContract(_contract, setting);
 		}
