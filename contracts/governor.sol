@@ -3,72 +3,76 @@
 pragma solidity 0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./interface/IGovernor.sol";
 import "./interface/IMasterChef.sol";
 import "./interface/IDTX.sol";
 import "./interface/IConsensus.sol";
-import "./interface/IVoting.sol";
-import "./interface/IRewardBoost.sol";
 import "./interface/IacPool.sol";
 import "./interface/ITreasury.sol";
-import "./interface/IVault.sol";
 
 contract DTXgovernor {
     address private immutable deployer;
-    address public immutable token = ; //DTX token
+    address public constant token = ; //XPD token
 
 
     //masterchef address
-    address public immutable masterchef = ;
+    address public constant masterchef = ;
 
-	address public immutable basicContract = ;
-	address public immutable farmContract = ;
-	address public immutable fibonacceningContract = ; //reward boost contract
-    address public immutable consensusContract = ;
+	address public constant basicContract = ;
+	address public constant farmContract = ;
+	address public constant fibonacceningContract = ; //reward boost contract
+    address public constant consensusContract = ;
 	
-	address public immutable creditContract = ;
+	address public constant creditContract = ;
 	
-	address public immutable nftStakingContract = ;
-	address public immutable nftAllocationContract = ;
+	address public constant nftStakingContract = ;
+	address public constant nftAllocationContract = ;
     
-    address public treasuryWallet = ;
-    address public nftWallet = ;
+    address public constant treasuryWallet = ;
+    address public constant nftWallet = ;
 
-	address public immutable senateContract = ;
-	address public immutable rewardContract = ; //for referral rewards
+	address public constant senateContract = ;
+	address public constant rewardContract = ; //for referral rewards
     
     //addresses for time-locked deposits(autocompounding pools)
-    address public immutable acPool1 = ;
-    address public immutable acPool2 = ;
-    address public immutable acPool3 = ;
-    address public immutable acPool4 = ;
-    address public immutable acPool5 = ;
-    address public immutable acPool6 = ;
+    address public constant acPool1 = ;
+    address public constant acPool2 = ;
+    address public constant acPool3 = ;
+    address public constant acPool4 = ;
+    address public constant acPool5 = ;
+    address public constant acPool6 = ;
+
+	// Roll-over bonuses
+	_rollBonus[] = 75;
+	_rollBonus[] = 100;
+	_rollBonus[] = 150;
+	_rollBonus[] = 250;
+	_rollBonus[] = 350;
+	_rollBonus[] = 500;
         
     //pool ID in the masterchef for respective Pool address and dummy token
-    uint256 public immutable acPool1ID = 0;
-    uint256 public immutable acPool2ID = 1;
-    uint256 public immutable acPool3ID = 2;
-    uint256 public immutable acPool4ID = 3;
-    uint256 public immutable acPool5ID = 4;
-    uint256 public immutable acPool6ID = 5;
+    uint256 public constant acPool1ID = 0;
+    uint256 public constant acPool2ID = 1;
+    uint256 public constant acPool3ID = 2;
+    uint256 public constant acPool4ID = 3;
+    uint256 public constant acPool5ID = 4;
+    uint256 public constant acPool6ID = 5;
 	
-	uint256 public immutable nftStakingPoolID = 11;
+	uint256 public constant nftStakingPoolID = 11;
 	
-	address public immutable plsVault = ;
-	address public immutable plsxVault = ;
-	address public immutable incVault = ;
-	address public immutable hexVault = ;
-	address public immutable tshareVault = ;
+	address public constant plsVault = ;
+	address public constant plsxVault = ;
+	address public constant incVault = ;
+	address public constant hexVault = ;
+	address public constant tshareVault = ;
 
-	address public immutable tokenDistributionContract = ;
-	address public immutable tokenDistributionContractExtraPenalty = ;
+	address public constant tokenDistributionContract = ;
+	address public constant tokenDistributionContractExtraPenalty = ;
     
     mapping(address => uint256) private _rollBonus;
 
 	uint256 public referralBonus = 1000; // 10% for both referr and invitee
-	uint256 depositFee = 0;
-	uint256 fundingRate = 0;
+	uint256 public depositFee = 0;
+	uint256 public fundingRate = 0;
 
 	uint256 public mintingPhaseLaunchDate;
 	uint256 public lastTotalCredit; // Keeps track of last total credit from chef (sends 2.5% to reward contract)
@@ -80,16 +84,15 @@ contract DTXgovernor {
     uint256 public thresholdFibonaccening = 27000000 * 1e18; // roughly 2.5% of initial supply to begin with
     
     //delays for Fibonnaccening(Reward Boost) Events
-    uint256 public immutable minDelay = 1 days; // has to be called minimum 1 day in advance
-    uint256 public immutable maxDelay = 31 days; 
+    uint256 public constant minDelay = 1 days; // has to be called minimum 1 day in advance
+    uint256 public constant maxDelay = 31 days; 
 
-	bool mintingPhase = false;
+	bool public mintingPhase = false;
     
     uint256 public lastRegularReward = 850 * 1e18; //remembers the last reward used(outside of boost)
     bool public eventFibonacceningActive = false; // prevent some functions if event is active ..threshold and durations for fibonaccening
 
 
-	bool public isInflationStatic; // if static, inflation stays perpetually at 1.618% annually. If dynamic, it reduces by 1.618% on each reward boost
     uint256  public totalFibonacciEventsAfterGrand; //used for rebalancing inflation after Grand Fib
     
     uint256 public newGovernorRequestBlock;
@@ -101,25 +104,12 @@ contract DTXgovernor {
 	uint256[] public allocationPercentages = [5333, 8000, 12000, 26660, 34666, 40000]; // In basis points (1 basis point = 0.01%)
 
     event SetInflation(uint256 rewardPerBlock);
-    event TransferOwner(address newOwner, uint256 timestamp);
-    event EnforceGovernor(address _newGovernor, address indexed enforcer);
-    event GiveRolloverBonus(address recipient, uint256 amount, address poolInto);
+    event EnforceGovernor(address indexed _newGovernor, address indexed enforcer);
+    event GiveRolloverBonus(address indexed recipient, uint256 amount, address indexed poolInto);
 	event Harvest(address indexed sender, uint256 callFee);
     
-    constructor(
-		address _acPool1,
-		address _acPool2,
-		address _acPool3,
-		address _acPool4,
-		address _acPool5,
-		address _acPool6) {
+    constructor() {
 			deployer = msg.sender;
-			_rollBonus[_acPool1] = 75;
-			_rollBonus[_acPool2] = 100;
-			_rollBonus[_acPool3] = 150;
-			_rollBonus[_acPool4] = 250;
-			_rollBonus[_acPool5] = 350;
-			_rollBonus[_acPool6] = 500;
     }    
    
    
@@ -213,7 +203,7 @@ contract DTXgovernor {
 
 	function treasuryRequest(address _tokenAddr, address _recipient, uint256 _amountToSend) external {
 		require(msg.sender == consensusContract);
-		ITreasury(payable(treasuryWallet)).requestWithdraw(
+		ITreasury(treasuryWallet).requestWithdraw(
 			_tokenAddr, _recipient, _amountToSend
 		);
 	}
@@ -324,7 +314,7 @@ contract DTXgovernor {
 	// During first 2 months, we can send 2.5% of tokens to the referral reward contract
 	// Afterwards this has to be managed through the treasury
 	function transferToReferralContract() external {
-		require(block.timestamp > mintingPhaseLaunchDate + 60 days, "Only during first 2 months!");
+		require(block.timestamp < mintingPhaseLaunchDate + 60 days, "Only during first 2 months!");
 		
 		uint256 _total = IMasterChef(masterchef).totalCreditRewards();
 		uint256 _toTransfer = ((_total - lastTotalCredit) * 25 / 1000);
