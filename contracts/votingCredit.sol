@@ -40,8 +40,8 @@ contract VotingCredit {
 		creditingContract[] = true;
 		creditingContract[] = true;
 		creditingContract[] = true; // senateContract
-		creditingContract[airdropContract] = true;
-		creditingContract[airdropContractLocked] = true;
+		creditingContract[_airdropContract] = true;
+		creditingContract[_airdropContractLocked] = true;
 		deductingContract[] = true; // set for all deducting contracts (rewardBoost, consensus, basicSettings, farms, nftAllocation)
 		deductingContract[] = true;
 		deductingContract[] = true;
