@@ -89,7 +89,6 @@ contract RedeemReferralRewards {
 	}
 
 	function totalUserRewards(address _user) public view returns (uint256) {
-		address _governor = governor();
 		uint256 _total = 0;
 
 		for(uint256 i=0; i < vaults.length; i++) {
