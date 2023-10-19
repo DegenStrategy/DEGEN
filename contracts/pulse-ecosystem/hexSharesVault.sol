@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.20;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/utils/SafeERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contracts/security/ReentrancyGuard.sol";
@@ -11,7 +10,6 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contr
 import "../interface/IGovernor.sol";
 import "../interface/IMasterChef.sol";
 import "../interface/IacPool.sol";
-import "../interface/IVoting.sol";
 
 interface ILookup {
 	function stakeCount(address _staker) external view returns (uint256);
@@ -61,11 +59,10 @@ contract tshareVault is ReentrancyGuard {
     uint256 public defaultDirectPayout = 50; //0.5% if withdrawn into wallet
 	
 
-    event Deposit(address indexed sender, uint256 amount, uint256 debt, address referredBy);
+    event Deposit(address indexed sender, uint256 amount, uint256 debt, address indexed referredBy);
     event Withdraw(address indexed sender, uint256 harvestAmount, uint256 penalty);
-    event UserSettingUpdate(address indexed user, address poolAddress, uint256 threshold, uint256 feeToPay);
 
-    event Harvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
+    event Harvest(address indexed user, address indexed harvestInto, uint256 harvestAmount, uint256 penalty);
 
     /**
      * @notice Constructor
@@ -127,7 +124,7 @@ contract tshareVault is ReentrancyGuard {
 		require(nrOfStakes > 0, "no stakes");
 		uint256 _shares;
         uint256 _amount = 0;
-		for(uint256 i=0; i<nrOfStakes; i++) {
+		for(uint256 i=0; i<nrOfStakes; ++i) {
 			(, , _shares, , , ,) = hexC.stakeLists(_userAddress, i);
 			_amount+= _shares;
 		}
@@ -147,7 +144,7 @@ contract tshareVault is ReentrancyGuard {
     function harvest() public {
 		IMasterChef(masterchef).updatePool(poolID);
 		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
-		uint256 _accumulatedRewards = lastCredit - _currentCredit;
+		uint256 _accumulatedRewards = _currentCredit - lastCredit;
 		lastCredit = _currentCredit;
 		accDtxPerShare+= _accumulatedRewards * 1e12  / totalTshares;
     }
@@ -245,7 +242,7 @@ contract tshareVault is ReentrancyGuard {
 		if(nrOfStakes > maxStakes) { nrOfStakes = maxStakes; }
 		uint256 _amount = 0; //total shares for user
         uint256 _shares;
-		for(uint256 i=0; i<nrOfStakes; i++) {
+		for(uint256 i=0; i<nrOfStakes; ++i) {
 			(, , _shares, , , ,) = hexC.stakeLists(msg.sender, i);
 			_amount+= _shares;
 		}
@@ -261,7 +258,7 @@ contract tshareVault is ReentrancyGuard {
 	}
 
 	function massRecalculate(address[] calldata _user) external {
-		for(uint256 i=0; i<_user.length; i++) {
+		for(uint256 i=0; i<_user.length; ++i) {
 			recalculate(_user[i]);
 		}
 	}
