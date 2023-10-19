@@ -111,7 +111,7 @@ contract plsVault is ReentrancyGuard {
      */
     function deposit(uint256 _amount, address referral) external payable nonReentrant {
         require(msg.value == _amount && _amount > 0, "invalid amount");
-        harvest();
+        _harvest(_amount);
 
 		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
 			referredBy[msg.sender] = referral;
@@ -434,5 +434,13 @@ contract plsVault is ReentrancyGuard {
         }
         
         stakes.pop();
+    }
+
+	function _harvest(uint256 _etherReceived) private {
+        IMasterChef(masterchef).updatePool(poolID);
+		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
+		uint256 _accumulatedRewards = _currentCredit - lastCredit;
+		lastCredit = _currentCredit;
+		accDtxPerShare+= _accumulatedRewards * 1e12  / (address(this).balance - _etherReceived);
     }
 }
