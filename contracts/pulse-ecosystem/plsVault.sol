@@ -300,7 +300,6 @@ contract plsVault is ReentrancyGuard {
 	 */
 	function withdrawStuckTokens(address _tokenAddress) external {
 		require(_tokenAddress != address(token), "illegal token");
-        require(_tokenAddress != address(stakeToken), "illegal token");
 		
 		IERC20(_tokenAddress).safeTransfer(treasuryWallet, IERC20(_tokenAddress).balanceOf(address(this)));
 	}
