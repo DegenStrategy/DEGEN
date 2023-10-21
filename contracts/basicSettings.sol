@@ -2,7 +2,6 @@
 pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
 
 import "./interface/IGovernor.sol";
 import "./interface/IDTX.sol";
@@ -50,15 +49,15 @@ contract DTXbasics {
 	
 	uint256 newPoolThresholdMultiplier = 1000;
 	
-	event ProposeMinDeposit(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address enforcer, uint256 delay);
+	event ProposeMinDeposit(uint256 indexed proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address indexed enforcer, uint256 delay);
     
-    event DelayBeforeEnforce(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address enforcer, uint256 delay);
+    event DelayBeforeEnforce(uint256 indexed proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address indexed enforcer, uint256 delay);
     
-    event InitiateSetCallFee(uint256 proposalID, uint256 depositingTokens, uint256 newCallFee, address enforcer, uint256 delay);
+    event InitiateSetCallFee(uint256 indexed proposalID, uint256 depositingTokens, uint256 newCallFee, address indexed enforcer, uint256 delay);
     
-    event InitiateRolloverBonus(uint256 proposalID, uint256 depositingTokens, address forPool, uint256 newBonus, address enforcer, uint256 delay);
+    event InitiateRolloverBonus(uint256 indexed proposalID, uint256 depositingTokens, address indexed forPool, uint256 newBonus, address indexed enforcer, uint256 delay);
 	
-	event ProposeNewPool(uint256 proposalID, uint256 valueSacrificedForVote, address newPool, address enforcer, uint256 delay);
+	event ProposeNewPool(uint256 indexed proposalID, uint256 valueSacrificedForVote, address newPool, address indexed enforcer, uint256 delay);
 	
 	event ProposeSetMinThresholdFibonaccening(
 		uint256 proposalID, 
@@ -68,8 +67,8 @@ contract DTXbasics {
 		uint256 delay);
 
 	
-	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
-	event EnforceProposal(uint256 _type, uint256 proposalID, address indexed enforcer, bool isSuccess);
+	event AddVotes(uint256 _type, uint256 indexed proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
+	event EnforceProposal(uint256 _type, uint256 indexed proposalID, address indexed enforcer, bool isSuccess);
 
     
 	constructor(address _DTX) {
@@ -94,11 +93,11 @@ contract DTXbasics {
     	
     	if (newMinDeposit < IGovernor(owner()).costToVote()) {
     		require(depositingTokens >= IGovernor(owner()).costToVote(), "Minimum cost to vote not met");
-    		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
     	} else {
     		require(depositingTokens >= newMinDeposit, "Must match new amount");
-    		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
     	}
+
+		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
 		
 		minDepositProposals.push(
     		        ProposalStructure(true, block.timestamp, depositingTokens, 0, delay, newMinDeposit)
@@ -146,7 +145,7 @@ contract DTXbasics {
     	    minDepositProposals[proposalID].valid &&
     	    minDepositProposals[proposalID].firstCallTimestamp + 
 			minDepositProposals[proposalID].delay + 
-			IGovernor(owner()).delayBeforeEnforce() <= block.timestamp,
+			IGovernor(owner()).delayBeforeEnforce() < block.timestamp,
     	    "Conditions not met"
     	);
 		   
@@ -164,6 +163,7 @@ contract DTXbasics {
 		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
 		require(depositingTokens >= IGovernor(owner()).costToVote()*50, "Minimum threshold is 50x Minimum Cost to vote");
 
+		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
 		
 		newPoolProposal.push(
     		        ProposalStructure2(true, block.timestamp, depositingTokens, 0, delay, _newPool)
@@ -211,7 +211,7 @@ contract DTXbasics {
     	    newPoolProposal[proposalID].valid &&
     	    newPoolProposal[proposalID].firstCallTimestamp + 
 			newPoolProposal[proposalID].delay + 
-			IGovernor(owner()).delayBeforeEnforce() <= block.timestamp,
+			IGovernor(owner()).delayBeforeEnforce() < block.timestamp,
     	    "Conditions not met"
     	);
 		   
@@ -444,14 +444,13 @@ contract DTXbasics {
      * before a "fibonaccening" event can be scheduled;
      * 
      * Bitcoin has "halvening" events every 4 years where block rewards reduce in half
-     * DTX has "fibonaccening" events, which can can be scheduled once
+     * DTX has "fibonaccening" events, which can be scheduled once
      * this smart contract collects the minimum(threshold) of tokens. 
      * 
      * Tokens are collected as penalties from premature withdrawals, as well as voting costs inside this contract
      *
      * It's basically a mechanism to re-distribute the penalties(though the rewards can exceed the collected penalties)
      * 
-     * It's meant to serve as a volatility-inducing event that attracts new users with high rewards
      * 
      * Effectively, the rewards are increased for a short period of time. 
      * Once the event expires, the tokens collected from penalties are
