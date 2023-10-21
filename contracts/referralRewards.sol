@@ -16,7 +16,7 @@ contract RedeemReferralRewards {
 
 	address[] public vaults;
 	
-	event ClaimReferralReward(address indexed user, address claimInto, uint256 amount);
+	event ClaimReferralReward(address indexed user, address indexed claimInto, uint256 amount);
 	
 	constructor (
 		address _token,
@@ -71,7 +71,7 @@ contract RedeemReferralRewards {
 
 		( , , address _vault) = IMasterChef(_masterchef).poolInfo(_poolId);
 
-		for(uint256 i=0; i < vaults.length; i++) {
+		for(uint256 i=0; i < vaults.length; ++i) {
 			require(_vault != vaults[i], "Vault already exists!");
 		}
 	
@@ -91,7 +91,7 @@ contract RedeemReferralRewards {
 	function totalUserRewards(address _user) public view returns (uint256) {
 		uint256 _total = 0;
 
-		for(uint256 i=0; i < vaults.length; i++) {
+		for(uint256 i=0; i < vaults.length; ++i) {
 			_total+= IVault(vaults[i]).referralPoints(_user);
 		}
 
