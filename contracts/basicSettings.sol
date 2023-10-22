@@ -161,7 +161,7 @@ contract DTXbasics {
 	
 	function initiateNewPool(uint256 depositingTokens, address _newPool, uint256 delay) external {
 		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-		require(depositingTokens >= IGovernor(owner()).costToVote()*50, "Minimum threshold is 50x Minimum Cost to vote");
+		require(depositingTokens >= IGovernor(owner()).costToVote()*500, "Minimum threshold is 500x Minimum Cost to vote");
 
 		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
 		
