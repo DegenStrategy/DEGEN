@@ -3,12 +3,10 @@
 pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
 
 import "./interface/IGovernor.sol";
 import "./interface/IMasterChef.sol";
 import "./interface/IDTX.sol";
-import "./interface/IConsensus.sol";
 import "./interface/IVoting.sol";
 
 
@@ -33,8 +31,6 @@ contract DTXrewardBoost {
     
     FibonacceningProposal[] public fibonacceningProposals;
 
-    //WARNING: careful where we are using 1e18 and where not
-    uint256 public immutable goldenRatio = 1618; //1.618 is the golden ratio
     address public immutable token; //DTX token
 	
     
@@ -42,10 +38,6 @@ contract DTXrewardBoost {
     address public masterchef;
 	
 	address public creditContract;
-    
-    uint256 public lastCallFibonaccening; //stores timestamp of last grand fibonaccening event
-    
-    uint256 public targetBlock; // used for calculating target block
 
     uint256 public fibonacceningActiveID;
     uint256 public fibonacceningActivatedBlock;
@@ -56,7 +48,7 @@ contract DTXrewardBoost {
 
 
     event ProposeFibonaccening(
-        uint256 proposalID,
+        uint256 indexed proposalID,
         uint256 valueSacrificedForVote,
         uint256 startTime,
         uint256 durationInBlocks,
@@ -64,15 +56,10 @@ contract DTXrewardBoost {
         address indexed enforcer,
         uint256 delay
     );
-    event EndFibonaccening(uint256 proposalID, address indexed enforcer);
-    event CancleFibonaccening(uint256 proposalID, address indexed enforcer);
-    
-    event RebalanceInflation(uint256 newRewardPerBlock);
-    
-	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
-	event EnforceProposal(uint256 _type, uint256 proposalID, address indexed enforcer, bool isSuccess);
-    
-    event ChangeGovernor(address newGovernor);
+    event EndFibonaccening(uint256 indexed proposalID, address indexed enforcer);
+    event CancleFibonaccening(uint256 indexed proposalID, address indexed enforcer);
+	event AddVotes(uint256 indexed _type, uint256 indexed proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
+	event EnforceProposal(uint256 indexed _type, uint256 indexed proposalID, address indexed enforcer, bool isSuccess);
 	
 	constructor (address _DTX, address _masterchef) {
 		token = _DTX;
@@ -96,6 +83,7 @@ contract DTXrewardBoost {
         require(IERC20(token).balanceOf(owner()) >= IGovernor(owner()).thresholdFibonaccening(), "need to collect penalties before calling");
         require(!(IGovernor(owner()).eventFibonacceningActive()), "Event already running");
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
+		require(durationInBlocks >= 100, "minimum 100 blocks!");
         require(
             startTimestamp > block.timestamp + delay + (24*3600) + IGovernor(owner()).delayBeforeEnforce() && 
             startTimestamp - block.timestamp <= 90 days, "max 90 days"); 
@@ -106,7 +94,7 @@ contract DTXrewardBoost {
 
 		//duration(in blocks) must be lower than amount of blocks mined in 30days(can't last more than roughly 30days)
 		//30(days)*24(hours)*3600(seconds) / 10.1  = 256633
-		uint256 amountOfBlocksIn30Days = 2592 * 256633;
+		uint256 amountOfBlocksIn30Days = 256633;
 		require(durationInBlocks <= amountOfBlocksIn30Days, "maximum 30days duration - 256633 blocks");
     
 		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
@@ -138,7 +126,7 @@ contract DTXrewardBoost {
 		emit AddVotes(0, proposalID, msg.sender, withTokens, false);
 	}
     function vetoFibonaccening(uint256 proposalID) public {
-    	require(fibonacceningProposals[proposalID].valid == true, "Invalid proposal"); 
+    	require(fibonacceningProposals[proposalID].valid, "Invalid proposal"); 
 		require(fibonacceningProposals[proposalID].firstCallTimestamp + fibonacceningProposals[proposalID].delay <= block.timestamp, "pending delay");
 		require(fibonacceningProposals[proposalID].valueSacrificedForVote < fibonacceningProposals[proposalID].valueSacrificedAgainst, "needs more votes");
  
@@ -155,13 +143,14 @@ contract DTXrewardBoost {
         require(
             IERC20(token).balanceOf(owner()) >= IGovernor(owner()).thresholdFibonaccening(),
             "needa collect penalties");
-    	require(fibonacceningProposals[proposalID].valid == true, "invalid proposal");
+    	require(fibonacceningProposals[proposalID].valid, "invalid proposal");
     	require(block.timestamp >= fibonacceningProposals[proposalID].startTime, "can only start when set");
     	require(!(IGovernor(owner()).eventFibonacceningActive()), "already active");
     	
     	if(fibonacceningProposals[proposalID].valueSacrificedForVote >= fibonacceningProposals[proposalID].valueSacrificedAgainst) {
 			tokensForBurn = IGovernor(owner()).thresholdFibonaccening();
 			IGovernor(owner()).transferRewardBoostThreshold();
+			IDTX(address(token)).burn(tokensForBurn); // burns the tokens - "fibonaccening" sacrifice
 			
 			IGovernor(owner()).rememberReward(); // remembers last regular rewar(before boost)
 			IGovernor(owner()).setInflation(fibonacceningProposals[proposalID].rewardPerBlock);
@@ -170,10 +159,6 @@ contract DTXrewardBoost {
 			fibonacceningActiveID = proposalID;
 			fibonacceningActivatedBlock = block.number;
 			IGovernor(owner()).setActivateFibonaccening(true);
-			
-			if(IMasterChef(masterchef).DTXPerBlock() <= 1618 * 1e16) {
-				expiredGrandFibonaccening = true;
-			}
 			
 			
 			emit EnforceProposal(0, proposalID, msg.sender, true);
@@ -199,12 +184,14 @@ contract DTXrewardBoost {
         
         IGovernor(owner()).setInflation(newAmount);
         IGovernor(owner()).setActivateFibonaccening(false);
-        
-    	IDTX(address(token)).burn(tokensForBurn); // burns the tokens - "fibonaccening" sacrifice
-		
+
 		if(expiredGrandFibonaccening) {
 			IGovernor(owner()).postGrandFibIncreaseCount();
-		}
+		} else {
+			if(IMasterChef(masterchef).DTXPerBlock() <= 1618 * 1e16) {
+				expiredGrandFibonaccening = true;
+			}
+		]
 		
     	emit EndFibonaccening(fibonacceningActiveID, msg.sender);
     }
@@ -226,7 +213,7 @@ contract DTXrewardBoost {
 
 	
 	function setMasterchef() external {
-		masterchef = IMasterChef(address(token)).owner();
+		masterchef = IDTX(token).owner();
     }
     
 
@@ -262,7 +249,7 @@ contract DTXrewardBoost {
 			
 			uint256 initialSupply = IMasterChef(masterchef).virtualTotalSupply();
 			
-			uint256 supplyToPrint = initialSupply * _factor / 100000; 
+			uint256 supplyToPrint = initialSupply * _factor / 1e18 / 100000; 
 		
 			uint256 rewardPerBlock = supplyToPrint / (365 * 24 * 3600 * 99000 / 1000000); // 0.099 blocks per second
 
