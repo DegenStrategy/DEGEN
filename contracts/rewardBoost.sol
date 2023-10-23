@@ -151,7 +151,11 @@ contract DTXrewardBoost {
 			tokensForBurn = IGovernor(owner()).thresholdFibonaccening();
 			IGovernor(owner()).transferRewardBoostThreshold();
 			IDTX(address(token)).burn(tokensForBurn); // burns the tokens - "fibonaccening" sacrifice
-			
+
+			if((IMasterChef(masterchef).DTXPerBlock() - 1618 * 1e16) <= 1618 * 1e16) {
+				expiredGrandFibonaccening = true;
+			}
+
 			IGovernor(owner()).rememberReward(); // remembers last regular rewar(before boost)
 			IGovernor(owner()).setInflation(fibonacceningProposals[proposalID].rewardPerBlock);
 			
@@ -187,11 +191,7 @@ contract DTXrewardBoost {
 
 		if(expiredGrandFibonaccening) {
 			IGovernor(owner()).postGrandFibIncreaseCount();
-		} else {
-			if(IMasterChef(masterchef).DTXPerBlock() <= 1618 * 1e16) {
-				expiredGrandFibonaccening = true;
-			}
-		]
+		}
 		
     	emit EndFibonaccening(fibonacceningActiveID, msg.sender);
     }
