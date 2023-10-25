@@ -98,6 +98,10 @@ contract RedeemReferralRewards {
 		return _total;
 	}
 
+	function viewVaults() external view returns(address[] memory) {
+		return vaults;
+	}
+
 	function governor() public view returns (address) {
 		return _governor;
 	}
