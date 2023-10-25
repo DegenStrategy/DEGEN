@@ -3,7 +3,6 @@
 pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
 
 import "./interface/IGovernor.sol";
 import "./interface/IMasterChef.sol";
@@ -76,21 +75,18 @@ contract DTXfarms {
 	uint256 public lastReducePulseAllocation; //block timestamp when maximum pulse ecosystem allocation is reduced
     
     event InitiateFarmProposal(
-            uint256 proposalID, uint256 depositingTokens, uint256 poolid,
+            uint256 indexed proposalID, uint256 depositingTokens, uint256 indexed poolid,
             uint256 newAllocation, uint16 depositFee, address indexed enforcer, uint256 delay
         );
     
-    //reward reduction for farms and meme pools during reward boosts
-    event ProposeRewardReduction(address enforcer, uint256 proposalID, uint256 farmMultiplier, uint256 memeMultiplier, uint256 depositingTokens, uint256 delay);
-	
-    event ProposeGovernorTransfer(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedAmount, address indexed enforcer, bool isBurn, uint256 startTimestamp, uint256 delay);
+    event ProposeGovernorTransfer(uint256 indexed proposalID, uint256 valueSacrificedForVote, uint256 proposedAmount, address indexed enforcer, bool isBurn, uint256 startTimestamp, uint256 delay);
 
-	event ProposeGovTax(uint256 proposalID, uint256 valueSacrificedForVote, uint256 proposedTax, address indexed enforcer, uint256 delay);
+	event ProposeGovTax(uint256 indexed proposalID, uint256 valueSacrificedForVote, uint256 proposedTax, address indexed enforcer, uint256 delay);
 
-    event ProposeVault(uint256 proposalID, uint256 valueSacrificedForVote, uint256 _type, uint256 _amount, address indexed enforcer, uint256 delay);
+    event ProposeVault(uint256 indexed proposalID, uint256 valueSacrificedForVote, uint256 indexed _type, uint256 _amount, address indexed enforcer, uint256 delay);
 
-	event AddVotes(uint256 _type, uint256 proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
-	event EnforceProposal(uint256 _type, uint256 proposalID, address indexed enforcer, bool isSuccess);
+	event AddVotes(uint256 indexed _type, uint256 indexed proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
+	event EnforceProposal(uint256 indexed _type, uint256 indexed proposalID, address indexed enforcer, bool isSuccess);
     
 	constructor (address _DTX, address _masterchef, uint256 _launch)  {
 		token = _DTX;
@@ -101,8 +97,8 @@ contract DTXfarms {
 	}
 
 	//ability to change max allocations without launching new contract
-	function changeMaxAllocations(uint256 _lp, uint256 _nft, uint256 _maxPulse, uint256 _maxPulseTotal) external {
-        require(msg.sender == owner(), "owner only");
+	function changeMaxAllocations(uint256 _nft, uint256 _maxPulse, uint256 _maxPulseTotal) external {
+        require(msg.sender == owner(), "decentralized voting only");
 		maxNftAllocation = _nft;
         maxPulseEcoAllocation = _maxPulse;
         maxPulseEcoTotalAllocation = _maxPulseTotal;
@@ -110,7 +106,7 @@ contract DTXfarms {
 	
 	function rebalancePools() public {
 		uint256 _totalAllocatedToXPDMiners; //allocation points here
-		for(uint i = 0; i <= 5; i++) {
+		for(uint i = 0; i <= 5; ++i) {
 			(uint256 _allocation, , ) = IMasterChef(masterchef).poolInfo(i);
 			_totalAllocatedToXPDMiners+= _allocation;
 		}
@@ -122,7 +118,7 @@ contract DTXfarms {
 		uint256 _newTotalAllocation = (_totalAllocatedToXPDMiners * _multiplier) / 10000;
 
 		IMasterChef(masterchef).massUpdatePools();
-		for(uint i=6; i < _poolLength; i++) {
+		for(uint i=6; i < _poolLength; ++i) {
 			uint256 _newAlloc = _newTotalAllocation * poolAllocationPercentage[i] / 10000;
 			IGovernor(owner()).setPool(i, _newAlloc, false);
 		}
@@ -130,6 +126,7 @@ contract DTXfarms {
     
     /**
      * Regulatory process to regulate rewards for PulseChain Ecosystem
+     * depositFee is unused (has been left because it would require to change front ends, event listeners and what not....)
     */    
     function initiateFarmProposal(
             uint256 depositingTokens, uint256 poolid, uint256 newAllocation, uint16 depositFee, uint256 delay
@@ -195,11 +192,11 @@ contract DTXfarms {
             proposalFarmUpdate[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + proposalFarmUpdate[proposalID].delay  < block.timestamp,
             "delay before enforce not met"
             );
-		uint256 _poolID = proposalFarmUpdate[proposalID].poolid;
-		uint256 _pulseEcoCount = 0;
-		uint256 _newAllocation = proposalFarmUpdate[proposalID].newAllocation;
         
 		if(proposalFarmUpdate[proposalID].valueSacrificedForVote >= proposalFarmUpdate[proposalID].valueSacrificedAgainst) {
+			uint256 _poolID = proposalFarmUpdate[proposalID].poolid;
+			uint256 _pulseEcoCount = 0;
+			uint256 _newAllocation = proposalFarmUpdate[proposalID].newAllocation;
 
 			//check so it does not exceed total
 			uint256 _poolLength = IMasterChef(masterchef).poolLength();
@@ -259,7 +256,7 @@ contract DTXfarms {
 		emit AddVotes(2, proposalID, msg.sender, withTokens, false);
 	}
     function vetoGovernorTransfer(uint256 proposalID) public {
-    	require(governorTransferProposals[proposalID].valid == true, "Invalid proposal"); 
+    	require(governorTransferProposals[proposalID].valid, "Invalid proposal"); 
 		require(governorTransferProposals[proposalID].firstCallTimestamp + governorTransferProposals[proposalID].delay <= block.timestamp, "pending delay");
 		require(governorTransferProposals[proposalID].valueSacrificedForVote < governorTransferProposals[proposalID].valueSacrificedAgainst, "needs more votes");
 		
@@ -269,17 +266,16 @@ contract DTXfarms {
     }
     function executeGovernorTransfer(uint256 proposalID) public {
     	require(
-    	    governorTransferProposals[proposalID].valid == true &&
+    	    governorTransferProposals[proposalID].valid &&
     	    governorTransferProposals[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + governorTransferProposals[proposalID].delay  < block.timestamp,
     	    "conditions not met"
         );
 		require(governorTransferProposals[proposalID].startTimestamp < block.timestamp, "Not yet eligible");
     	
 		if(governorTransferProposals[proposalID].valueSacrificedForVote >= governorTransferProposals[proposalID].valueSacrificedAgainst) {
+			require(IDTX(token).balanceOf(owner()) >= governorTransferProposals[proposalID].proposedValue, "Insufficient Token Balance in the govverning Contract!");
 			if(governorTransferProposals[proposalID].isBurn) {
-				if(IDTX(token).balanceOf(owner()) >= governorTransferProposals[proposalID].proposedValue) {
-					IGovernor(owner()).burnTokens(governorTransferProposals[proposalID].proposedValue);
-				}
+				IGovernor(owner()).burnTokens(governorTransferProposals[proposalID].proposedValue);
 			} else {
 				IGovernor(owner()).transferToTreasury(governorTransferProposals[proposalID].proposedValue);
 			}
@@ -307,7 +303,7 @@ contract DTXfarms {
   function proposeGovTax(uint256 depositingTokens, uint256 _amount, uint256 delay) external {
         require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-		require(_amount <= 1000 && _amount > 0, "max 1000");
+		require(_amount <= 1000, "max 1000");
         
     	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
     	govTaxProposals.push(
@@ -338,7 +334,7 @@ contract DTXfarms {
 		emit AddVotes(4, proposalID, msg.sender, withTokens, false);
 	}
     function vetoGovTax(uint256 proposalID) public {
-    	require(govTaxProposals[proposalID].valid == true, "Invalid proposal");
+    	require(govTaxProposals[proposalID].valid, "Invalid proposal");
 		require(govTaxProposals[proposalID].firstCallTimestamp + govTaxProposals[proposalID].delay <= block.timestamp, "pending delay");
 		require(govTaxProposals[proposalID].valueSacrificedForVote < govTaxProposals[proposalID].valueSacrificedAgainst, "needs more votes");
 		
@@ -348,13 +344,13 @@ contract DTXfarms {
     }
     function executeGovTax(uint256 proposalID) public {
     	require(
-    	    govTaxProposals[proposalID].valid == true &&
+    	    govTaxProposals[proposalID].valid &&
     	    govTaxProposals[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + govTaxProposals[proposalID].delay  < block.timestamp,
     	    "conditions not met"
         );
 		
 		if(govTaxProposals[proposalID].valueSacrificedForVote >= govTaxProposals[proposalID].valueSacrificedAgainst) {
-			IGovernor(owner()).setGovernorTax(govTaxProposals[proposalID].proposedValue); //burns the tokens
+			IGovernor(owner()).setGovernorTax(govTaxProposals[proposalID].proposedValue);
 			govTaxProposals[proposalID].valid = false; 
 			
 			emit EnforceProposal(4, proposalID, msg.sender, true);
@@ -395,7 +391,7 @@ contract DTXfarms {
 		emit AddVotes(5, proposalID, msg.sender, withTokens, false);	
 	}	
     function vetoVault(uint256 proposalID) public {	
-    	require(vaultProposals[proposalID].valid == true, "Invalid proposal"); 	
+    	require(vaultProposals[proposalID].valid, "Invalid proposal"); 	
 		require(vaultProposals[proposalID].firstCallTimestamp + vaultProposals[proposalID].delay <= block.timestamp, "pending delay");	
 		require(vaultProposals[proposalID].valueSacrificedForVote < vaultProposals[proposalID].valueSacrificedAgainst, "needs more votes");	
 			
@@ -404,7 +400,7 @@ contract DTXfarms {
     }	
     function executeVault(uint256 proposalID) public {	
     	require(	
-    	    vaultProposals[proposalID].valid == true &&	
+    	    vaultProposals[proposalID].valid &&	
     	    vaultProposals[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + vaultProposals[proposalID].delay  < block.timestamp,	
     	    "conditions not met"	
         );	
@@ -421,13 +417,12 @@ contract DTXfarms {
 
 	// Reduce Allocations if they exceed allowed maximum
 	function rebalanceIfPulseAllocationExceedsMaximum() external {
-		uint256 _totalAllocation = 0;
 		uint256 _poolLength = IMasterChef(masterchef).poolLength();
 
 		if(percentageAllocatedToPulseEcosystem > maxPulseEcoTotalAllocation) {
 			uint256 _exceedsBy = percentageAllocatedToPulseEcosystem - maxPulseEcoTotalAllocation;
 			percentageAllocatedToPulseEcosystem-= exceedsBy;
-			for(uint i=6; i < _poolLength; i++) {
+			for(uint i=6; i < _poolLength; ++i) {
 				poolAllocationPercentage[i] = (poolAllocationPercentage[i] * (maxPulseEcoTotalAllocation - _exceedsBy)) / maxPulseEcoTotalAllocation;
 			}
 		}
@@ -437,7 +432,7 @@ contract DTXfarms {
 	// reduce by 1% every 7 days
 	// Y=9000*(1-0.01)^t
 	function reduceMaxPulseAllocation() external {
-		require(lastReducePulseAllocation <= block.timestamp - 7 * 86400, "Must wait 7 days");
+		require(lastReducePulseAllocation <= block.timestamp - 7 days, "Must wait 7 days");
 		lastReducePulseAllocation = block.timestamp;
 		maxPulseEcoTotalAllocation = maxPulseEcoTotalAllocation * 99 / 100;
 	}
