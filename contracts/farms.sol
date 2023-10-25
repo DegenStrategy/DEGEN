@@ -420,11 +420,10 @@ contract DTXfarms {
 		uint256 _poolLength = IMasterChef(masterchef).poolLength();
 
 		if(percentageAllocatedToPulseEcosystem > maxPulseEcoTotalAllocation) {
-			uint256 _exceedsBy = percentageAllocatedToPulseEcosystem - maxPulseEcoTotalAllocation;
 			for(uint i=6; i < _poolLength; ++i) {
 				poolAllocationPercentage[i] = poolAllocationPercentage[i] * maxPulseEcoTotalAllocation / percentageAllocatedToPulseEcosystem;
 			}
-			percentageAllocatedToPulseEcosystem-= _exceedsBy;
+			percentageAllocatedToPulseEcosystem= maxPulseEcoTotalAllocation;
 		}
 	}
 
