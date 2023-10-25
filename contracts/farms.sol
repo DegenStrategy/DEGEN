@@ -59,7 +59,8 @@ contract DTXfarms {
 	ProposalTax[] public govTaxProposals; 
 	ProposalVault[] public vaultProposals;
 	
-	mapping(uint256 => uint256) public poolAllocation;
+	mapping(uint256 => uint256) public poolAllocationPercentage; 
+	uint256 public percentageAllocatedToPulseEcosystem;
     
     address public immutable token; //DTX token(address!)
 	address private _owner;
@@ -95,7 +96,8 @@ contract DTXfarms {
 		token = _DTX;
 		masterchef = _masterchef;
 		lastReducePulseAllocation = _launch + 7 days;
-		poolAllocation[10] = 9000; // Begin with allocation to Hex miners(T-shares)
+		poolAllocationPercentage[10] = 9000; // Begin with 90% allocation to Hex miners(T-shares) 
+		percentageAllocatedToPulseEcosystem = 9000;
 	}
 
 	//ability to change max allocations without launching new contract
@@ -113,18 +115,14 @@ contract DTXfarms {
 			_totalAllocatedToXPDMiners+= _allocation;
 		}
 
-		uint256 _percentageAllocatedToPulseEcosystem = 0; //Percentages here
 		uint256 _poolLength = IMasterChef(masterchef).poolLength();
-		for(uint i=6; i < _poolLength; i++) {
-			_percentageAllocatedToPulseEcosystem+= poolAllocation[i];
-		}
 
-		uint256 _percentageAllocatedToXPDMiners = 10000 - _percentageAllocatedToPulseEcosystem;
+		uint256 _percentageAllocatedToXPDMiners = 10000 - percentageAllocatedToPulseEcosystem;
 		uint256 _multiplier = 100000000 / _percentageAllocatedToXPDMiners;
 		uint256 _newTotalAllocation = (_totalAllocatedToXPDMiners * _multiplier) / 10000;
 
 		for(uint i=6; i < _poolLength; i++) {
-			uint256 _newAlloc = _newTotalAllocation * poolAllocation[i] / 10000;
+			uint256 _newAlloc = _newTotalAllocation * poolAllocationPercentage[i] / 10000;
 			IGovernor(owner()).setPool(i, _newAlloc, false);
 		}
 		IMasterChef(masterchef).massUpdatePools();
@@ -205,16 +203,11 @@ contract DTXfarms {
 
 			//check so it does not exceed total
 			uint256 _poolLength = IMasterChef(masterchef).poolLength();
-			for(uint256 i= 6; i<_poolLength; i++) {
-				if(_poolID != i) { 
-					_pulseEcoCount+= poolAllocation[i];
-				} else {
-					_pulseEcoCount+= _newAllocation;
-				}
-			}
-			require(_pulseEcoCount <= maxPulseEcoTotalAllocation, "exceeds maximum allowed allocation for pulse ecosystem");
+			uint256 _newTotalToPulse = percentageAllocatedToPulseEcosystem - poolAllocationPercentage[_poolID] + _newAllocation;
 
-			poolAllocation[_poolID] = _newAllocation;
+			require(_newTotalToPulse <= maxPulseEcoTotalAllocation, "exceeds maximum allowed allocation for pulse ecosystem");
+			percentageAllocatedToPulseEcosystem = _newTotalToPulse;
+			poolAllocationPercentage[_poolID] = _newAllocation;
 			proposalFarmUpdate[proposalID].valid = false;
 			
 			emit EnforceProposal(0, proposalID, msg.sender, true);
@@ -430,14 +423,11 @@ contract DTXfarms {
 	function rebalanceIfPulseAllocationExceedsMaximum() external {
 		uint256 _totalAllocation = 0;
 		uint256 _poolLength = IMasterChef(masterchef).poolLength();
-		for(uint i=6; i < _poolLength; i++) {
-			_totalAllocation+= poolAllocation[i];
-		}
 
-		if(_totalAllocation > maxPulseEcoTotalAllocation) {
-			uint256 _exceedsBy = _totalAllocation - maxPulseEcoTotalAllocation;
+		if(percentageAllocatedToPulseEcosystem > maxPulseEcoTotalAllocation) {
+			uint256 _exceedsBy = percentageAllocatedToPulseEcosystem - maxPulseEcoTotalAllocation;
 			for(uint i=6; i < _poolLength; i++) {
-				poolAllocation[i] = (poolAllocation[i] * (maxPulseEcoTotalAllocation - _exceedsBy)) / maxPulseEcoTotalAllocation;
+				poolAllocationPercentage[i] = (poolAllocationPercentage[i] * (maxPulseEcoTotalAllocation - _exceedsBy)) / maxPulseEcoTotalAllocation;
 			}
 		}
 	}
