@@ -121,11 +121,11 @@ contract DTXfarms {
 		uint256 _multiplier = 100000000 / _percentageAllocatedToXPDMiners;
 		uint256 _newTotalAllocation = (_totalAllocatedToXPDMiners * _multiplier) / 10000;
 
+		IMasterChef(masterchef).massUpdatePools();
 		for(uint i=6; i < _poolLength; i++) {
 			uint256 _newAlloc = _newTotalAllocation * poolAllocationPercentage[i] / 10000;
 			IGovernor(owner()).setPool(i, _newAlloc, false);
 		}
-		IMasterChef(masterchef).massUpdatePools();
 	}
     
     /**
