@@ -19,6 +19,7 @@ interface IChange {
     function updateTreasury() external;
 	function syncOwner() external;
 	function updateFees() external;
+    function viewVaults() external view returns(address[] memory);
 }
 
 contract DTXsyncContracts {
@@ -55,6 +56,7 @@ contract DTXsyncContracts {
         setBalanceAbove0();
 		updateTreasury();
 		syncCreditContract();
+        updateFees();
     }
 
     function updateAll() external {
@@ -67,6 +69,7 @@ contract DTXsyncContracts {
         IChange(proxyVoting).updatePools();
 		updateTreasury();
 		syncCreditContract();
+        updateFees();
     }
 
     function updatePools() public {
@@ -150,9 +153,12 @@ contract DTXsyncContracts {
     }
 
 	// Update Fees for vaults
-	function updateFees(address[] calldata _vaults) external {
-		for(uint256 i=0; i < _vaults.length; i++) {
-			IChange(_vaults[i]).updateFees();
+	function updateFees() public {
+        address governor = IDTX(tokenDTX).governor();
+        address referralContract = IGovernor(governor).rewardContract();
+        address[] memory vaults = IChange(referralContract).viewVaults();
+		for(uint256 i=0; i < vaults.length; i++) {
+			IChange(vaults[i]).updateFees();
 		}
 	}
 	
