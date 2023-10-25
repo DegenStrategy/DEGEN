@@ -421,10 +421,10 @@ contract DTXfarms {
 
 		if(percentageAllocatedToPulseEcosystem > maxPulseEcoTotalAllocation) {
 			uint256 _exceedsBy = percentageAllocatedToPulseEcosystem - maxPulseEcoTotalAllocation;
-			percentageAllocatedToPulseEcosystem-= _exceedsBy;
 			for(uint i=6; i < _poolLength; ++i) {
-				poolAllocationPercentage[i] = (poolAllocationPercentage[i] * (maxPulseEcoTotalAllocation - _exceedsBy)) / maxPulseEcoTotalAllocation;
+				poolAllocationPercentage[i] = poolAllocationPercentage[i] * maxPulseEcoTotalAllocation / percentageAllocatedToPulseEcosystem;
 			}
+			percentageAllocatedToPulseEcosystem-= _exceedsBy;
 		}
 	}
 
