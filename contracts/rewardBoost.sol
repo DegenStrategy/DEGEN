@@ -152,7 +152,7 @@ contract DTXrewardBoost {
 			IGovernor(owner()).transferRewardBoostThreshold();
 			IDTX(address(token)).burn(tokensForBurn); // burns the tokens - "fibonaccening" sacrifice
 
-			if((IMasterChef(masterchef).DTXPerBlock() - 1618 * 1e16) <= 1618 * 1e16) {
+			if((IMasterChef(masterchef).DTXPerBlock() - 1618 * 1e15) <= 1618 * 1e15) {
 				expiredGrandFibonaccening = true;
 			}
 
@@ -240,16 +240,16 @@ contract DTXrewardBoost {
     */
     function calculateUpcomingRewardPerBlock() public view returns(uint256) {
 		if(!expiredGrandFibonaccening) {
-			return IGovernor(owner()).lastRegularReward() - 1618 * 1e16; // Reduce reward by 16.18 reward per block
+			return IGovernor(owner()).lastRegularReward() - 1618 * 1e15; // Reduce reward by 1.618 reward per block
 		} else {
-			uint256 _factor = 1618 * 1e16;
+			uint256 _factor = 1618;
 			for(uint256 i = 0; i < IGovernor(owner()).totalFibonacciEventsAfterGrand(); i++) {
 				_factor = _factor * 98382 / 100000; //factor is multiplied * 1000 (number is 1618, when actual factor is 1.618)
 			}
 			
 			uint256 initialSupply = IMasterChef(masterchef).virtualTotalSupply();
 			
-			uint256 supplyToPrint = initialSupply * _factor / 1e18 / 100000; 
+			uint256 supplyToPrint = initialSupply * _factor / 100000; 
 		
 			uint256 rewardPerBlock = supplyToPrint / (365 * 24 * 3600 * 99000 / 1000000); // 0.099 blocks per second
 
