@@ -124,6 +124,8 @@ contract tshareVault is ReentrancyGuard {
 		require(nrOfStakes > 0, "no stakes");
 		uint256 _shares;
         uint256 _amount = 0;
+
+		if(nrOfStakes > maxStakes) { nrOfStakes = maxStakes; }
 		for(uint256 i=0; i<nrOfStakes; ++i) {
 			(, , _shares, , , ,) = hexC.stakeLists(_userAddress, i);
 			_amount+= _shares;
@@ -162,7 +164,7 @@ contract tshareVault is ReentrancyGuard {
     function withdraw(address _harvestInto) public nonReentrant {
         harvest();
         UserInfo storage user = userInfo[msg.sender];
-		require(user.lastAction < block.timestamp + safePeriod, "You must wait a SAFE PERIOD of 12hours before withdrawing!");
+		require(user.lastAction + safePeriod < block.timestamp, "You must wait a SAFE PERIOD of 12hours before withdrawing!");
 		uint256 userTokens = user.amount; 
 		require(userTokens > 0, "no active stake");
 
@@ -191,7 +193,9 @@ contract tshareVault is ReentrancyGuard {
 			referralPoints[referredBy[msg.sender]]+= _toWithdraw;
 		}
 
-        IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
+		if(currentAmount > 0) {
+        	IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
+		}
 
 		lastCredit = lastCredit - (_toWithdraw + currentAmount);
 		
@@ -204,7 +208,7 @@ contract tshareVault is ReentrancyGuard {
 	//In case user has too many stakes, or if some are not worth harvesting
 	function selfHarvest(address _harvestInto) external {
         UserInfo storage user = userInfo[msg.sender];
-		require(user.lastAction < block.timestamp + safePeriod, "You must wait a SAFE PERIOD of 12hours before withdrawing!");
+		require(user.lastAction + safePeriod < block.timestamp, "You must wait a SAFE PERIOD of 12hours before withdrawing!");
 		require(user.amount > 0, "no shares");
         harvest();
         uint256 _toWithdraw = 0;
@@ -229,7 +233,9 @@ contract tshareVault is ReentrancyGuard {
 		}
 
 		uint256 _penalty = _toWithdraw - _payout;
-		IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
+		if(_penalty > 0) {
+			IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
+		}
 
 		lastCredit = lastCredit - (_payout + _penalty);
 
@@ -273,6 +279,7 @@ contract tshareVault is ReentrancyGuard {
     }
     
     function updateSettings(uint256 _defaultDirectHarvest) external decentralizedVoting {
+		require(_defaultDirectHarvest <= 10_000, "cant exceed 100%");
         defaultDirectPayout = _defaultDirectHarvest;
     }
 	
