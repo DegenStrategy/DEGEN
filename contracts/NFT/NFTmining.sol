@@ -33,11 +33,6 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         uint256 allocation; //the allocation for the NFT 
 		address allocContract; //contract that contains allocation details
     }
-    struct UserSettings {
-        address pool; //which pool to payout in
-        uint256 harvestThreshold;
-        uint256 feeToPay;
-    }
     struct PoolPayout {
         uint256 amount;
         uint256 minServe;
@@ -49,15 +44,16 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
- 
+
+	// Referral system: Track referrer + referral points
+	mapping(address => address) public referredBy;
+	mapping(address => uint256) public referralPoints;
+
 	uint256 public poolID = 11; 
     uint256 public totalAllocation = 10000;
     uint256 public accDtxPerShare;
-    address public admin; //admin = governing contract!
     address public treasury; //penalties
     address public allocationContract; // PROXY CONTRACT for looking up allocations
-
-    uint256 public tokenDebt; //sum of allocations of all deposited NFTs
 
 	uint256 public lastCredit; // Keep track of our latest credit score from masterchef
 
@@ -65,9 +61,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 
     event Deposit(address indexed tokenAddress, uint256 indexed tokenID, address indexed depositor, uint256 shares, uint256 nftAllocation, address allocContract);
     event Withdraw(address indexed sender, uint256 stakeID, address indexed token, uint256 indexed tokenID, uint256 shares, uint256 harvestAmount);
-    event UserSettingUpdate(address indexed user, address poolAddress, uint256 threshold, uint256 feeToPay);
 
-    event AddVotingCredit(address indexed user, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 _stakeID, address indexed token, uint256 tokenID);
     event SelfHarvest(address indexed user, address harvestInto, uint256 harvestAmount, uint256 penalty);
 
@@ -77,7 +71,6 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         address _allocationContract
     ) {
         token = _token;
-        admin = msg.sender;
 		masterchef = _masterchef;
         allocationContract = _allocationContract;
 
@@ -105,7 +98,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
      * @notice Checks if the msg.sender is the admin
      */
     modifier decentralizedVoting() {
-        require(msg.sender == admin, "admin: wut?");
+        require(msg.sender == IMasterChef(masterchef).owner(), "decentralized voting only!");
         _;
     }
 	
@@ -114,7 +107,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
      * allocationContract is the proxy
      * _allocationContract input is the actual contract containing the allocation data
      */
-    function deposit(address _tokenAddress, uint256 _tokenID, address _allocationContract) external nonReentrant {
+    function deposit(address _tokenAddress, uint256 _tokenID, address _allocationContract, address _referral) external nonReentrant {
     	uint256 _allocationAmount = INFTallocation(allocationContract).getAllocation(_tokenAddress, _tokenID, _allocationContract);
         require(_allocationAmount > 0, "Invalid NFT, no allocation");
         harvest();
@@ -123,6 +116,10 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 		uint256 _debt = _allocationAmount * accDtxPerShare / 1e12;
         
         totalAllocation+= _allocationAmount;
+
+		if(referredBy[_userAddress] == address(0) && _referral != _userAddress) {
+			referredBy[_userAddress] = _referral;
+		}
         
         userInfo[msg.sender].push(
                 UserInfo(_tokenAddress, _tokenID, _debt, _allocationAmount, _allocationContract)
@@ -138,7 +135,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
     function harvest() public {
 		IMasterChef(masterchef).updatePool(poolID);
 		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
-		uint256 _accumulatedRewards = lastCredit - _currentCredit;
+		uint256 _accumulatedRewards = _currentCredit - lastCredit;
 		lastCredit = _currentCredit;
 		accDtxPerShare+= _accumulatedRewards * 1e12  / totalAllocation;
     }
@@ -146,14 +143,13 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
     /**
     *
     */
-    function setAdmin() external {
-        admin = IMasterChef(masterchef).owner();
+    function updateTreasury() external {
         treasury = IMasterChef(masterchef).feeAddress();
     }
     
     function updateAllocationContract() external {
-        allocationContract = IGovernor(admin).nftAllocationContract();
-		poolID = IGovernor(admin).nftStakingPoolID();
+        allocationContract = IGovernor(IMasterChef(masterchef).owner()).nftAllocationContract();
+		poolID = IGovernor(IMasterChef(masterchef).owner()).nftStakingPoolID();
     }
 
     /**
@@ -187,6 +183,11 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         }
         IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
 
+		if(referredBy[msg.sender] != address(0)) {
+			referralPoints[msg.sender]+= _toWithdraw;
+			referralPoints[referredBy[msg.sender]]+= _toWithdraw;
+		}
+
 		lastCredit = lastCredit - (_toWithdraw + currentAmount);
 
 		emit Withdraw(msg.sender, _stakeID, _tokenAddress, _tokenID, _toWithdraw, currentAmount);
@@ -194,41 +195,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         IERC721(_tokenAddress).safeTransferFrom(address(this), msg.sender, _tokenID); //withdraw NFT
     }  
 
-
-    //harvest own earnings
-    function selfHarvest(address _harvestInto) external nonReentrant {
-        UserInfo[] storage user = userInfo[msg.sender];
-		require(user.length > 0, "user has no stakes");
-        harvest();
-        uint256 _totalWithdraw = 0;
-        uint256 _toWithdraw = 0;
-        uint256 _payout = 0;
- 
-        for(uint256 i = 0; i<user.length; i++) {
-            _toWithdraw = user[i].allocation * accDtxPerShare / 1e12 - user[i].debt;
-            user[i].debt = user[i].allocation * accDtxPerShare / 1e12;
-            _totalWithdraw+= _toWithdraw;
-        }
-
-        if(_harvestInto == msg.sender) {
-            _payout = _totalWithdraw * defaultDirectPayout / 10000;
-            IMasterChef(masterchef).publishTokens(msg.sender, _payout); 
-        } else {
-            require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
-            _payout = _totalWithdraw * poolPayout[_harvestInto].amount / 10000;
-			IMasterChef(masterchef).publishTokens(address(this), _payout);
-            IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
-        }
-        uint256 _penalty = _totalWithdraw - _payout;
-        IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
-
-		lastCredit = lastCredit - (_payout + _penalty);
-
-        emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);
-    }
-
-
-    function selfHarvestCustom(address _harvestInto, uint256[] memory _stakeID) external nonReentrant {
+    function selfHarvest(address _harvestInto, uint256[] memory _stakeID) external nonReentrant {
         UserInfo[] storage user = userInfo[msg.sender];
 		require(user.length > 0, "user has no stakes");
         harvest();
@@ -253,6 +220,13 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         }
         uint256 _penalty = _totalWithdraw - _payout;
         IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
+
+		lastCredit = lastCredit - (_payout + _penalty);
+
+		if(referredBy[msg.sender] != address(0)) {
+			referralPoints[msg.sender]+= _payout;
+			referralPoints[referredBy[msg.sender]]+= _payout;
+		}
 
         emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);
     }
@@ -323,7 +297,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
     //determines the payout depending on the pool. could set a governance process for it(determining amounts for pools)
 	//allocation contract contains the decentralized proccess for updating setting, but so does the admin(governor)
     function setPoolPayout(address _poolAddress, uint256 _amount, uint256 _minServe) external {
-        require(msg.sender == allocationContract || msg.sender == admin, "must be set by allocation contract or admin");
+        require(msg.sender == allocationContract || msg.sender == IMasterChef(masterchef).owner(), "must be set by allocation contract or governor");
 		require(_amount <= 10000, "out of range"); 
 		poolPayout[_poolAddress].amount = _amount;
 		poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
@@ -351,7 +325,15 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 	function withdrawStuckTokens(address _tokenAddress) external decentralizedVoting {
 		require(_tokenAddress != address(token), "wrong token");
 		
-		IERC20(_tokenAddress).safeTransfer(IGovernor(admin).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
+		IERC20(_tokenAddress).safeTransfer(IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
+	}
+
+	function viewPoolPayout(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].amount;
+	}
+
+	function viewPoolMinServe(address _contract) external view returns (uint256) {
+		return poolPayout[_contract].minServe;
 	}
 
 	// Adding virtual harvest for the external viewing
@@ -404,7 +386,8 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 	//public lookup for UI
     function publicBalanceOf() public view returns (uint256) {
         uint256 amount = IMasterChef(masterchef).pendingDtx(poolID); 
-        return token.balanceOf(address(this)) + amount; 
+		uint256 _credit = IMasterChef(masterchef).credit(address(this));
+        return _credit + amount; 
     }
 
     
