@@ -69,7 +69,7 @@ contract Senate {
 	}
 	
 	function selfReplaceSenator(address _newSenator, uint256 _senatorId) external {
-		require(senators[_senatorId] == _newSenator, "Senator ID does not match provided senator!");
+		require(senators[_senatorId] == msg.sender, "Senator ID is incorrect");
 		require(isSenator[msg.sender], "not a senator");
 		require(!addedSenator[_newSenator], "already senator");
 		require(senatorVotes[msg.sender].length == 0, "can't be participating in a vote during transfer!");
@@ -99,11 +99,7 @@ contract Senate {
 		}
 	}
 
-	/* When voting for governor, use the regular proposal ID
-	 * When voting for treasury proposals, artifically add +1 to the ID
-	 * 
-	 */
-	function vote(uint256 proposalId) external {
+	function vote(uint256 proposalId) public {
 		require(isSenator[msg.sender], "not a senator");
 		
 		for(uint i=0; i < senatorVotes[msg.sender].length; ++i) {
@@ -113,6 +109,12 @@ contract Senate {
 		votesForProposal[proposalId]++;
 		senatorVotes[msg.sender].push(proposalId);
 		emit AddVote(msg.sender, proposalId);
+	}
+
+	function massVote(uint256[] calldata _proposalId) external {
+		for(uint i=0; i < _proposalId.length; ++i) {
+			vote(_proposalId[i]);
+		}
 	}
 	
 	function removeVote(uint256 proposalId, uint256 _indexId) external {
@@ -136,8 +138,8 @@ contract Senate {
 			IConsensus(_contract).senateVeto(consensusProposalId);
 		} else {
 			// make sure the user-submitted treasury proposal ID actually matches the consensus proposal ID in the consensus contract
-			( , , , , , , , , uint256 _treasuryProposalId) = IConsensus(_contract).treasuryProposal(consensusProposalId);
-			require(_treasuryProposalId == treasuryProposalId, " Incorrect proposal! ");
+			( , , , , , , , , uint256 _consensusProposalId) = IConsensus(_contract).treasuryProposal(treasuryProposalId);
+			require(_consensusProposalId == consensusProposalId, " Incorrect proposal! ");
 			IConsensus(_contract).senateVetoTreasury(treasuryProposalId);
 		}
 	}
