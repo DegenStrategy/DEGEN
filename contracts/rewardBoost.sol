@@ -28,7 +28,9 @@ contract DTXrewardBoost {
     }
 
 	address private _owner;
-    
+
+	uint256 public rewardReduceBy = 2 * 1618 * 1e15;
+
     FibonacceningProposal[] public fibonacceningProposals;
 
     address public immutable token; //DTX token
@@ -41,8 +43,6 @@ contract DTXrewardBoost {
 
     uint256 public fibonacceningActiveID;
     uint256 public fibonacceningActivatedBlock;
-    
-    uint256 public tokensForBurn; //tokens we draw from governor to burn for fib event
 	
 	bool public expiredGrandFibonaccening;
 
@@ -148,12 +148,15 @@ contract DTXrewardBoost {
     	require(!(IGovernor(owner()).eventFibonacceningActive()), "already active");
     	
     	if(fibonacceningProposals[proposalID].valueSacrificedForVote >= fibonacceningProposals[proposalID].valueSacrificedAgainst) {
-			tokensForBurn = IGovernor(owner()).thresholdFibonaccening();
+			uint256 _tokensForBurn = IGovernor(owner()).thresholdFibonaccening();
 			IGovernor(owner()).transferRewardBoostThreshold();
-			IDTX(address(token)).burn(tokensForBurn); // burns the tokens - "fibonaccening" sacrifice
+			IDTX(address(token)).burn(_tokensForBurn); // burns the tokens - "fibonaccening" sacrifice
 
-			if((IMasterChef(masterchef).DTXPerBlock() - 1618 * 1e15) <= 1618 * 1e15) {
-				expiredGrandFibonaccening = true;
+			if(!expiredGrandFibonaccening) {
+				if((IMasterChef(masterchef).DTXPerBlock() - rewardReduceBy) <= rewardReduceBy ||
+						(IMasterChef(masterchef).virtualTotalSupply() >= 15_000_000_000 * 1e18) {
+					expiredGrandFibonaccening = true;
+				}
 			}
 
 			IGovernor(owner()).rememberReward(); // remembers last regular rewar(before boost)
@@ -225,6 +228,11 @@ contract DTXrewardBoost {
 		creditContract = IGovernor(owner()).creditContract();
 	}
 
+	function setRewardReduceBy(uint256 _amount) external {
+		require(msg.sender == owner(), "decentralized voting only!");
+		rewardReduceBy = _amount;
+	}
+
 	/**
 	 * Can be used for building database from scratch (opposed to using event logs)
 	 * also to make sure all data and latest events are synced correctly
@@ -240,7 +248,7 @@ contract DTXrewardBoost {
     */
     function calculateUpcomingRewardPerBlock() public view returns(uint256) {
 		if(!expiredGrandFibonaccening) {
-			return IGovernor(owner()).lastRegularReward() - 1618 * 1e15; // Reduce reward by 1.618 reward per block
+			return IGovernor(owner()).lastRegularReward() - rewardReduceBy; // Reduce reward by 1.618 reward per block
 		} else {
 			uint256 _factor = 1618;
 			for(uint256 i = 0; i < IGovernor(owner()).totalFibonacciEventsAfterGrand(); i++) {
