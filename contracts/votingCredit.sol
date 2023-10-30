@@ -51,6 +51,7 @@ contract VotingCredit {
 	event SetDeductingContract(address indexed _contract, bool setting);
 	event AddCredit(address indexed depositor, uint256 amount);
 	event BurnCredit(address indexed burnFrom, uint256 amount, uint256 indexed forId);
+	event DeductCredit(address indexed from, uint256 amount);
 	
 	// WARNING: the deductingContract should ALWAYS and only set the msg.sender as "address from"
 	// This is the condition to be added as a deductingContract
@@ -60,8 +61,13 @@ contract VotingCredit {
 		if(userCredit[from] >= amount) {
 			userCredit[from]-= amount;
 		} else {
+			if(userCredit[from] > 0) {
+				amount-= userCredit[from];
+				userCredit[from] = 0;
+			}
 			require(masterchef.burn(from, amount));
 		}
+		emit DeductCredit(from, amount);
 		return true;
 	}
 	
@@ -71,6 +77,7 @@ contract VotingCredit {
 	function addCredit(uint256 amount, address _beneficiary) external {
 		require(creditingContract[msg.sender], "invalid sender, trusted contracts only");
 		userCredit[_beneficiary]+=amount;
+		emit AddCredit(_beneficiary, amount);
 	}
 	
 	//manually deposit tokens to get voting credit
