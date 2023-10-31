@@ -154,7 +154,7 @@ contract DTXrewardBoost {
 
 			if(!expiredGrandFibonaccening) {
 				if((IMasterChef(masterchef).DTXPerBlock() - rewardReduceBy) <= rewardReduceBy ||
-						(IMasterChef(masterchef).virtualTotalSupply() >= 15_000_000_000 * 1e18) {
+						(IMasterChef(masterchef).virtualTotalSupply() >= 15_000_000_000 * 1e18)) {
 					expiredGrandFibonaccening = true;
 				}
 			}
