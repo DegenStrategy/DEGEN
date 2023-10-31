@@ -113,8 +113,8 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         
         totalAllocation+= _allocationAmount;
 
-		if(referredBy[_userAddress] == address(0) && _referral != _userAddress) {
-			referredBy[_userAddress] = _referral;
+		if(referredBy[msg.sender] == address(0) && _referral != msg.sender) {
+			referredBy[msg.sender] = _referral;
 		}
         
         userInfo[msg.sender].push(
@@ -262,7 +262,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
             IERC721(_tokenAddress).safeTransferFrom(address(this), _staker, _tokenID); //withdraw NFT
         } else if(_alloc != user.allocation) { //change allocation
             uint256 _profit = user.allocation * accDtxPerShare / 1e12 - user.debt;
-            user.debt = (user[_stakeID].allocation * accDtxPerShare / 1e12) - _profit;
+            user.debt = (user.allocation * accDtxPerShare / 1e12) - _profit;
 			totalAllocation = totalAllocation - user.allocation + _alloc; // minus previous, plus new
             user.allocation = _alloc;
         }
