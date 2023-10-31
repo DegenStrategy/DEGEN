@@ -203,7 +203,7 @@ contract DTXgovernor {
 
 	function treasuryRequest(address _tokenAddr, address _recipient, uint256 _amountToSend) external {
 		require(msg.sender == consensusContract);
-		ITreasury(treasuryWallet).requestWithdraw(
+		ITreasury(payable(treasuryWallet)).requestWithdraw(
 			_tokenAddr, _recipient, _amountToSend
 		);
 	}
