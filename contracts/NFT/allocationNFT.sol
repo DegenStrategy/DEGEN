@@ -66,7 +66,7 @@ contract DTXNFTallocationProxy {
     	require(isContract(_contract), "Address must be a contract!");
     	IVoting(creditContract).deductCredit(msg.sender, IGovernor(owner()).costToVote() * 50);
 
-		uint256 _check = IAllocation(_contract).getAllocation(address(this)); // Check for compatibility
+		uint256 _check = IAllocation(_contract).nftAllocation(address(this), 0); // Check for compatibility
         emit NotifyVote(_contract, addressToUint256(_contract), msg.sender);
     }
 
@@ -169,14 +169,6 @@ contract DTXNFTallocationProxy {
 
 	function syncCreditContract() external {
 		creditContract = IGovernor(owner()).creditContract();
-	}
-	
-	/**
-	 * Can be used for building database from scratch (opposed to using event logs)
-	 * also to make sure all data and latest events are synced correctly
-	 */
-	function proposalLengths() external view returns(uint256) {
-		return(payoutProposal.length);
 	}
 
 	function owner() public view returns (address) {
