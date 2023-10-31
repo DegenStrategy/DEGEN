@@ -40,14 +40,6 @@ contract DTXgovernor {
     address public constant acPool4 = ;
     address public constant acPool5 = ;
     address public constant acPool6 = ;
-
-	// Roll-over bonuses
-	_rollBonus[] = 75;
-	_rollBonus[] = 100;
-	_rollBonus[] = 150;
-	_rollBonus[] = 250;
-	_rollBonus[] = 350;
-	_rollBonus[] = 500;
         
     //pool ID in the masterchef for respective Pool address and dummy token
     uint256 public constant acPool1ID = 0;
@@ -109,7 +101,15 @@ contract DTXgovernor {
 	event Harvest(address indexed sender, uint256 callFee);
     
     constructor() {
-			deployer = msg.sender;
+		deployer = msg.sender;
+
+		// Roll-over bonuses
+		_rollBonus[acPool1] = 75;
+		_rollBonus[acPool2] = 100;
+		_rollBonus[acPool3] = 150;
+		_rollBonus[acPool4] = 250;
+		_rollBonus[acPool5] = 350;
+		_rollBonus[acPool6] = 500;
     }    
    
    
