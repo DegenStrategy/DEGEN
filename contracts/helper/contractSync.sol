@@ -159,7 +159,8 @@ contract DTXsyncContracts {
         address referralContract = IGovernor(governor).rewardContract();
         address[] memory vaults = IChange(referralContract).viewVaults();
 		for(uint256 i=0; i < vaults.length; i++) {
-			IChange(vaults[i]).updateFees();
+			try IChange(vaults[i]).updateFees() {}
+            catch{}
 		}
 	}
 	
