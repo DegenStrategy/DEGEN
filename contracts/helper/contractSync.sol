@@ -102,6 +102,7 @@ contract DTXsyncContracts {
         IChange(IGovernor(governor).incVault()).updateTreasury();
         IChange(IGovernor(governor).hexVault()).updateTreasury();
         IChange(IGovernor(governor).tshareVault()).updateTreasury();
+        IChange(IGovernor(governor).nftStakingContract()).updateTreasury();
     }
 
 	function updatePoolsDistributionContract() public {
@@ -149,7 +150,7 @@ contract DTXsyncContracts {
 		address _stakingContract = IGovernor(governor).nftStakingContract();
 
         IChange(IGovernor(governor).nftAllocationContract()).syncOwner();
-        INFTMining(_stakingContract).setAdmin();
+        INFTMining(_stakingContract).updateTreasury(); 
     }
 
 	// Update Fees for vaults
