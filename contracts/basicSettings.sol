@@ -107,6 +107,14 @@ contract DTXbasics {
     }
 	function voteSetMinDepositY(uint256 proposalID, uint256 withTokens) external {
 		require(minDepositProposals[proposalID].valid, "invalid");
+		require(
+			(	minDepositProposals[proposalID].firstCallTimestamp 
+				+ minDepositProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -116,6 +124,14 @@ contract DTXbasics {
 	}
 	function voteSetMinDepositN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(minDepositProposals[proposalID].valid, "invalid");
+		require(
+			(	minDepositProposals[proposalID].firstCallTimestamp 
+				+ minDepositProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -125,7 +141,7 @@ contract DTXbasics {
 		emit AddVotes(0, proposalID, msg.sender, withTokens, false);
 	}
     function vetoSetMinDeposit(uint256 proposalID) public {
-    	require(minDepositProposals[proposalID].valid == true, "Proposal already invalid");
+    	require(minDepositProposals[proposalID].valid, "Proposal already invalid");
 		require(
 			minDepositProposals[proposalID].firstCallTimestamp + minDepositProposals[proposalID].delay < block.timestamp, 
 			"pending delay"
@@ -173,6 +189,14 @@ contract DTXbasics {
     }
 	function voteNewPoolY(uint256 proposalID, uint256 withTokens) external {
 		require(newPoolProposal[proposalID].valid, "invalid");
+		require(
+			(	newPoolProposal[proposalID].firstCallTimestamp 
+				+ newPoolProposal[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -182,6 +206,14 @@ contract DTXbasics {
 	}
 	function voteNewPoolN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(newPoolProposal[proposalID].valid, "invalid");
+		require(
+			(	newPoolProposal[proposalID].firstCallTimestamp 
+				+ newPoolProposal[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -191,7 +223,7 @@ contract DTXbasics {
 		emit AddVotes(2, proposalID, msg.sender, withTokens, false);
 	}
     function vetoNewPool(uint256 proposalID) public {
-    	require(newPoolProposal[proposalID].valid == true, "Proposal already invalid");
+    	require(newPoolProposal[proposalID].valid, "Proposal already invalid");
 		require(
 			newPoolProposal[proposalID].firstCallTimestamp + newPoolProposal[proposalID].delay < block.timestamp, 
 			"pending delay"
@@ -245,6 +277,14 @@ contract DTXbasics {
     }
 	function voteDelayBeforeEnforceProposalY(uint256 proposalID, uint256 withTokens) external {
 		require(delayProposals[proposalID].valid, "invalid");
+		require(
+			(	delayProposals[proposalID].firstCallTimestamp 
+				+ delayProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
@@ -254,6 +294,14 @@ contract DTXbasics {
 	}
 	function voteDelayBeforeEnforceProposalN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(delayProposals[proposalID].valid, "invalid");
+		require(
+			(	delayProposals[proposalID].firstCallTimestamp 
+				+ delayProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -263,7 +311,7 @@ contract DTXbasics {
 		emit AddVotes(1, proposalID, msg.sender, withTokens, false);
 	}
     function vetoDelayBeforeEnforceProposal(uint256 proposalID) public {
-    	require(delayProposals[proposalID].valid == true, "Proposal already invalid");
+    	require(delayProposals[proposalID].valid, "Proposal already invalid");
 		require(delayProposals[proposalID].firstCallTimestamp + delayProposals[proposalID].delay < block.timestamp, "pending delay");
 		require(delayProposals[proposalID].valueSacrificedForVote < delayProposals[proposalID].valueSacrificedAgainst, "needs more votes");
     	
@@ -273,7 +321,7 @@ contract DTXbasics {
     }
     function executeDelayBeforeEnforceProposal(uint256 proposalID) public {
     	require(
-    	    delayProposals[proposalID].valid == true &&
+    	    delayProposals[proposalID].valid &&
     	    delayProposals[proposalID].firstCallTimestamp + 
 			IGovernor(owner()).delayBeforeEnforce() + 
 			delayProposals[proposalID].delay < block.timestamp,
@@ -308,6 +356,14 @@ contract DTXbasics {
     }
 	function voteProposalRolloverBonusY(uint256 proposalID, uint256 withTokens) external {
 		require(rolloverBonuses[proposalID].valid, "invalid");
+		require(
+			(	rolloverBonuses[proposalID].firstCallTimestamp 
+				+ rolloverBonuses[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
@@ -317,6 +373,14 @@ contract DTXbasics {
 	}
 	function voteProposalRolloverBonusN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(rolloverBonuses[proposalID].valid, "invalid");
+		require(
+			(	rolloverBonuses[proposalID].firstCallTimestamp 
+				+ rolloverBonuses[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
@@ -378,6 +442,14 @@ contract DTXbasics {
     }
 	function voteSetCallFeeY(uint256 proposalID, uint256 withTokens) external {
 		require(callFeeProposal[proposalID].valid, "invalid");
+		require(
+			(	callFeeProposal[proposalID].firstCallTimestamp 
+				+ callFeeProposal[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
@@ -387,6 +459,14 @@ contract DTXbasics {
 	}
 	function voteSetCallFeeN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(callFeeProposal[proposalID].valid, "invalid");
+		require(
+			(	callFeeProposal[proposalID].firstCallTimestamp 
+				+ callFeeProposal[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -396,7 +476,7 @@ contract DTXbasics {
 		emit AddVotes(4, proposalID, msg.sender, withTokens, false);
 	}
     function vetoSetCallFee(uint256 proposalID) public {
-    	require(callFeeProposal[proposalID].valid == true, "Proposal already invalid");
+    	require(callFeeProposal[proposalID].valid, "Proposal already invalid");
 		require(
 			callFeeProposal[proposalID].firstCallTimestamp + 
 			callFeeProposal[proposalID].delay < block.timestamp, 
@@ -473,6 +553,14 @@ contract DTXbasics {
     }
 	function voteSetMinThresholdFibonacceningY(uint256 proposalID, uint256 withTokens) external {
 		require(minThresholdFibonacceningProposal[proposalID].valid, "invalid");
+		require(
+			(	minThresholdFibonacceningProposal[proposalID].firstCallTimestamp 
+				+ minThresholdFibonacceningProposal[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -482,6 +570,14 @@ contract DTXbasics {
 	}
 	function voteSetMinThresholdFibonacceningN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(minThresholdFibonacceningProposal[proposalID].valid, "invalid");
+		require(
+			(	minThresholdFibonacceningProposal[proposalID].firstCallTimestamp 
+				+ minThresholdFibonacceningProposal[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
@@ -491,7 +587,7 @@ contract DTXbasics {
 		emit AddVotes(5, proposalID, msg.sender, withTokens, false);
 	}
     function vetoSetMinThresholdFibonaccening(uint256 proposalID) public {
-    	require(minThresholdFibonacceningProposal[proposalID].valid == true, "Invalid proposal"); 
+    	require(minThresholdFibonacceningProposal[proposalID].valid, "Invalid proposal"); 
 		require(
 			minThresholdFibonacceningProposal[proposalID].firstCallTimestamp + 
 			minThresholdFibonacceningProposal[proposalID].delay <= block.timestamp,
@@ -509,7 +605,7 @@ contract DTXbasics {
     }
     function executeSetMinThresholdFibonaccening(uint256 proposalID) public {
     	require(
-    	    minThresholdFibonacceningProposal[proposalID].valid == true &&
+    	    minThresholdFibonacceningProposal[proposalID].valid &&
     	    minThresholdFibonacceningProposal[proposalID].firstCallTimestamp + 
 			IGovernor(owner()).delayBeforeEnforce() + 
 			minThresholdFibonacceningProposal[proposalID].delay < block.timestamp,
