@@ -157,6 +157,14 @@ contract DTXfarms {
     }
 	function voteFarmProposalY(uint256 proposalID, uint256 withTokens) external {
 		require(proposalFarmUpdate[proposalID].valid, "invalid");
+		require(
+			(	proposalFarmUpdate[proposalID].firstCallTimestamp 
+				+ proposalFarmUpdate[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
@@ -166,6 +174,14 @@ contract DTXfarms {
 	}
 	function voteFarmProposalN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(proposalFarmUpdate[proposalID].valid, "invalid");
+		require(
+			(	proposalFarmUpdate[proposalID].firstCallTimestamp 
+				+ proposalFarmUpdate[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -195,11 +211,7 @@ contract DTXfarms {
         
 		if(proposalFarmUpdate[proposalID].valueSacrificedForVote >= proposalFarmUpdate[proposalID].valueSacrificedAgainst) {
 			uint256 _poolID = proposalFarmUpdate[proposalID].poolid;
-			uint256 _pulseEcoCount = 0;
 			uint256 _newAllocation = proposalFarmUpdate[proposalID].newAllocation;
-
-			//check so it does not exceed total
-			uint256 _poolLength = IMasterChef(masterchef).poolLength();
 			uint256 _newTotalToPulse = percentageAllocatedToPulseEcosystem - poolAllocationPercentage[_poolID] + _newAllocation;
 
 			require(_newTotalToPulse <= maxPulseEcoTotalAllocation, "exceeds maximum allowed allocation for pulse ecosystem");
@@ -238,6 +250,14 @@ contract DTXfarms {
     }
 	function voteGovernorTransferY(uint256 proposalID, uint256 withTokens) external {
 		require(governorTransferProposals[proposalID].valid, "invalid");
+		require(
+			(	governorTransferProposals[proposalID].firstCallTimestamp 
+				+ governorTransferProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
@@ -247,6 +267,14 @@ contract DTXfarms {
 	}
 	function voteGovernorTransferN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(governorTransferProposals[proposalID].valid, "invalid");
+		require(
+			(	governorTransferProposals[proposalID].firstCallTimestamp 
+				+ governorTransferProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -297,9 +325,7 @@ contract DTXfarms {
 		_owner = IDTX(token).governor();
     }
 	
-	//Proposals to set governor 'tax'(in masterchef, on every mint this % of inflation goes to the governor)
-	//1000 = 10%. Max 10%
-	// ( mintTokens * thisAmount / 10 000 ) in the masterchef contract
+	//Proposals to set governor 'tax'(in masterchef, on every mint a % of inflation goes to the governor)
   function proposeGovTax(uint256 depositingTokens, uint256 _amount, uint256 delay) external {
         require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
@@ -316,6 +342,14 @@ contract DTXfarms {
     }
 	function voteGovTaxY(uint256 proposalID, uint256 withTokens) external {
 		require(govTaxProposals[proposalID].valid, "invalid");
+		require(
+			(	govTaxProposals[proposalID].firstCallTimestamp 
+				+ govTaxProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
@@ -325,6 +359,14 @@ contract DTXfarms {
 	}
 	function voteGovTaxN(uint256 proposalID, uint256 withTokens, bool withAction) external {
 		require(govTaxProposals[proposalID].valid, "invalid");
+		require(
+			(	govTaxProposals[proposalID].firstCallTimestamp 
+				+ govTaxProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 		
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 		
@@ -375,6 +417,14 @@ contract DTXfarms {
     }	
 	function voteVaultY(uint256 proposalID, uint256 withTokens) external {	
 		require(vaultProposals[proposalID].valid, "invalid");	
+		require(
+			(	vaultProposals[proposalID].firstCallTimestamp 
+				+ vaultProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 			
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);	
 		vaultProposals[proposalID].valueSacrificedForVote+= withTokens;	
@@ -383,6 +433,14 @@ contract DTXfarms {
 	}	
 	function voteVaultN(uint256 proposalID, uint256 withTokens, bool withAction) external {	
 		require(vaultProposals[proposalID].valid, "invalid");	
+		require(
+			(	vaultProposals[proposalID].firstCallTimestamp 
+				+ vaultProposals[proposalID].delay 
+				+ IGovernor(owner()).delayBeforeEnforce()
+			) 
+				> block.timestamp,
+			"can already be enforced"
+		);
 			
 		IVoting(creditContract).deductCredit(msg.sender, withTokens);	
 			
