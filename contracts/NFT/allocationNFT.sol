@@ -2,13 +2,9 @@
 
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
 import "../interface/IGovernor.sol";
 import "../interface/IDTX.sol";
 import "../interface/IConsensus.sol";
-import "../interface/IMasterChef.sol";
 import "../interface/IVoting.sol";
 
 interface IAllocation {
@@ -26,28 +22,16 @@ interface IAllocation {
  * And this contract looks up the actual allocation number through the valid allocation contract
  * Can contain a batch/list of NFTs, process for changing allocations, etc...
 */
-contract DTXNFTallocationProxy is Ownable {
+contract DTXNFTallocationProxy {
     struct PendingContract {
         bool isValid;
         uint256 timestamp;
         uint256 votesCommitted;
     }
 
-    struct ProposalStructure {
-        bool valid;
-        uint256 firstCallTimestamp;
-        uint256 valueSacrificedForVote;
-		uint256 valueSacrificedAgainst;
-		uint256 delay;
-        address poolAddress;
-        uint256 payoutAmount;
-		uint256 minServe; //minimum time required to serve before withdrawal
-    }
-
-	ProposalStructure[] public payoutProposal;
+	address private _owner;
 
     address public immutable token;
-    address public immutable masterchef;
 	
 	address public creditContract;
 
@@ -58,19 +42,18 @@ contract DTXNFTallocationProxy is Ownable {
     mapping(address => bool) public allocationContract; 
     mapping(address => PendingContract) public pendingContract; 
     
-    constructor(address _dtx, address _masterchef) {
+    constructor(address _dtx) {
         token = _dtx;
-        masterchef = _masterchef;
     }
 
-    event SetAllocationContract(address contractAddress, bool setting);
-    event SetPendingContract(address contractAddress, uint256 uintValue, bool setting);
-    event UpdateVotes(address contractAddress, uint256 uintValue, uint256 weightedVote);
-    event NotifyVote(address _contract, uint256 uintValue, address enforcer);
+    event SetAllocationContract(address indexed contractAddress, bool setting);
+    event SetPendingContract(address indexed contractAddress, uint256 uintValue, bool setting);
+    event UpdateVotes(address indexed contractAddress, uint256 uintValue, uint256 weightedVote);
+    event NotifyVote(address indexed _contract, uint256 uintValue, address indexed enforcer);
 
     function getAllocation(address _tokenAddress, uint256 _tokenID, address _allocationContract) external view returns (uint256) {
         uint256 _alloc = IAllocation(_allocationContract).nftAllocation(_tokenAddress, _tokenID);
-	if(allocationContract[_allocationContract] && _alloc >= 1e18) { //allocation must be equal or greater than 1e18
+	if(allocationContract[_allocationContract]) { //allocation must be equal or greater than 1e18
             return _alloc;
         } else {
             return 0;
@@ -82,11 +65,14 @@ contract DTXNFTallocationProxy is Ownable {
     function notifyVote(address _contract) external {
     	require(isContract(_contract), "Address must be a contract!");
     	IVoting(creditContract).deductCredit(msg.sender, IGovernor(owner()).costToVote() * 50);
+
+		uint256 _check = IAllocation(_contract).getAllocation(address(this)); // Check for compatibility
         emit NotifyVote(_contract, addressToUint256(_contract), msg.sender);
     }
 
 	//IMPORTANT: allocations have to be atleast 1e18, ideally greater!
     function proposeAllocationContract(address _contract) external {
+		require(isContract(_contract), "Address must be a contract!");
         require(!pendingContract[_contract].isValid, "already proposing");
 		require(block.timestamp > pendingContract[_contract].timestamp, "cool-off period required"); //in case contract is rejected
         uint256 _contractUint = addressToUint256(_contract);
@@ -99,7 +85,7 @@ contract DTXNFTallocationProxy is Ownable {
         require(_weightedVote > _threshold, "insufficient votes committed");
 
         pendingContract[_contract].isValid = true;
-        pendingContract[_contract].timestamp = block.timestamp;
+        pendingContract[_contract].timestamp = block.timestamp + 3 days;
         pendingContract[_contract].votesCommitted = _weightedVote;
 
         emit SetPendingContract(_contract, _contractUint, true);
@@ -149,6 +135,9 @@ contract DTXNFTallocationProxy is Ownable {
             emit SetPendingContract(_contract, _contractUint-1, false);
         } else { //enforce
             allocationContract[_contract] = true;
+			pendingContract[_contract].isValid = false;
+
+			emit SetPendingContract(_contract, _contractUint-1, true);
             emit SetAllocationContract(_contract, true);
         }
     }
@@ -175,8 +164,8 @@ contract DTXNFTallocationProxy is Ownable {
     }
 
 	function syncOwner() external {
-		_transferOwnership(IDTX(token).governor());
-	}
+		_owner = IDTX(token).governor();
+    	}
 
 	function syncCreditContract() external {
 		creditContract = IGovernor(owner()).creditContract();
@@ -189,6 +178,10 @@ contract DTXNFTallocationProxy is Ownable {
 	function proposalLengths() external view returns(uint256) {
 		return(payoutProposal.length);
 	}
+
+	function owner() public view returns (address) {
+		return _owner;
+    	}
 	
 	function isContract(address _address) public view returns (bool) {
 	    uint256 codeSize;
