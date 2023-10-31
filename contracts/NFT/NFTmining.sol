@@ -2,18 +2,14 @@
 
 pragma solidity 0.8.20;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/utils/SafeERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contracts/security/ReentrancyGuard.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/IERC721.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/IERC721Receiver.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 import "../interface/IMasterChef.sol";
-import "../interface/IDTX.sol";
 import "../interface/IGovernor.sol";
-import "../interface/IVoting.sol";
 import "../interface/IacPool.sol";
 
 interface INFTallocation {
@@ -135,7 +131,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
     function harvest() public {
 		IMasterChef(masterchef).updatePool(poolID);
 		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
-		uint256 _accumulatedRewards = _currentCredit - lastCredit;
+		uint256 _accumulatedRewards = lastCredit - _currentCredit;
 		lastCredit = _currentCredit;
 		accDtxPerShare+= _accumulatedRewards * 1e12  / totalAllocation;
     }
@@ -181,7 +177,9 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 			IMasterChef(masterchef).publishTokens(address(this), _toWithdraw);
             IacPool(_harvestInto).giftDeposit(_toWithdraw, msg.sender, poolPayout[_harvestInto].minServe);
         }
-        IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
+		if(currentAmount > 0) {
+        	IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
+		}
 
 		if(referredBy[msg.sender] != address(0)) {
 			referralPoints[msg.sender]+= _toWithdraw;
@@ -199,27 +197,28 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
         UserInfo[] storage user = userInfo[msg.sender];
 		require(user.length > 0, "user has no stakes");
         harvest();
-        uint256 _totalWithdraw = 0;
         uint256 _toWithdraw = 0;
         uint256 _payout = 0;
  
-        for(uint256 i = 0; i<_stakeID.length; i++) {
-            _toWithdraw = user[_stakeID[i]].allocation * accDtxPerShare / 1e12 - user[_stakeID[i]].debt;
+        for(uint256 i = 0; i<_stakeID.length; ++i) {
+            _toWithdraw+= user[_stakeID[i]].allocation * accDtxPerShare / 1e12 - user[_stakeID[i]].debt;
             user[_stakeID[i]].debt = user[_stakeID[i]].allocation * accDtxPerShare / 1e12;
-            _totalWithdraw+= _toWithdraw;
         }
 
         if(_harvestInto == msg.sender) {
-            _payout = _totalWithdraw * defaultDirectPayout / 10000;
+            _payout = _toWithdraw * defaultDirectPayout / 10000;
             IMasterChef(masterchef).publishTokens(msg.sender, _payout); 
         } else {
             require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
-            _payout = _totalWithdraw * poolPayout[_harvestInto].amount / 10000;
+            _payout = _toWithdraw * poolPayout[_harvestInto].amount / 10000;
 			IMasterChef(masterchef).publishTokens(address(this), _payout);
             IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
         }
-        uint256 _penalty = _totalWithdraw - _payout;
-        IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
+        uint256 _penalty = _toWithdraw - _payout;
+
+		if(_penalty > 0) {
+        	IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
+		}
 
 		lastCredit = lastCredit - (_payout + _penalty);
 
@@ -263,7 +262,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
             IERC721(_tokenAddress).safeTransferFrom(address(this), _staker, _tokenID); //withdraw NFT
         } else if(_alloc != user.allocation) { //change allocation
             uint256 _profit = user.allocation * accDtxPerShare / 1e12 - user.debt;
-            user.debt = user.debt - _profit; //debt reduces by user earnings(amount available for harvest)
+            user.debt = (user[_stakeID].allocation * accDtxPerShare / 1e12) - _profit;
 			totalAllocation = totalAllocation - user.allocation + _alloc; // minus previous, plus new
             user.allocation = _alloc;
         }
@@ -271,7 +270,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 	
 	
 	// emergency withdraw, without caring about rewards
-	function emergencyWithdraw(uint256 _stakeID) public {
+	function emergencyWithdraw(uint256 _stakeID) public nonReentrant {
 		require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
 		UserInfo storage user = userInfo[msg.sender][_stakeID];
 		totalAllocation-= user.allocation;
@@ -322,7 +321,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 	 * option to withdraw wrongfully sent tokens(but requires change of the governing contract to do so)
 	 * If you send wrong tokens to the contract address, consider them lost. Though there is possibility of recovery
 	 */
-	function withdrawStuckTokens(address _tokenAddress) external decentralizedVoting {
+	function withdrawStuckTokens(address _tokenAddress) external {
 		require(_tokenAddress != address(token), "wrong token");
 		
 		IERC20(_tokenAddress).safeTransfer(IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(), IERC20(_tokenAddress).balanceOf(address(this)));
@@ -354,7 +353,7 @@ contract XPDnftMining is ReentrancyGuard, ERC721Holder {
 
 		uint256 _totalPending = 0;
 		
-		for(uint256 i=0; i < nrOfUserStakes; i++) {
+		for(uint256 i=0; i < nrOfUserStakes; ++i) {
 			_totalPending+= _stake[i].allocation * virtualaccDtxPerShare() / 1e12 - _stake[i].debt;
 		}
 		
