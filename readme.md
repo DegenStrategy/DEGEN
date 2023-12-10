@@ -2,15 +2,24 @@
 
 ## License
 
-The source code for this project is not licensed for free use, modification, or distribution. The intent is for the source code to remain private and not to be used by individuals or entities outside of the project's collaborative efforts. The following terms apply:
+The source for the Cryptocurrency Project is proprietary and provided under specific terms that facilitate contributions to the Original Smart Contract while protecting the code from unauthorized distribution and use.
 
-- **Copy/Modify/Distribute**: You may not copy, modify, or distribute this software, its source code, or any of its components for any purpose without explicit written permission from the author(s).
+### Original Smart Contract
 
-- **Contributions**: Contributions to the project are welcome, but any such contributions through pull requests or any other means imply the unconditional agreement that contributed code will also be subject to these same restrictions.
+The "Original Smart Contract" refers to the smart contract deployed on the PulseChain network at address `0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38`. Contributions to the project should be focused on this contract and the derived contracts linking back to this contract.
 
-- **Exceptions**: If you are directly contributing to this project as a collaborator or have been explicitly granted a license to use the source code by the author(s), you may work with the code under the conditions agreed upon in your collaboration or license agreement.
+### Terms of Use
 
-By accessing, viewing, or using the source code contained in this repository, you acknowledge and agree to adhere to the terms stipulated herein. If you do not agree with these terms, you must immediately cease any use of this project's code and delete all copies in your possession.
+1. **Permitted Modifications**: Individuals or entities ("Contributors") are authorized to modify the source code only for direct contributions to the Original Smart Contract. Any modifications must serve to improve, optimize, or extend its functionality.
+
+2. **Prohibited Use**: Any use, copying, modification, or distribution of this software or its components to create separate, standalone, or derivative smart contracts not directly contributing to the Original Smart Contract is strictly prohibited without explicit written permission from the authors.
+
+3. **Contributory Deployments**: In cases where Contributors deploy smart contracts employing modifications to this source code, those deployments must:
+
+   - Contribute functionality or improvements directly to the Original Smart Contract.
+   - Include the complete terms of this license with any related distribution of the source code.
+
+4. **Agreement to Terms**: By accessing, viewing, or using the source code in this repository, Contributors agree to adhere to these terms. Use of the code constitutes agreement to these terms. If you do not agree with these terms, you must not use, copy, modify, or distribute the code, and must delete all copies in your possession.
 
 ## Disclaimer
 
