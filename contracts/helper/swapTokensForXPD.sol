@@ -9,7 +9,7 @@ import "../interface/IGovernor.sol";
 
 contract AccumulateDTX {
 	uint256 public constant MAX_SWAP = 100000000 * 1e18;
-    address public constant UNISWAP_ROUTER_ADDRESS = 0x98bf93ebf5c380C0e6Ae8e192A7e2AE08edAcc02;
+    address public constant UNISWAP_ROUTER_ADDRESS = 0x165C3410fC91EF562C50559f7d2289fEbed552d9;
     address public immutable DTX = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
     address public immutable wPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
 
