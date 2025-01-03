@@ -9,37 +9,40 @@ import "./interface/IConsensus.sol";
 import "./interface/IacPool.sol";
 import "./interface/ITreasury.sol";
 
-contract DTXgovernor {
-    address private immutable deployer;
-    address public constant token = ; //XPD token
+interface ITokenBalancer {
+    function emergencyWithdraw(address _token) external;
+}
 
+contract DTXgovernor {
+    address public constant token = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38; //XPD token
+    bool public changedName = false;
 
     //masterchef address
-    address public constant masterchef = ;
+    address public constant masterchef = 0x486fEa20eA242456b450B005ED7D019E3E984f28;
 
-	address public constant basicContract = ;
-	address public constant farmContract = ;
-	address public constant fibonacceningContract = ; //reward boost contract
-    address public constant consensusContract = ;
+	address public constant basicContract = 0x5DebADaf41ED55270e0F9944FD389745e73d29B9;
+	address public constant farmContract = 0x0dc0Fabe4c9d57cCaD055b4cD627D0d24fA3C98E;
+	address public constant fibonacceningContract = 0xc77c66913B5f60522Ccb98857228511930da7403; //reward boost contract
+    address public constant consensusContract = 0x7917e04Eb4463CF80Cc00040BA0f1fF125926eF3;
 	
-	address public constant creditContract = ;
+	address public constant creditContract = 0xCF14DbcfFA6E99A444539aBbc9aE273a7bb5d75A;
 	
-	address public constant nftStakingContract = ;
-	address public constant nftAllocationContract = ;
+	address public constant nftStakingContract = 0x140f16365d05DcC84Fa489194CD022d5CBee4cb2;
+	address public constant nftAllocationContract = 0xD8508461e8134e25dc630871566B1551e797E1a7;
     
-    address public constant treasuryWallet = ;
-    address public constant nftWallet = ;
+    address public constant treasuryWallet = 0x3a4DA32dc29b146F26D8527e37FeaAe45fBebe69;
+    address public constant nftWallet = 0x26E6e614C46dA4c459d0dB2121A986672F603c00;
 
-	address public constant senateContract = ;
-	address public constant rewardContract = ; //for referral rewards
+	address public constant senateContract = 0x147B43930283d1DDe43d805B7f17E4604b7ca493;
+	address public constant rewardContract = 0x066F0a45801bcbc5232b11ed4b97c39E1369fe59; //for referral rewards
     
     //addresses for time-locked deposits(autocompounding pools)
-    address public constant acPool1 = ;
-    address public constant acPool2 = ;
-    address public constant acPool3 = ;
-    address public constant acPool4 = ;
-    address public constant acPool5 = ;
-    address public constant acPool6 = ;
+    address public constant acPool1 = 0x39b3E852D6fFA1aF6694Ef87C062450de6778da8;
+    address public constant acPool2 = 0x9013B1067C52E897E713044dE36c56BfdA8Ec9B4;
+    address public constant acPool3 = 0xb180450f064E79adBFD71Bc2fB086F9CD0Af0D67;
+    address public constant acPool4 = 0xc0483f1b0dcf601888fFD0d3A44b7124e80DB7D1;
+    address public constant acPool5 = 0x15b51Ece819f3B51ce814de67bB2419660701a3c;
+    address public constant acPool6 = 0xf3E82f4123d4262a2baEC25b03652f3932A91739;
         
     //pool ID in the masterchef for respective Pool address and dummy token
     uint256 public constant acPool1ID = 0;
@@ -48,40 +51,27 @@ contract DTXgovernor {
     uint256 public constant acPool4ID = 3;
     uint256 public constant acPool5ID = 4;
     uint256 public constant acPool6ID = 5;
-	
-	uint256 public constant nftStakingPoolID = 11;
-	
-	address public constant plsVault = ;
-	address public constant plsxVault = ;
-	address public constant incVault = ;
-	address public constant hexVault = ;
-	address public constant tshareVault = ;
-
-	address public constant tokenDistributionContract = ;
-	address public constant tokenDistributionContractExtraPenalty = ;
     
     mapping(address => uint256) private _rollBonus;
 
-	uint256 public referralBonus = 1000; // 10% for both referr and invitee
+	uint256 public referralBonus = 500; // 5% for both referr and invitee
 	uint256 public depositFee = 0;
-	uint256 public fundingRate = 0;
+	uint256 public fundingRate = 200;
 
-	uint256 public mintingPhaseLaunchDate;
+	uint256 public mintingPhaseLaunchDate = 1738574301; //arbitrarily set
 	uint256 public lastTotalCredit; // Keeps track of last total credit from chef (sends 2.5% to reward contract)
     
     uint256 public costToVote = 1000 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
-    uint256 public delayBeforeEnforce = 2 days; //minimum number of TIME between when proposal is initiated and executed
+    uint256 public delayBeforeEnforce = 1 days; //minimum number of TIME between when proposal is initiated and executed
     
     //fibonaccening event can be scheduled once minimum threshold of tokens have been collected
     uint256 public thresholdFibonaccening = 27000000 * 1e18; // roughly 2.5% of initial supply to begin with
     
     //delays for Fibonnaccening(Reward Boost) Events
-    uint256 public constant minDelay = 1 days; // has to be called minimum 1 day in advance
+    uint256 public constant minDelay = 24 hours; // has to be called minimum 1 day in advance
     uint256 public constant maxDelay = 31 days; 
-
-	bool public mintingPhase = false;
     
-    uint256 public lastRegularReward = 850 * 1e18; //remembers the last reward used(outside of boost)
+    uint256 public lastRegularReward = 850000000000000000000; //remembers the last reward used(outside of boost)
     bool public eventFibonacceningActive = false; // prevent some functions if event is active ..threshold and durations for fibonaccening
 
 
@@ -93,22 +83,17 @@ contract DTXgovernor {
 	
 	uint256 public lastHarvestedTime;
 
-	uint256[] public allocationPercentages = [5333, 8000, 12000, 26660, 34666, 40000]; // In basis points (1 basis point = 0.01%)
-
     event SetInflation(uint256 rewardPerBlock);
     event EnforceGovernor(address indexed _newGovernor, address indexed enforcer);
     event GiveRolloverBonus(address indexed recipient, uint256 amount, address indexed poolInto);
-	event Harvest(address indexed sender, uint256 callFee);
-    
-    constructor() {
-		deployer = msg.sender;
 
+    constructor() {
 		// Roll-over bonuses
-		_rollBonus[acPool1] = 75;
-		_rollBonus[acPool2] = 100;
-		_rollBonus[acPool3] = 150;
-		_rollBonus[acPool4] = 250;
-		_rollBonus[acPool5] = 350;
+		_rollBonus[acPool1] = 100;
+		_rollBonus[acPool2] = 200;
+		_rollBonus[acPool3] = 300;
+		_rollBonus[acPool4] = 400;
+		_rollBonus[acPool5] = 450;
 		_rollBonus[acPool6] = 500;
     }    
    
@@ -142,17 +127,8 @@ contract DTXgovernor {
      * Harvests from all pools and rebalances rewards
      */
     function harvest() external {
-        require(msg.sender == tx.origin, "no proxy/contracts");
-
-        uint256 totalFee = pendingHarvestRewards();
-
         rebalancePools();
-		
 		lastHarvestedTime = block.timestamp;
-	
-		require(IERC20(token).transfer(msg.sender, totalFee), "token transfer failed");
-
-		emit Harvest(msg.sender, totalFee);
     }
     
     /**
@@ -311,70 +287,12 @@ contract DTXgovernor {
 		IERC20(token).transfer(treasuryWallet, amount);
 	}
 
-	// During first 2 months, we can send 2.5% of tokens to the referral reward contract
-	// Afterwards this has to be managed through the treasury
-	function transferToReferralContract() external {
-		require(block.timestamp < mintingPhaseLaunchDate + 60 days, "Only during first 2 months!");
-		
-		uint256 _total = IMasterChef(masterchef).totalCreditRewards();
-		uint256 _toTransfer = ((_total - lastTotalCredit) * 25 / 1000);
-
-		if(IDTX(token).balanceOf(address(this)) >= _toTransfer) {
-			IDTX(token).transfer(rewardContract, _toTransfer);
-		} else {
-			_toTransfer = IDTX(token).balanceOf(address(this));
-			IDTX(token).transfer(rewardContract, _toTransfer);
-		}
-
-		lastTotalCredit = _total;
-	}
-	
-    /**
-     * Transfers collected fees into treasury wallet(but not DTX...for now)
-     */
-    function transferCollectedFees(address _tokenContract) external {
-        require(msg.sender == tx.origin);
-		require(_tokenContract != token, "not XPD!");
-		
-        uint256 amount = IERC20(_tokenContract).balanceOf(address(this));
-        
-        IERC20(_tokenContract).transfer(treasuryWallet, amount);
-    }
-
-	// When merkle tree root is provided to the distribution contract, the minting phase begins
-	function beginMintingPhase() external {
-		require(msg.sender == tokenDistributionContract, "only distribution contract!");
-		require(!mintingPhase, "Minting phase has already begun!");
-
-		mintingPhase = true;
-		mintingPhaseLaunchDate = block.timestamp;
-		IMasterChef(masterchef).updateStartBlock(block.number+59294); // Minting phase begins in 7 days
-	}
-
-	// Prior the minting phase begins, deployer can make changes in case of a security-related issue
-	function changeGovernorForSecurityPriorMintingBegins(address _newGovernor) external {
-        require(msg.sender == deployer, "Deployer only!");
-		require(!mintingPhase, "Minting phase has already begun!");
-
-        IMasterChef(masterchef).transferOwnership(_newGovernor); //transfer masterchef ownership
-    }
 
 	function getRollBonus(address _bonusForPool) external view returns (uint256) {
         return _rollBonus[_bonusForPool];
     }
-
-	function pendingHarvestRewards() public view returns (uint256) {
-		uint256 totalRewards = 
-			IacPool(acPool1).calculateHarvestDTXRewards() +
-			IacPool(acPool2).calculateHarvestDTXRewards() + 
-			IacPool(acPool3).calculateHarvestDTXRewards() +
-			IacPool(acPool4).calculateHarvestDTXRewards() + 
-			IacPool(acPool5).calculateHarvestDTXRewards() + 
-			IacPool(acPool6).calculateHarvestDTXRewards();
-		return totalRewards;
-	}
 	
-	/*
+	/* UPDATE: CHANGING SO THAT IT CHANGES BY 100 blocks per each day
 	 * newGovernorBlockDelay is the delay during which the governor proposal can be voted against
 	 * As the time passes, changes should take longer to enforce(greater security)
 	 * Prioritize speed and efficiency at launch. Prioritize security once established
@@ -385,7 +303,19 @@ contract DTXgovernor {
 	 * Can be ofcourse changed by replacing governor contract
 	 */
 	function newGovernorBlockDelay() public view returns (uint256) {
-		return (42772 + (((block.timestamp - mintingPhaseLaunchDate) / 86400) * 535));
+		return (42772 + (((block.timestamp - mintingPhaseLaunchDate) / 86400) * 100));
 	}
+
+    function changeName() public {
+        require(!changedName, "Already changed");
+        IDTX(token).rebrandName("Piggy Bank");
+        IDTX(token).rebrandSymbol("OINK");
+        changedName = true;
+    }
+
+    //recover tokens that were mistakenly sent to the wrong contract
+    function pullLostTokens() external {
+        ITokenBalancer(0xA6B1e4Fc9ECd29E9438421A32023E0b8d677D6fc).emergencyWithdraw(token);
+    }
     
 }  
