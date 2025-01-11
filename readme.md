@@ -1,4 +1,4 @@
-# PulseDAO
+# Piggy Bank (OINK)
 
 ## License
 
