@@ -27,4 +27,4 @@ This software and its source code are provided "as is", without warranty of any 
 
 ## Contact
 
-If you wish to use this software source code for an alternative purpose, contribute, or have any questions regarding the licensing terms, please reach out in telegram https://t.me/PulseDAO
+If you wish to use this software source code for an alternative purpose, contribute, or have any questions regarding the licensing terms, please reach out in telegram https://t.me/OINKpls
