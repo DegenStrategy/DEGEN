@@ -22,35 +22,26 @@ contract DTXgovernor {
 
 	address public constant basicContract = 0x5DebADaf41ED55270e0F9944FD389745e73d29B9;
 	address public constant farmContract = 0x0dc0Fabe4c9d57cCaD055b4cD627D0d24fA3C98E;
-	address public constant fibonacceningContract = 0xc77c66913B5f60522Ccb98857228511930da7403; //reward boost contract
     address public constant consensusContract = 0x7917e04Eb4463CF80Cc00040BA0f1fF125926eF3;
 	
 	address public constant creditContract = 0xCF14DbcfFA6E99A444539aBbc9aE273a7bb5d75A;
-	
-	address public constant nftStakingContract = 0x140f16365d05DcC84Fa489194CD022d5CBee4cb2;
-	address public constant nftAllocationContract = 0xD8508461e8134e25dc630871566B1551e797E1a7;
     
     address public constant treasuryWallet = 0x3a4DA32dc29b146F26D8527e37FeaAe45fBebe69;
-    address public constant nftWallet = 0x26E6e614C46dA4c459d0dB2121A986672F603c00;
 
 	address public constant senateContract = 0x147B43930283d1DDe43d805B7f17E4604b7ca493;
 	address public constant rewardContract = 0x066F0a45801bcbc5232b11ed4b97c39E1369fe59; //for referral rewards
     
     //addresses for time-locked deposits(autocompounding pools)
-    address public constant acPool1 = 0x39b3E852D6fFA1aF6694Ef87C062450de6778da8;
-    address public constant acPool2 = 0x9013B1067C52E897E713044dE36c56BfdA8Ec9B4;
-    address public constant acPool3 = 0xb180450f064E79adBFD71Bc2fB086F9CD0Af0D67;
-    address public constant acPool4 = 0xc0483f1b0dcf601888fFD0d3A44b7124e80DB7D1;
-    address public constant acPool5 = 0x15b51Ece819f3B51ce814de67bB2419660701a3c;
-    address public constant acPool6 = 0xf3E82f4123d4262a2baEC25b03652f3932A91739;
+    address public constant acPool1 = ;
+    address public constant acPool2 = ;
+    address public constant acPool3 = ;
+
         
     //pool ID in the masterchef for respective Pool address and dummy token
     uint256 public constant acPool1ID = 0;
     uint256 public constant acPool2ID = 1;
     uint256 public constant acPool3ID = 2;
-    uint256 public constant acPool4ID = 3;
-    uint256 public constant acPool5ID = 4;
-    uint256 public constant acPool6ID = 5;
+
     
     mapping(address => uint256) private _rollBonus;
 
@@ -64,15 +55,11 @@ contract DTXgovernor {
     uint256 public costToVote = 1000 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 1 days; //minimum number of TIME between when proposal is initiated and executed
     
-    //fibonaccening event can be scheduled once minimum threshold of tokens have been collected
-    uint256 public thresholdFibonaccening = 27000000 * 1e18; // roughly 2.5% of initial supply to begin with
     
     //delays for Fibonnaccening(Reward Boost) Events
     uint256 public constant minDelay = 24 hours; // has to be called minimum 1 day in advance
     uint256 public constant maxDelay = 31 days; 
     
-    uint256 public lastRegularReward = 850000000000000000000; //remembers the last reward used(outside of boost)
-    bool public eventFibonacceningActive = false; // prevent some functions if event is active ..threshold and durations for fibonaccening
 
 
     uint256  public totalFibonacciEventsAfterGrand; //used for rebalancing inflation after Grand Fib
@@ -90,11 +77,8 @@ contract DTXgovernor {
     constructor() {
 		// Roll-over bonuses
 		_rollBonus[acPool1] = 100;
-		_rollBonus[acPool2] = 200;
-		_rollBonus[acPool3] = 300;
-		_rollBonus[acPool4] = 400;
-		_rollBonus[acPool5] = 450;
-		_rollBonus[acPool6] = 500;
+		_rollBonus[acPool2] = 300;
+		_rollBonus[acPool3] = 500;
     }    
    
    
@@ -108,18 +92,12 @@ contract DTXgovernor {
     	uint256 balancePool1 = IacPool(acPool1).balanceOf();
     	uint256 balancePool2 = IacPool(acPool2).balanceOf();
     	uint256 balancePool3 = IacPool(acPool3).balanceOf();
-    	uint256 balancePool4 = IacPool(acPool4).balanceOf();
-    	uint256 balancePool5 = IacPool(acPool5).balanceOf();
-    	uint256 balancePool6 = IacPool(acPool6).balanceOf();
     	
-   	    uint256 total = balancePool1 + balancePool2 + balancePool3 + balancePool4 + balancePool5 + balancePool6;
+   	    uint256 total = balancePool1 + balancePool2 + balancePool3;
 
 		IMasterChef(masterchef).set(acPool1ID, (100000 * 5333 * balancePool1) / (total * 10000), true);
-    	IMasterChef(masterchef).set(acPool2ID, (100000 * 8000 * balancePool2) / (total * 10000), false);
-    	IMasterChef(masterchef).set(acPool3ID, (100000 * 12000 * balancePool3) / (total * 10000), false);
-    	IMasterChef(masterchef).set(acPool4ID, (100000 * 26660 * balancePool4) / (total * 10000), false);
-    	IMasterChef(masterchef).set(acPool5ID, (100000 * 34666 * balancePool5) / (total * 10000), false);
-    	IMasterChef(masterchef).set(acPool6ID, (100000 * 40000 * balancePool6) / (total * 10000), false);
+    	IMasterChef(masterchef).set(acPool2ID, (100000 * 25000 * balancePool2) / (total * 10000), false);
+    	IMasterChef(masterchef).set(acPool3ID, (100000 * 125000 * balancePool3) / (total * 10000), false);
     }
 	
 
@@ -139,8 +117,7 @@ contract DTXgovernor {
      */
     function stakeRolloverBonus(address _toAddress, address _depositToPool, uint256 _bonusToPay, uint256 _stakeID) external {
         require(
-            msg.sender == acPool1 || msg.sender == acPool2 || msg.sender == acPool3 ||
-            msg.sender == acPool4 || msg.sender == acPool5 || msg.sender == acPool6);
+            msg.sender == acPool1 || msg.sender == acPool2 || msg.sender == acPool3);
         
         IacPool(_depositToPool).addAndExtendStake(_toAddress, _bonusToPay, _stakeID, 0);
         
@@ -182,45 +159,6 @@ contract DTXgovernor {
 		ITreasury(payable(treasuryWallet)).requestWithdraw(
 			_tokenAddr, _recipient, _amountToSend
 		);
-	}
-
-
-	function rememberReward() external {
-		require(msg.sender == fibonacceningContract);
-		lastRegularReward = IMasterChef(masterchef).DTXPerBlock();
-	}
-
-
-    /**
-     * Sets inflation in Masterchef
-     */
-    function setInflation(uint256 rewardPerBlock) external {
-        require(msg.sender == fibonacceningContract);
-    	IMasterChef(masterchef).updateEmissionRate(rewardPerBlock);
-
-        emit SetInflation(rewardPerBlock);
-    }
-
-	function setActivateFibonaccening(bool _arg) external {
-		require(msg.sender == fibonacceningContract);
-		eventFibonacceningActive = _arg;
-	}
-
-
-	function transferRewardBoostThreshold() external {
-		require(msg.sender == fibonacceningContract);
-		
-		IERC20(token).transfer(fibonacceningContract, thresholdFibonaccening);
-	}
-	
-	function postGrandFibIncreaseCount() external {
-		require(msg.sender == fibonacceningContract);
-		totalFibonacciEventsAfterGrand++;
-	}
-	
-	function setThresholdFibonaccening(uint256 newThreshold) external {
-	    require(msg.sender == basicContract);
-	    thresholdFibonaccening = newThreshold;
 	}
 	
 	function updateDelayBeforeEnforce(uint256 newDelay) external {
@@ -305,17 +243,5 @@ contract DTXgovernor {
 	function newGovernorBlockDelay() public view returns (uint256) {
 		return (42772 + (((block.timestamp - mintingPhaseLaunchDate) / 86400) * 100));
 	}
-
-    function changeName() public {
-        require(!changedName, "Already changed");
-        IDTX(token).rebrandName("Piggy Bank");
-        IDTX(token).rebrandSymbol("OINK");
-        changedName = true;
-    }
-
-    //recover tokens that were mistakenly sent to the wrong contract
-    function pullLostTokens() external {
-        ITokenBalancer(0xA6B1e4Fc9ECd29E9438421A32023E0b8d677D6fc).emergencyWithdraw(token);
-    }
     
 }  
