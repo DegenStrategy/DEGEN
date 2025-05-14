@@ -9,7 +9,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contr
 import "./interface/IMasterChef.sol";
 import "./interface/IGovernor.sol";
 
-contract XPD is ERC20, ERC20Burnable, Ownable {
+contract DEGEN is ERC20, ERC20Burnable, Ownable {
 	string private _name;
     string private _symbol;
     
