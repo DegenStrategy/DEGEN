@@ -24,9 +24,9 @@ contract DTXChef is Ownable {
     // Dev address.
     address public devaddr;
 	//portion of inflation goes to the decentralized governance contract
-	uint256 public governorFee = 618; //6.18%
+	uint256 public governorFee = 1000; //10%
     // DTX tokens created per block.
-    uint256 public DTXPerBlock = 850 * 1e18; // start at 850 tokens per block (*roughly* 50,000 tokens per 10minutes; Bitcoin started with 50 BTC per 10minutes)
+    uint256 public DTXPerBlock = 1000000 * 1e18; // start at 850 tokens per block (*roughly* 50,000 tokens per 10minutes; Bitcoin started with 50 BTC per 10minutes)
     // Deposit Fee address
     address public feeAddress;
 
@@ -68,13 +68,10 @@ contract DTXChef is Ownable {
 
     constructor(
         IDTX _DTX,
-	address _airdropFull
     ) {
         dtx = _DTX;
         devaddr = msg.sender;
         feeAddress = msg.sender;
-	    credit[_airdropFull] = 1080000000 * 1e18;
-		totalCreditRewards = 1080000000 * 1e18;
     }
 	
 	function publishTokens(address _to, uint256 _amount) external {
