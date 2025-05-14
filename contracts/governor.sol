@@ -14,22 +14,22 @@ interface ITokenBalancer {
 }
 
 contract DTXgovernor {
-    address public constant token = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38; //XPD token
+    address public constant token = ; //DEGEN token
     bool public changedName = false;
 
     //masterchef address
-    address public constant masterchef = 0x486fEa20eA242456b450B005ED7D019E3E984f28;
+    address public constant masterchef = ;
 
-	address public constant basicContract = 0x5DebADaf41ED55270e0F9944FD389745e73d29B9;
-	address public constant farmContract = 0x0dc0Fabe4c9d57cCaD055b4cD627D0d24fA3C98E;
-    address public constant consensusContract = 0x7917e04Eb4463CF80Cc00040BA0f1fF125926eF3;
+	address public constant basicContract = ;
+	address public constant farmContract = ;
+    address public constant consensusContract = ;
 	
-	address public constant creditContract = 0xCF14DbcfFA6E99A444539aBbc9aE273a7bb5d75A;
+	address public constant creditContract = ;
     
-    address public constant treasuryWallet = 0x3a4DA32dc29b146F26D8527e37FeaAe45fBebe69;
+    address public constant treasuryWallet = ;
 
-	address public constant senateContract = 0x147B43930283d1DDe43d805B7f17E4604b7ca493;
-	address public constant rewardContract = 0x066F0a45801bcbc5232b11ed4b97c39E1369fe59; //for referral rewards
+	address public constant senateContract = ;
+	address public constant rewardContract = ; //for referral rewards
     
     //addresses for time-locked deposits(autocompounding pools)
     address public constant acPool1 = ;
