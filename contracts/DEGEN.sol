@@ -10,13 +10,12 @@ import "./interface/IMasterChef.sol";
 import "./interface/IGovernor.sol";
 
 contract XPD is ERC20, ERC20Burnable, Ownable {
-	uint256 public constant MAX_SUPPLY = 21_000_000_000 * 1e18; //21 billion max supply
 	string private _name;
     string private _symbol;
     
-	constructor() ERC20("PulseDAO", "XPD") Ownable(msg.sender) {
-		_name = string("PulseDAO");
-		_symbol = string("XPD");
+	constructor() ERC20("DegenStrategy", "DEGEN") Ownable(msg.sender) {
+		_name = string("DegenStrategy");
+		_symbol = string("DEGEN");
 	}
 	
     modifier decentralizedVoting {
@@ -26,7 +25,6 @@ contract XPD is ERC20, ERC20Burnable, Ownable {
 	
 
     function mint(address to, uint256 amount) external onlyOwner {
-		require(totalSupply() + amount <= MAX_SUPPLY, "MAX SUPPLY REACHED!");
         _mint(to, amount);
     }
 	
@@ -69,5 +67,9 @@ contract XPD is ERC20, ERC20Burnable, Ownable {
      */
     function symbol() public override view returns (string memory) {
         return _symbol;
+    }
+
+	function totalSupply() public override view returns (uint256) {
+        	return IMasterChef(owner()).virtualTotalSupply();
     }
 }
