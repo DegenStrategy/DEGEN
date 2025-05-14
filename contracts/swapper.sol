@@ -4,8 +4,8 @@ pragma solidity 0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/Uniswap/uniswap-v2-periphery/blob/master/contracts/interfaces/IUniswapV2Router02.sol";
 
-import "../interface/IDTX.sol";
-import "../interface/IGovernor.sol";
+import "interface/IDTX.sol";
+import "interface/IGovernor.sol";
 
 contract DegenSwapper {
 	address public constant UNISWAP_ROUTER_ADDRESS = ;
