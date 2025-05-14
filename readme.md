@@ -1,4 +1,4 @@
-# Piggy Bank (OINK)
+# DegenStrategy (DEGEN)
 
 ## License
 
