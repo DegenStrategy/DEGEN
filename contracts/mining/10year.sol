@@ -39,11 +39,8 @@ contract TimeDeposit is ReentrancyGuard {
 
     IMasterChef public masterchef;  
     
-	// the secret formula they don't want you to know
-    // 5 years = 5 * 365 = 1825 + 1(leap year every 4 years) = 1826
-    // 1337 + 420 + 69 = 1826 ... 1826 days = exactly 5 years
-    uint256 public immutable withdrawFeePeriod = 1826 days; 
-    uint256 public immutable gracePeriod = 21 days;
+    uint256 public immutable withdrawFeePeriod = 3652 days; 
+    uint256 public immutable gracePeriod = 90 days;
 
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => uint256) public userVote; //the ID the user is voting for
@@ -63,10 +60,10 @@ contract TimeDeposit is ReentrancyGuard {
     address public migrationPool; //if pools are to change
 
 	
-	uint256 public minimumGift = 1000 * 1e18;
-	bool public updateMinGiftGovernor = true; //allows automatic update by anybody to costToVote from governing contract
+	uint256 public minimumGift = 0;
+	bool public updateMinGi0ftGovernor = true; //allows automatic update by anybody to costToVote from governing contract
     
-    uint256 public callFee = 5; // call fee paid for rebalancing pools
+    uint256 public callFee = 0; // call fee paid for rebalancing pools
 	
 	bool public allowStakeTransfer = true; //enable/disable transferring of stakes to another wallet
 	bool public allowStakeTransferFrom = false; //allow third party transfers(disabled initially)
@@ -143,7 +140,7 @@ contract TimeDeposit is ReentrancyGuard {
         token = _token;
         masterchef = _masterchef;
         admin = msg.sender;
-        poolID = 5;
+        poolID = 2;
     }
     
     /**
@@ -311,13 +308,13 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 currentWithdrawFee = 0;
         
         if (block.timestamp < user.lastDepositedTime.add(withdrawFeePeriod)) {
-            uint256 withdrawFee = uint256(8200).sub(((block.timestamp - user.lastDepositedTime).div(86400)).mul(4269).div(1000));
+            uint256 withdrawFee = uint256(9400).sub(((block.timestamp - user.lastDepositedTime).div(86400)).mul(2000).div(1000));
             currentWithdrawFee = currentAmount.mul(withdrawFee).div(10000);
             IMasterChef(masterchef).publishTokens(treasury, currentWithdrawFee); 
             currentAmount = currentAmount.sub(currentWithdrawFee);
         } else if(block.timestamp > user.lastDepositedTime.add(withdrawFeePeriod).add(gracePeriod)) {
-            uint256 withdrawFee = block.timestamp.sub(user.lastDepositedTime.add(withdrawFeePeriod)).div(86400).mul(4269).div(1000);
-            if(withdrawFee > 8200) { withdrawFee = 8200; }
+            uint256 withdrawFee = block.timestamp.sub(user.lastDepositedTime.add(withdrawFeePeriod)).div(86400).mul(2000).div(1000);
+            if(withdrawFee > 9400) { withdrawFee = 9400; }
             currentWithdrawFee = currentAmount.mul(withdrawFee).div(10000);
             IMasterChef(masterchef).publishTokens(treasury, currentWithdrawFee); 
             currentAmount = currentAmount.sub(currentWithdrawFee);
