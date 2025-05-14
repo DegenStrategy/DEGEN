@@ -60,10 +60,10 @@ contract TimeDeposit is ReentrancyGuard {
     address public treasury; //penalties go to this address
     address public migrationPool; //if pools are to change
 	
-	uint256 public minimumGift = 1000 * 1e18;
+	uint256 public minimumGift = 0;
 	bool public updateMinGiftGovernor = true; //allows automatic update by anybody to costToVote from governing contract
     
-    uint256 public callFee = 5; // call fee paid for rebalancing pools
+    uint256 public callFee = 0; // call fee paid for rebalancing pools
 	
 	bool public allowStakeTransfer = true; //enable/disable transferring of stakes to another wallet
 	bool public allowStakeTransferFrom = false; //allow third party transfers(disabled initially)
