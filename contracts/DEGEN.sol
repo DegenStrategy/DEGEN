@@ -12,6 +12,8 @@ import "./interface/IGovernor.sol";
 contract DEGEN is ERC20, ERC20Burnable, Ownable {
 	string private _name;
     string private _symbol;
+	uint256 public tax = 0;
+	address public receiveTax = ;
     
 	constructor() ERC20("DegenStrategy", "DEGEN") Ownable(msg.sender) {
 		_name = string("DegenStrategy");
@@ -32,6 +34,17 @@ contract DEGEN is ERC20, ERC20Burnable, Ownable {
 		_burn(account, amount);
 		return true;
     }
+
+function _transfer(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal virtual override {
+        uint tax = amount * tax / 100; // % tax
+
+        super._transfer(sender, recipient, amount - tax);
+        super._transfer(sender, receiveTax, tax);
+    }
 	
 	// Standard ERC20 makes name and symbol immutable
 	// We add potential to rebrand for full flexibility if miners choose to do so
@@ -41,6 +54,11 @@ contract DEGEN is ERC20, ERC20Burnable, Ownable {
 
 	function rebrandSymbol(string memory _newSymbol) external decentralizedVoting {
         _symbol = _newSymbol;
+	}
+
+	function updateTax(uint256 _tax) external decentralizedVoting {
+	require(_tax <= 10, "max 10%!");
+	tax = _tax;
 	}
 	
 	// masterchef is the owner of the token (handles token minting/inflation)
