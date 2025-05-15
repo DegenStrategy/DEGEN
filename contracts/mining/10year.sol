@@ -140,7 +140,7 @@ contract TimeDeposit is ReentrancyGuard {
         token = _token;
         masterchef = _masterchef;
         admin = msg.sender;
-        poolID = 2;
+        poolID = 3;
     }
     
     /**
