@@ -60,6 +60,10 @@ function _transfer(
 	require(_tax <= 10, "max 10%!");
 	tax = _tax;
 	}
+
+	function updateTax(address _taxAddress) external decentralizedVoting {
+	receiveTax = _taxAddress;
+	}
 	
 	// masterchef is the owner of the token (handles token minting/inflation)
 	function masterchefAddress() external view returns (address) {
