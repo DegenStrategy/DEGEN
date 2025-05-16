@@ -14,6 +14,7 @@ interface ITokenBalancer {
 }
 
 contract DTXgovernor {
+    address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
     address public constant token = ; //DEGEN token
     bool public changedName = false;
 
@@ -55,11 +56,7 @@ contract DTXgovernor {
     uint256 public costToVote = 1000 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 1 days; //minimum number of TIME between when proposal is initiated and executed
     
-    
-    uint256 public newGovernorRequestBlock;
-    address public eligibleNewGovernor; //used for changing smart contract
-    bool public changeGovernorActivated;
-	
+
 	uint256 public lastHarvestedTime;
 
     event SetInflation(uint256 rewardPerBlock);
@@ -121,34 +118,19 @@ contract DTXgovernor {
     }
     
     
-    function enforceGovernor() external {
-        require(msg.sender == consensusContract);
-		require(newGovernorRequestBlock + newGovernorBlockDelay() < block.number, "time delay not yet passed");
-
-		IMasterChef(masterchef).setFeeAddress(eligibleNewGovernor);
-        IMasterChef(masterchef).dev(eligibleNewGovernor);
-        IMasterChef(masterchef).transferOwnership(eligibleNewGovernor); //transfer masterchef ownership
-		
-		IERC20(token).transfer(eligibleNewGovernor, IERC20(token).balanceOf(address(this))); // send collected DTX tokens to new governor
-        
-		emit EnforceGovernor(eligibleNewGovernor, msg.sender);
-    }
 	
     function setNewGovernor(address beneficiary) external {
-        require(msg.sender == consensusContract);
-        newGovernorRequestBlock = block.number;
-        eligibleNewGovernor = beneficiary;
-        changeGovernorActivated = true;
-    }
-	
-	function governorRejected() external {
-		require(changeGovernorActivated, "not active");
+        require(msg.sender == IDTX(OINK).governor(), "decentralized voting only");
+
+	IMasterChef(masterchef).setFeeAddress(beneficiary);
+        IMasterChef(masterchef).dev(beneficiary);
+        IMasterChef(masterchef).transferOwnership(beneficiary); //transfer masterchef ownership
 		
-		(bool _govInvalidated, ) = IConsensus(consensusContract).isGovInvalidated(eligibleNewGovernor);
-		if(_govInvalidated) {
-			changeGovernorActivated = false;
-		}
-	}
+		IERC20(token).transfer(beneficiary, IERC20(token).balanceOf(address(this))); // send collected DTX tokens to new governor
+        
+		emit EnforceGovernor(beneficiary, msg.sender);
+    }
+
 
 	function treasuryRequest(address _tokenAddr, address _recipient, uint256 _amountToSend) external {
 		require(msg.sender == consensusContract);
@@ -226,18 +208,5 @@ contract DTXgovernor {
         return _rollBonus[_bonusForPool];
     }
 	
-	/* UPDATE: CHANGING SO THAT IT CHANGES BY 100 blocks per each day
-	 * newGovernorBlockDelay is the delay during which the governor proposal can be voted against
-	 * As the time passes, changes should take longer to enforce(greater security)
-	 * Prioritize speed and efficiency at launch. Prioritize security once established
-	 * Delay increases by 535 blocks(roughly 1.6hours) per each day after launch
-	 * Delay starts at 42772 blocks(roughly 5 days)
-	 * After a month, delay will be roughly 7 days (increases 2days/month)
-	 * After a year, 29 days. After 2 years, 53 days,...
-	 * Can be ofcourse changed by replacing governor contract
-	 */
-	function newGovernorBlockDelay() public view returns (uint256) {
-		return (42772 + (((block.timestamp - mintingPhaseLaunchDate) / 86400) * 100));
-	}
     
 }  
