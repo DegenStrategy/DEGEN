@@ -25,10 +25,6 @@ contract DTXconsensus {
         address beneficiaryAddress; 
 		uint256 timestamp;
     }
-	struct GovernorInvalidated {
-        bool isInvalidated; 
-        bool hasPassed;
-    }
 
 	TreasuryTransfer[] public treasuryProposal;
 	ConsensusVote[] public consensusProposal;
@@ -63,8 +59,6 @@ contract DTXconsensus {
 	);
 	event TreasuryEnforce(uint256 indexed proposalID, address indexed enforcer, bool isSuccess);
     
-    event ProposeGovernor(uint256 proposalID, address newGovernor, address indexed enforcer);
-    event ChangeGovernor(uint256 proposalID, address indexed enforcer, bool status);
 	
 	event AddVotes(
 		uint256 _type, 
@@ -282,136 +276,6 @@ contract DTXconsensus {
 		}
 	}
 	
-	
-    function proposeGovernor(address _newGovernor) external {
-		require(isContract(_newGovernor), "Address must be a contract!");
-		governorCount++;
-		IVoting(creditContract).deductCredit(msg.sender, IGovernor(owner()).costToVote() * 100);
-		
-		consensusProposal.push(
-    	    ConsensusVote(0, _newGovernor, block.timestamp)
-    	    );
-    	consensusProposal.push(
-    	    ConsensusVote(0, _newGovernor, block.timestamp)
-    	    ); //even numbers are basically VETO (for voting against)
-    	
-    	emit ProposeGovernor(consensusProposal.length - 2, _newGovernor, msg.sender);
-    }
-    
-    /**
-     * Atleast 15% of voters required
-     * with 75% agreement required to reach consensus
-	 * After proposing Governor, a period of time(delayBeforeEnforce) must pass 
-	 * During this time, the users can vote in favor(proposalID) or against(proposalID+1)
-	 * If voting succesfull, it can be submitted
-	 * And then there is a period of roughly 6 days(specified in governing contract) before the change can be enforced
-	 * During this time, users can still vote and reject change
-	 * Unless rejected, governing contract can be updated and changes enforced
-     */
-    function changeGovernor(uint256 proposalID) external { 
-		require(
-			block.timestamp >= (consensusProposal[proposalID].timestamp + IGovernor(owner()).delayBeforeEnforce()), 
-			"Must wait delay before enforce"
-		);
-        require(
-			!(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated), 
-			" alreadyinvalidated"
-		);
-		require(
-			!(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].hasPassed), 
-			" already passed")
-		;
-		require(
-			consensusProposal.length > proposalID && proposalID % 2 == 1, 
-			"invalid proposal ID"
-		); //can't be 0 either, but %2 solves that
-        require(!(IGovernor(owner()).changeGovernorActivated()));
-		require(consensusProposal[proposalID].typeOfChange == 0);
-
-        require(
-            tokensCastedPerVote(proposalID) >= totalDTXStaked() * 15 / 100,
-				"Requires atleast 15% of staked(weighted) tokens"
-        );
-
-        //requires 2/3 agreement amongst votes (+senate can reject)
-        if(tokensCastedPerVote(proposalID+1) >= tokensCastedPerVote(proposalID) / 3) {
-            
-                isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
-                
-				emit ChangeGovernor(proposalID, msg.sender, false);
-				
-            } else {
-                IGovernor(owner()).setNewGovernor(consensusProposal[proposalID].beneficiaryAddress);
-                
-                isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].hasPassed = true;
-                
-                emit ChangeGovernor(proposalID, msg.sender, true);
-            }
-    }
-    
-    /**
-     * After approved, still roughly 6 days to cancle the new governor, if less than 80% votes agree
-	 * 6 days at beginning in case we need to make changes on the fly, and later on the period should be increased
-	 * Note: The proposal IDs here are for the consensus ID
-	 * After rejecting, call the governorRejected in governing contract(sets activated setting to false)
-     */
-    function vetoGovernor(uint256 proposalID, bool _withUpdate) external {
-        require(proposalID % 2 == 1, "Invalid proposal ID");
-        require(isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].hasPassed ,
-					"Governor has already been passed");
-		require(!isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated,
-					"Governor has already been invalidated");
-
-        if(tokensCastedPerVote(proposalID+1) >= tokensCastedPerVote(proposalID) / 5) {
-              isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
-			  emit ChangeGovernor(proposalID, msg.sender, false);
-
-			  if(_withUpdate) { IGovernor(owner()).governorRejected(); }
-        }
-    }
-	//even if not approved, can be cancled at any time if 25% of weighted votes go AGAINST
-    function vetoGovernor2(uint256 proposalID, bool _withUpdate) external {
-        require(proposalID % 2 == 1, "Invalid proposal ID");
-
-		//25% of weighted total vote AGAINST kills the proposal as well
-        if(tokensCastedPerVote(proposalID+1) >= totalDTXStaked() * 25 / 100) {
-              isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
-			  emit ChangeGovernor(proposalID, msg.sender, false);
-
-			  if(_withUpdate) { IGovernor(owner()).governorRejected(); }
-        }
-    }
-    function enforceGovernor(uint256 proposalID) external {
-		//proposal ID = 0 is neutral position and not allowed(%2 applies)
-        require(proposalID % 2 == 1, "invalid proposal ID"); 
-        require(!isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated, "invalid");
-        
-        require(consensusProposal[proposalID].beneficiaryAddress == IGovernor(owner()).eligibleNewGovernor());
-      
-	  	IGovernor(owner()).enforceGovernor();
-	  
-        isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
-    }
-   
-    function senateVeto(uint256 proposalID) external {
-		require(msg.sender == IGovernor(owner()).senateContract(), " veto allowed only by senate ");
-		require(proposalID % 2 == 1, "Invalid proposal ID");
-
-		require(!isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated);
-
-	    isGovInvalidated[consensusProposal[proposalID].beneficiaryAddress].isInvalidated = true;
-	    emit ChangeGovernor(proposalID, tx.origin, false);
-	}
-
-	function senateVetoTreasury(uint256 proposalID) external {
-		require(msg.sender == IGovernor(owner()).senateContract(), " veto allowed only by senate ");
-
-		require(treasuryProposal[proposalID].valid, "Proposal already invalid");
-
-    	treasuryProposal[proposalID].valid = false;  
-		
-    	emit TreasuryEnforce(proposalID, tx.origin, false);
-	}
 
 	function syncOwner() external {
 		_owner = IDTX(token).governor();
@@ -463,10 +327,8 @@ contract DTXconsensus {
         return (
             IacPool(IGovernor(owner()).acPool1()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool1()).getPricePerFullShare() / 1e19 * 2 + 
                 IacPool(IGovernor(owner()).acPool2()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool2()).getPricePerFullShare() / 1e19 * 3 +
-                    IacPool(IGovernor(owner()).acPool3()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool3()).getPricePerFullShare() / 1e19 * 5 +
-                        IacPool(IGovernor(owner()).acPool4()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool4()).getPricePerFullShare() / 1e20 * 75 +
-                            IacPool(IGovernor(owner()).acPool5()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool5()).getPricePerFullShare() / 1e20 * 115 +
-                                IacPool(IGovernor(owner()).acPool6()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool6()).getPricePerFullShare() / 1e19 * 15
+                        IacPool(IGovernor(owner()).acPool3()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool4()).getPricePerFullShare() / 1e20 * 75 +
+                            IacPool(IGovernor(owner()).acPool4()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool5()).getPricePerFullShare() / 1e19 * 15 
         );
     }
 
