@@ -629,39 +629,6 @@ contract TimeDeposit is ReentrancyGuard {
 		
 		return true;
     }
-	
-    /**
-     * Ability to withdraw tokens from the stake, and add voting credit
-     * At the time of launch there is no option(voting with credit), but can be added later on
-    */
-	function votingCredit(uint256 _shares, uint256 _stakeID) public {
-        require(votingCreditAddress() != address(0), "disabled");
-        require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
-        UserInfo storage user = userInfo[msg.sender][_stakeID];
-        require(_shares > 0, "Nothing to withdraw");
-        require(_shares <= user.shares, "Withdraw amount exceeds balance");
-
-        uint256 currentAmount = (balanceOf().mul(_shares)).div(totalShares);
-        user.shares = user.shares.sub(_shares);
-        totalShares = totalShares.sub(_shares);
-
-        if (user.shares > 0) {
-            user.dtxAtLastUserAction = user.shares.mul(balanceOf().sub(currentAmount)).div(totalShares);
-            user.lastUserActionTime = block.timestamp;
-        } else {
-            _removeStake(msg.sender, _stakeID); //delete the stake
-        }
-        
-		uint256 votingFor = userVote[msg.sender];
-        if(votingFor != 0) {
-            _updateVotingSubDiff(msg.sender, votingFor, _shares);
-        }
-
-		emit Withdraw(treasury, currentAmount, 0, _shares);
-
-		IMasterChef(masterchef).publishTokens(treasury, currentAmount);
-		IVoting(votingCreditAddress()).addCredit(currentAmount, msg.sender); 
-    } 
 
 	
     /**
@@ -856,10 +823,6 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 amount = IMasterChef(masterchef).pendingDtx(poolID); 
 		uint256 _credit = IMasterChef(masterchef).credit(address(this));
         return amount.add(_credit); 
-    }
-    
-    function votingCreditAddress() public view returns (address) {
-    	return IGovernor(admin).creditContract();
     }
 
 	function nrOfstakeAllowances(address owner, address spender) public view returns (uint256) {
