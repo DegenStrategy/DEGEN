@@ -30,7 +30,7 @@ contract DTXfarms {
 		uint256 valueSacrificedForVote;
 		uint256 valueSacrificedAgainst;
 		uint256 delay;
-		bool isBurn; //if burn, burns tokens. Else transfers into treasury
+		bool isBurn; //if "burn" - > is to set transfer tax
 		uint256 startTimestamp; //can schedule in advance when they are burned
     }
 	
