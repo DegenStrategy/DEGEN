@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./interface/IDTX.sol";
-import "./interface/ISenate.sol";
 import "./interface/IGovernor.sol";
 
 
@@ -30,11 +29,10 @@ contract DTXChef is Ownable {
     // Deposit Fee address
     address public feeAddress;
 
-	bool maxSupplyReached = false;
-
-	// Total tokens published to senate
-	uint256 public fairTokensPublishedToSenate;
-	// Tokens already accounted for as rewards to senate
+	address public fairMint1;
+	address public fairMint2;
+	
+	// Tokens already accounted for as rewards fair mint
 	uint256 public totalCreditRewardsAtLastFairMint;
 
     // Info of each pool.
@@ -55,7 +53,7 @@ contract DTXChef is Ownable {
 	uint256 public totalPublished;
 	
 
-	bool public senatorRewards = true;
+	bool public fairRewards = true;
 	
 	 // can burn tokens without allowance
 	mapping(address => bool) public trustedContract;
@@ -104,40 +102,20 @@ contract DTXChef is Ownable {
 		emit TransferCredit(msg.sender, _to, _amount);
 	}
 
-	function fairMintSenate() external {
-		require(senatorRewards, "senator rewards are turned off");
+	function fairMint() external {
+		require(fairRewards, "fair rewards are turned off");
         require(block.number > startBlock, "Must wait until minting phase begins!");
 
-		address[] memory senators = ISenate(IGovernor(owner()).senateContract()).viewSenators();
-		uint256 _senatorRewardAmount;
-		if(senators.length <= 100) {
-			_senatorRewardAmount = 100; // 0.01%
-		} else {
-			_senatorRewardAmount = 10000 / senators.length; // 1% shared between all the senators
-		}
-		uint256 _amount = ((totalCreditRewards - totalCreditRewardsAtLastFairMint) * _senatorRewardAmount) / 1000000;
+		uint256 _amount = ((totalCreditRewards - totalCreditRewardsAtLastFairMint) * 25) / 1000;
 
-		for(uint i=0; i < senators.length; i++) {
-			credit[senators[i]]+= _amount;
-		}
-
-		fairTokensPublishedToSenate+= senators.length * _amount;
-		totalCreditRewards+= senators.length * _amount;
+		credit[fairMint1]+= _amount;
+		credit[fairMint2]+= _amount;
+		
+		totalCreditRewards+= _amount;
 		totalCreditRewardsAtLastFairMint = totalCreditRewards;
 	}
 
-	// renounce rewards once maximum supply would be breached
-	// if there is an "overflow", tokens can simply be burned from the governing contract
-	function renounceRewards() external {
-		require(virtualTotalSupply() >= dtx.MAX_SUPPLY(), "Max supply not yet reached!");
-		governorFee = 0;
-		massUpdatePools();
 
-		DTXPerBlock = 0;
-		maxSupplyReached = true;
-
-		emit UpdateEmissions(tx.origin, 0);
-	}
 
     // Update the given pool's XPD allocation point and deposit fee. Can only be called by the owner.
     function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) external onlyOwner {
@@ -186,17 +164,7 @@ contract DTXChef is Ownable {
         feeAddress = _feeAddress;
     }
 
-    //Pancake has to add hidden dummy pools inorder to alter the emission, here we make it simple and transparent to all.
-    function updateEmissionRate(uint256 _DTXPerBlock) external onlyOwner {
-        if(!maxSupplyReached) {
-			massUpdatePools();
-	        DTXPerBlock = _DTXPerBlock;
-		} else {
-			DTXPerBlock = 0;
-		}
-		
-		emit UpdateEmissions(tx.origin, _DTXPerBlock);
-    }
+
 
     // Once Merkle Tree Root is submitted, start block is updated
     function updateStartBlock(uint256 _startBlock) external onlyOwner {
@@ -214,8 +182,8 @@ contract DTXChef is Ownable {
 		dtx.transferOwnership(_newOwner);
 	}
 
-	function rewardSenators(bool _e) external onlyOwner {
-		senatorRewards = _e;
+	function allowFairRewards(bool _e) external onlyOwner {
+		fairRewards = _e;
 	}
 
 	// Update reward variables for all pools. Be careful of gas spending!
