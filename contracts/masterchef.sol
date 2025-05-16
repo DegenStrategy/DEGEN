@@ -240,6 +240,13 @@ contract DTXChef is Ownable {
         return 0;
     }
 
+function updateEmissionRate(uint256 _DTXPerBlock) external onlyOwner {
+		massUpdatePools();
+	        DTXPerBlock = _DTXPerBlock;
+		
+		emit UpdateEmissions(tx.origin, _DTXPerBlock);
+    }
+
 	function poolLength() external view returns (uint256) {
         return poolInfo.length;
     }
