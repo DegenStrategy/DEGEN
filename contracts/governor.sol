@@ -28,7 +28,6 @@ contract DTXgovernor {
     
     address public constant treasuryWallet = ;
 
-	address public constant senateContract = ;
 	address public constant rewardContract = ; //for referral rewards
     
     //addresses for time-locked deposits(autocompounding pools)
@@ -56,8 +55,6 @@ contract DTXgovernor {
     uint256 public costToVote = 1000 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 1 days; //minimum number of TIME between when proposal is initiated and executed
     
-
-    uint256  public totalFibonacciEventsAfterGrand; //used for rebalancing inflation after Grand Fib
     
     uint256 public newGovernorRequestBlock;
     address public eligibleNewGovernor; //used for changing smart contract
