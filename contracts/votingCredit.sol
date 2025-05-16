@@ -10,8 +10,6 @@ contract VotingCredit {
 	IMasterChef public masterchef;
 	address private _owner;
 	
-	address public immutable airdropContract;
-	address public immutable airdropContractLocked;
 	
 	mapping(address => uint256) public userCredit;
 	mapping(address => uint256) public addedCredit;
