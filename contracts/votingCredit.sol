@@ -14,6 +14,7 @@ contract VotingCredit {
 	address public immutable airdropContractLocked;
 	
 	mapping(address => uint256) public userCredit;
+	mapping(address => uint256) public addedCredit;
 	
 	//crediting are contracts that deposit(pools + NFT staking)
 	mapping(address => bool) public creditingContract;
@@ -26,25 +27,15 @@ contract VotingCredit {
 	// allows for custom implementations
 	mapping(uint256 => uint256) public burnedForId;
 	
-	constructor(IDTX _token, IMasterChef _masterchef, address _airdropContract, address _airdropContractLocked) {
+	constructor(IDTX _token, IMasterChef _masterchef) {
 		token = _token;
 		masterchef = _masterchef;
-		creditingContractCount = 7;
 		deductingContractCount = 5; 
-		creditingContract[] = true; // set for all crediting contracts (all staking pools)
-		creditingContract[] = true;
-		creditingContract[] = true;
-		creditingContract[] = true;
-		creditingContract[] = true;
-		creditingContract[] = true;
-		creditingContract[] = true; // senateContract
 		deductingContract[] = true; // set for all deducting contracts (rewardBoost, consensus, basicSettings, farms, nftAllocation)
 		deductingContract[] = true;
 		deductingContract[] = true;
 		deductingContract[] = true;
 		deductingContract[] = true;
-		airdropContract = _airdropContract; //for contributors
-		airdropContractLocked = _airdropContractLocked; // With higher penalties
 	}
 	
 	event SetCreditingContract(address indexed _contract, bool setting);
@@ -57,41 +48,22 @@ contract VotingCredit {
 	// This is the condition to be added as a deductingContract
 	function deductCredit(address from, uint256 amount) external returns (bool) {
 		require(deductingContract[msg.sender], "invalid sender, trusted contracts only");
-		
-		if(userCredit[from] >= amount) {
-			userCredit[from]-= amount;
-		} else {
-			if(userCredit[from] > 0) {
-				amount-= userCredit[from];
-				userCredit[from] = 0;
-			}
-			require(masterchef.burn(from, amount));
-		}
+		require(userCredit[from] >= amount, "insufficient voting credit");
+
+		userCredit[from]-= amount;
+
 		emit DeductCredit(from, amount);
 		return true;
 	}
 	
-	//not emitting events, can see them on the crediting contract side
-	// all pools + NFT staking contract have to be marked as "creditingContracts"
-	// the crediting contract transfers the tokens to the treasury and then calls addCredit
-	function addCredit(uint256 amount, address _beneficiary) external {
-		require(creditingContract[msg.sender], "invalid sender, trusted contracts only");
-		userCredit[_beneficiary]+=amount;
-		emit AddCredit(_beneficiary, amount);
+	function addCredit() external {
+		uint256 _burnedForId = IVoting(getOinkCreditContract()).burnedForId(msg.sender);
+		uint256 _new = _burnedForId - addedCredit[msg.sender];
+		addedCredit[msg.sender] = _burnedForId;
+		userCredit[msg.sender]+=_new;
+		emit AddCredit(_beneficiary, _new);
 	}
 	
-	//manually deposit tokens to get voting credit
-	function depositCredit(uint256 amount) external {
-		require(masterchef.burn(msg.sender, amount));
-		userCredit[msg.sender]+=amount;
-		emit AddCredit(msg.sender, amount);
-	}
-	
-	function airdropVotingCredit(uint256 amount, address beneficiary) external {
-		require(msg.sender== airdropContract || msg.sender == airdropContractLocked, "no permission");
-		userCredit[beneficiary]+=amount;
-		emit AddCredit(beneficiary, amount);
-	}
 	
 	function burnCredit(uint256 amount, uint256 _forId) external {
 		userCredit[msg.sender] = userCredit[msg.sender] - amount;
@@ -122,10 +94,6 @@ contract VotingCredit {
 		}
 	}
 	
-	// publishes rightful tokens to governor contract
-	function redeemGovernor() external {
-		masterchef.publishTokens(owner(), masterchef.credit(address(this)));
-	}
 	
 	function updateChef() external {
 		masterchef = IMasterChef(token.owner());
@@ -139,4 +107,11 @@ contract VotingCredit {
     function owner() public view returns (address) {
 		return _owner;
     }
+
+	function addressToUint256(address addr) public pure returns (uint256) {
+    return uint256(uint160(addr));
+}
+	function getOinkCreditContract() public returns (address) {
+		return IGovernor(IDTX(0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38).governor()).creditContract();
+}
 }
