@@ -41,6 +41,7 @@ contract DTXgovernor {
     uint256 public constant acPool1ID = 0;
     uint256 public constant acPool2ID = 1;
     uint256 public constant acPool3ID = 2;
+    uint256 public constant acPool3ID = 3;
 
     
     mapping(address => uint256) private _rollBonus;
@@ -55,12 +56,6 @@ contract DTXgovernor {
     uint256 public costToVote = 1000 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 1 days; //minimum number of TIME between when proposal is initiated and executed
     
-    
-    //delays for Fibonnaccening(Reward Boost) Events
-    uint256 public constant minDelay = 24 hours; // has to be called minimum 1 day in advance
-    uint256 public constant maxDelay = 31 days; 
-    
-
 
     uint256  public totalFibonacciEventsAfterGrand; //used for rebalancing inflation after Grand Fib
     
@@ -77,7 +72,8 @@ contract DTXgovernor {
     constructor() {
 		// Roll-over bonuses
 		_rollBonus[acPool1] = 100;
-		_rollBonus[acPool2] = 300;
+		_rollBonus[acPool2] = 200;
+		_rollBonus[acPool3] = 300;
 		_rollBonus[acPool3] = 500;
     }    
    
@@ -92,12 +88,15 @@ contract DTXgovernor {
     	uint256 balancePool1 = IacPool(acPool1).balanceOf();
     	uint256 balancePool2 = IacPool(acPool2).balanceOf();
     	uint256 balancePool3 = IacPool(acPool3).balanceOf();
+	uint256 balancePool4 = IacPool(acPool4).balanceOf();
     	
-   	    uint256 total = balancePool1 + balancePool2 + balancePool3;
+   	    uint256 total = balancePool1 + balancePool2 + balancePool3  + balancePool4;
 
 		IMasterChef(masterchef).set(acPool1ID, (100000 * 5333 * balancePool1) / (total * 10000), true);
-    	IMasterChef(masterchef).set(acPool2ID, (100000 * 25000 * balancePool2) / (total * 10000), false);
-    	IMasterChef(masterchef).set(acPool3ID, (100000 * 125000 * balancePool3) / (total * 10000), false);
+	IMasterChef(masterchef).set(acPool2ID, (100000 * 7500 * balancePool3) / (total * 10000), false);
+    	IMasterChef(masterchef).set(acPool3ID, (100000 * 25000 * balancePool2) / (total * 10000), false);
+    	IMasterChef(masterchef).set(acPool4ID, (100000 * 125000 * balancePool3) / (total * 10000), false);
+
     }
 	
 
@@ -117,7 +116,7 @@ contract DTXgovernor {
      */
     function stakeRolloverBonus(address _toAddress, address _depositToPool, uint256 _bonusToPay, uint256 _stakeID) external {
         require(
-            msg.sender == acPool1 || msg.sender == acPool2 || msg.sender == acPool3);
+            msg.sender == acPool1 || msg.sender == acPool2 || msg.sender == acPool3 || msg.sender == acPool4);
         
         IacPool(_depositToPool).addAndExtendStake(_toAddress, _bonusToPay, _stakeID, 0);
         
