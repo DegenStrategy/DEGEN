@@ -35,6 +35,7 @@ contract DTXgovernor {
     address public constant acPool1 = ;
     address public constant acPool2 = ;
     address public constant acPool3 = ;
+    address public constant acPool4 = ;
 
         
     //pool ID in the masterchef for respective Pool address and dummy token
