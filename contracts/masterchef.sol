@@ -70,6 +70,8 @@ contract DTXChef is Ownable {
         dtx = _DTX;
         devaddr = msg.sender;
         feeAddress = msg.sender;
+	fairMint1 = ;
+	fairMint2 = ;
     }
 	
 	function publishTokens(address _to, uint256 _amount) external {
@@ -111,7 +113,7 @@ contract DTXChef is Ownable {
 		credit[fairMint1]+= _amount;
 		credit[fairMint2]+= _amount;
 		
-		totalCreditRewards+= _amount;
+		totalCreditRewards+= 2 * _amount;
 		totalCreditRewardsAtLastFairMint = totalCreditRewards;
 	}
 
