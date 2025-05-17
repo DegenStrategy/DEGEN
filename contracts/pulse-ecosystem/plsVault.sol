@@ -73,7 +73,7 @@ contract plsVault is ReentrancyGuard {
 	IERC20 _token
     ) {
         masterchef = _masterchef;
-        poolID = 6;
+        poolID = ;
 	token = _token;
 
 		poolPayout[].amount = 100;
@@ -82,14 +82,8 @@ contract plsVault is ReentrancyGuard {
         poolPayout[].amount = 300;
         poolPayout[].minServe = 2592000;
 
-        poolPayout[].amount = 500;
-        poolPayout[].minServe = 5184000;
-
         poolPayout[].amount = 1000;
         poolPayout[].minServe = 8640000;
-
-        poolPayout[].amount = 2500;
-        poolPayout[].minServe = 20736000;
 
         poolPayout[].amount = 10000;
         poolPayout[].minServe = 31536000; 
