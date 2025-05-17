@@ -252,6 +252,7 @@ contract plsVault is ReentrancyGuard {
 	}
 	
 	function collectCommission(address[] calldata _beneficiary, uint256[][] calldata _stakeID) external nonReentrant {
+		harvest();
 		for(uint256 i = 0; i< _beneficiary.length; ++i) {
 			for(uint256 j = 0; j< _stakeID[i].length; ++j) {
                 UserInfo storage user = userInfo[_beneficiary[i]][_stakeID[i][j]];
@@ -261,6 +262,7 @@ contract plsVault is ReentrancyGuard {
 	}
 	
 	function collectCommissionAuto(address[] calldata _beneficiary) external nonReentrant {
+		harvest();
 		for(uint256 i = 0; i< _beneficiary.length; ++i) {
 			
 			uint256 _nrOfStakes = getNrOfStakes(_beneficiary[i]);
