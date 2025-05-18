@@ -10,6 +10,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contr
 import "../interface/IGovernor.sol";
 import "../interface/IMasterChef.sol";
 import "../interface/IacPool.sol";
+import "../interface/IActuatorChef.sol";
 
 /**
  * Token vault (hex, inc, plsx)
@@ -37,6 +38,11 @@ contract tokenVault is ReentrancyGuard {
     IERC20 public immutable stakeToken; // plsx, inc, hex
 
     IMasterChef public masterchef;  
+
+	uint256 public vaultBalance = 0; //commissions belonging to the vault
+
+	address public actuatorChef = 0x4469a40d4243ac1c6cf350d99b6d69b49b5005f1;
+	address public rewardToken = ;
 
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
@@ -92,6 +98,8 @@ contract tokenVault is ReentrancyGuard {
 
         poolPayout[].amount = 10000;
         poolPayout[].minServe = 31536000; 
+
+	IERC20(stakeToken).approve(actuatorChef, type(uint256).max)
     }
     
     /**
@@ -110,7 +118,7 @@ contract tokenVault is ReentrancyGuard {
         require(_amount > 0, "invalid amount");
         harvest();
 		stakeToken.safeTransferFrom(msg.sender, address(this), _amount);
-
+		
 		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
 			referredBy[msg.sender] = referral;
 		}
@@ -125,8 +133,14 @@ contract tokenVault is ReentrancyGuard {
 		
 		uint256 _debt = accDtxPerShare;
 
+		// Solves if there is 
+		(uint256 _before, ) = IActuatorChef(actuatorChef).userInfo(poolID, address(this));
+		IActuatorChef(actuatorChef).deposit(poolID, _amount);
+		(uint256 _after, ) = IActuatorChef(actuatorChef).userInfo(poolID, address(this))
+		uint256 _userAmount = _after - _before;
+
         userInfo[msg.sender].push(
-                UserInfo(_amount, _debt, _depositFee, block.timestamp)
+                UserInfo(_userAmount, _debt, _depositFee, block.timestamp)
             );
 
         emit Deposit(msg.sender, _amount, _debt, _depositFee, referredBy[msg.sender]);
@@ -140,8 +154,16 @@ contract tokenVault is ReentrancyGuard {
 		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
 		uint256 _accumulatedRewards = _currentCredit - lastCredit;
 		lastCredit = _currentCredit;
-		accDtxPerShare+= _accumulatedRewards * 1e12  / stakeToken.balanceOf(address(this));
+		(uint256 _amount, ) = IActuatorChef(actuatorChef).userInfo(poolID, address(this))
+		accDtxPerShare+= _accumulatedRewards * 1e12  / (_amount - vaultBalance);
     }
+
+	// what to do with the accumulated rewards here
+	function useRewards() external {
+		 IActuatorChef(actuatorChef).withdraw(poolID, 0);
+	// code here
+	//send to treasury?
+}
 
 
     /**
@@ -152,11 +174,16 @@ contract tokenVault is ReentrancyGuard {
         require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
         UserInfo storage user = userInfo[msg.sender][_stakeID];
 
-		uint256 currentAmount = user.amount * (accDtxPerShare - user.debt) / 1e12;
 		
 		payFee(user, msg.sender);
 
-		uint256 userTokens = user.amount; 
+		//if there is withdraw fee
+		uint256 _before = IERC20(stakeToken).balanceOf(address(this));
+		IActuatorChef(actuatorChef).withdraw(poolID, user.amount);
+		uint256 _after = IERC20(stakeToken).balanceOf(address(this));
+		uint256 userTokens = _after - _before;
+		uint256 currentAmount = user.amount * (accDtxPerShare - user.debt) / 1e12;
+
 		
 		_removeStake(msg.sender, _stakeID);
 
@@ -199,8 +226,8 @@ contract tokenVault is ReentrancyGuard {
         uint256 _payout = 0;
 
         for(uint256 i = 0; i<_stakeID.length; ++i) {
+		payFee(user[_stakeID[i]], msg.sender);
             _toWithdraw+= user[_stakeID[i]].amount * (accDtxPerShare - user[_stakeID[i]].debt)/ 1e12;
-			payFee(user[_stakeID[i]], msg.sender);
 			user[_stakeID[i]].debt = accDtxPerShare;
         }
 
@@ -233,8 +260,11 @@ contract tokenVault is ReentrancyGuard {
 		UserInfo storage user = userInfo[msg.sender][_stakeID];
 
         payFee(user, msg.sender);
-
-		uint256 _amount = user.amount;
+		//if there is withdraw fee
+		uint256 _before = IERC20(stakeToken).balanceOf(address(this));
+		IActuatorChef(actuatorChef).withdraw(poolID, user.amount);
+		uint256 _after = IERC20(stakeToken).balanceOf(address(this));
+		uint256 _amount = _after - _before;
 		
 		_removeStake(msg.sender, _stakeID); //delete the stake
         emit Withdraw(msg.sender, _stakeID, 0, _amount);
@@ -257,6 +287,7 @@ contract tokenVault is ReentrancyGuard {
                 payFee(user, _beneficiary[i]);
             }
 		}
+		collectVaultsCommission();
 	}
 	
 	function collectCommissionAuto(address[] calldata _beneficiary) external nonReentrant {
@@ -270,7 +301,7 @@ contract tokenVault is ReentrancyGuard {
                 payFee(user, _beneficiary[i]);
             }
 		}
-		
+		collectVaultsCommission();
 	}
 
 	function updateFees() external {
@@ -326,6 +357,12 @@ contract tokenVault is ReentrancyGuard {
 		require(_defaultDirectHarvest <= 10_000, "maximum 100%");
         defaultDirectPayout = _defaultDirectHarvest;
     }
+
+	function collectVaultsCommission() public {
+		IActuatorChef(actuatorChef).withdraw(poolID, vaultBalance);
+		vaultBalance = 0;
+		IERC20(stakeToken).safeTransfer(treasuryWallet, IERC20(stakeToken).balanceOf(address(this)));
+	}
     
     function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
 		UserInfo storage _stake = userInfo[_user][_stakeID];
@@ -408,7 +445,7 @@ contract tokenVault is ReentrancyGuard {
 				commission = user.amount * 2 / 10;
 			}
 			
-            stakeToken.safeTransfer(treasuryWallet, commission);
+		vaultBalance+= commission;
 
             user.feesPaid = user.feesPaid + commission;
 			
