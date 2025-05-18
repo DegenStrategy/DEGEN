@@ -28,12 +28,14 @@ contract DTXconsensus {
 
 	TreasuryTransfer[] public treasuryProposal;
 	ConsensusVote[] public consensusProposal;
-	
+
+	address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
     address public immutable token; //DTX token (address)
 	uint256 public governorCount; //count number of proposals
 	address private _owner;
 
 	address public creditContract;
+	uint256 public OFFSET = 1000000000000000000000000000; // offset to be used for OINK voting
 
     mapping(address => GovernorInvalidated) public isGovInvalidated;
 	
@@ -225,13 +227,13 @@ contract DTXconsensus {
 			"Enough time must pass before enforcing"
 		);
 		
-		uint256 _totalStaked = totalDTXStaked();
-		uint256 _castedInFavor = highestConsensusVotes[consensusID];
+		uint256 _totalStaked = IConsensus(getOinkConsensusContract()).totalDTXStaked();
+		uint256 _castedInFavor = IConsensus(getOinkConsensusContract()).highestConsensusVotes[consensusID+OFFSET];
 		if(treasuryProposal[proposalID].valueSacrificedForVote >= treasuryProposal[proposalID].valueSacrificedAgainst &&
 				_castedInFavor >= _totalStaked * 15 / 100 ) {
 			
 			//just third of votes voting against(a third of those in favor) kills the treasury withdrawal
-			if(highestConsensusVotes[consensusID+1] >= _castedInFavor * 33 / 100) { 
+			if(IConsensus(getOinkConsensusContract()).highestConsensusVotes[consensusID+1+OFFSET] >= _castedInFavor * 33 / 100) { 
 				treasuryProposal[proposalID].valid = false;
 				emit TreasuryEnforce(proposalID, msg.sender, false);
 			} else {
@@ -331,6 +333,10 @@ contract DTXconsensus {
                             IacPool(IGovernor(owner()).acPool4()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool5()).getPricePerFullShare() / 1e19 * 15 
         );
     }
+
+	function getOinkConsensusContract() public view returns(address) {
+		return IGovernor(IDTX(OINK).governor()).consensusContract();
+	}
 
 	function isContract(address _address) public view returns (bool) {
 	    uint256 codeSize;
