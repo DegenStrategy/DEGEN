@@ -142,7 +142,8 @@ contract DTXgovernor {
 
 	function blockGovernorProposal() external {
 	require(proposedGovernor != address(0), "governor not yet submitted!");
-	if(IConsensus(consensusContract).tokensCastedPerVote(addressToUint256(proposedGovernor)) >= IConsensus(consensusContract).totalDTXStaked() * 25 / 100) {
+	IConsensus(consensusContract).updateHighestConsensusVotes(addressToUint256(proposedGovernor));
+	if(IConsensus(consensusContract).highestConsensusVotes(addressToUint256(proposedGovernor)) >= IConsensus(consensusContract).totalDTXStaked() * 25 / 100) {
 		governorBlocked[proposedGovernor] = true;
 	}
 }
