@@ -29,8 +29,8 @@ contract plsVault is ReentrancyGuard {
         uint256 minServe;
     }
 	
-	uint256 public constant maxFee = 500; // max 5%
-	uint256 public constant maxFundingFee = 250; // max 0.025% per hour
+	uint256 public constant maxFee = 2500; // max 25%
+	uint256 public constant maxFundingFee = 1000; // max 0.1% per hour
 	
     IERC20 public immutable token; //  token
 
