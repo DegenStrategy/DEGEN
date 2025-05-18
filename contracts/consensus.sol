@@ -259,9 +259,10 @@ contract DTXconsensus {
 	function killTreasuryTransferProposal(uint256 proposalID) external {
 		require(treasuryProposal[proposalID].valid, "Proposal already invalid");
 		uint256 consensusID = treasuryProposal[proposalID].consensusProposalID;
+		updateHighestConsensusVotes(consensusID+1);
 		
         require(
-            tokensCastedPerVote(consensusID+1) >= totalDTXStaked() * 15 / 100,
+            highestConsensusVotes(consensusID+1) >= totalDTXStaked() * 15 / 100,
 				"15% weigted vote (voting against) required to kill the proposal"
         );
 		
