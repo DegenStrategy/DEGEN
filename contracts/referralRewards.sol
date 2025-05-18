@@ -15,6 +15,8 @@ contract RedeemReferralRewards {
 	mapping(address => uint256) public amountRedeemed;
 
 	address[] public vaults;
+
+	uint256 public defaultDirectPayout = 100;
 	
 	event ClaimReferralReward(address indexed user, address indexed claimInto, uint256 amount);
 	
