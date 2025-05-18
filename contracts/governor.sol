@@ -44,7 +44,9 @@ contract DTXgovernor {
     uint256 public constant acPool3ID = 2;
     uint256 public constant acPool3ID = 3;
 
-    
+	uint256 public proposeGovernorTimestamp;
+	address public proposedGovernor;
+    mapping(address => bool) public governorBlocked;
     mapping(address => uint256) private _rollBonus;
 
 	uint256 public referralBonus = 500; // 5% for both referr and invitee
@@ -118,19 +120,32 @@ contract DTXgovernor {
         emit GiveRolloverBonus(_toAddress, _bonusToPay, _depositToPool);
     }
     
-    
+    function proposeNewGovernor(address beneficiary) external {
+		require(msg.sender == IDTX(OINK).governor(), "decentralized voting only");
+		proposedGovernor = beneficiary;
+		proposeGovernorTimestamp = block.timestamp;
+	}
 	
-    function setNewGovernor(address beneficiary) external {
-        require(msg.sender == IDTX(OINK).governor(), "decentralized voting only");
+    function setNewGovernor() external {
+	require(proposedGovernor != address(0), "governor not yet submitted!");
+	require(proposeGovernorTimestamp + 5 * delayBeforeEnforce < block.timestamp, "pending validation by this system for potential rejection");
+	require(!governorBlocked[proposedGovernor], "governor upgrade blocked by this system consensus!");
 
-	IMasterChef(masterchef).setFeeAddress(beneficiary);
-        IMasterChef(masterchef).dev(beneficiary);
-        IMasterChef(masterchef).transferOwnership(beneficiary); //transfer masterchef ownership
+	IMasterChef(masterchef).setFeeAddress(proposedGovernor);
+        IMasterChef(masterchef).dev(proposedGovernor);
+        IMasterChef(masterchef).transferOwnership(proposedGovernor); //transfer masterchef ownership
 		
-		IERC20(token).transfer(beneficiary, IERC20(token).balanceOf(address(this))); // send collected DTX tokens to new governor
+		IERC20(token).transfer(proposedGovernor, IERC20(token).balanceOf(address(this))); // send collected DTX tokens to new governor
         
-		emit EnforceGovernor(beneficiary, msg.sender);
+		emit EnforceGovernor(proposedGovernor, msg.sender);
     }
+
+	function blockGovernorProposal() external {
+	require(proposedGovernor != address(0), "governor not yet submitted!");
+	if(IConsensus(consensusContract).tokensCastedPerVote(addressToUint256(proposedGovernor)) >= IConsensus(consensusContract).totalDTXStaked() * 25 / 100) {
+		governorBlocked[proposedGovernor] = true;
+	}
+}
 
 
 	function treasuryRequest(address _tokenAddr, address _recipient, uint256 _amountToSend) external {
@@ -208,6 +223,10 @@ contract DTXgovernor {
 	function getRollBonus(address _bonusForPool) external view returns (uint256) {
         return _rollBonus[_bonusForPool];
     }
+
+	function addressToUint256(address addr) public pure returns (uint256) {
+    return uint256(uint160(addr));
+}
 	
     
 }  
