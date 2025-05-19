@@ -21,19 +21,9 @@ contract RedeemReferralRewards {
 	event ClaimReferralReward(address indexed user, address indexed claimInto, uint256 amount);
 	
 	constructor (
-		address _token,
-		address _plsVault,
-		address _plsxVault,
-		address _incVault,
-		address _hexVault,
-		address _tshareVault
+		address _token
 	) {
 		token = _token;
-		vaults.push(_plsVault);
-		vaults.push(_plsxVault);
-		vaults.push(_incVault);
-		vaults.push(_hexVault);
-		vaults.push(_tshareVault);
 	}
 	
 	function redeemRewards(uint256 _amount, address _into) external {
@@ -42,7 +32,10 @@ contract RedeemReferralRewards {
 		
 		amountRedeemed[msg.sender]+= _amount;
 
-		uint256 _poolPayout = IVault(IGovernor(governor()).plsVault()).viewPoolPayout(_into);
+		address _masterchef = IGovernor(_governor).masterchef();
+		( , , address _vault) = IMasterChef(_masterchef).poolInfo(4);
+
+		uint256 _poolPayout = IVault(_vault).viewPoolPayout(_into);
 		uint256 _payout = 0;
 		
 		uint256 referralBonus = IGovernor(governor()).referralBonus();
@@ -52,14 +45,14 @@ contract RedeemReferralRewards {
 		uint256 _minServe = 0;
 		
 		if(_poolPayout == 0) { //send into wallet
-			_payout = _amount * IVault(IGovernor(governor()).plsVault()).defaultDirectPayout() / 10000;
+			_payout = _amount * IVault(_vault).defaultDirectPayout() / 10000;
 			
 			require(IDTX(token).balanceOf(address(this)) >= _payout, "The reward contract has insufficient balance!");
 			IDTX(token).transfer(_into, _payout);
 		} else {							
 			_payout = _amount * _poolPayout / 10000; 
 			require(IDTX(token).balanceOf(address(this)) >= _payout, "The reward contract has insufficient balance!");
-			_minServe = IVault(IGovernor(governor()).plsVault()).viewPoolMinServe(_into);
+			_minServe = IVault(_vault).viewPoolMinServe(_into);
 			IacPool(_into).giftDeposit(_payout, msg.sender, _minServe);
 		}
 
