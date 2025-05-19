@@ -40,7 +40,7 @@ contract TimeDeposit is ReentrancyGuard {
     IMasterChef public masterchef;  
     
     uint256 public immutable withdrawFeePeriod = 3652 days; 
-    uint256 public immutable gracePeriod = 90 days;
+    uint256 public immutable gracePeriod = 180 days;
 
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => uint256) public userVote; //the ID the user is voting for
