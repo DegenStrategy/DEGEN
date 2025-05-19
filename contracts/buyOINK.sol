@@ -7,6 +7,12 @@ import "https://github.com/Uniswap/uniswap-v2-periphery/blob/master/contracts/in
 import "interface/IDTX.sol";
 import "interface/IGovernor.sol";
 
+interface IWETH {
+    function deposit() external payable;
+    function transfer(address to, uint value) external returns (bool);
+    function withdraw(uint) external;
+}
+
 contract DegenSwapper {
 	address public constant UNISWAP_ROUTER_ADDRESS = ;
     address public constant OINK = ;
