@@ -13,6 +13,7 @@ contract DegenSwapper {
     address public constant wPLS = ;
 	address public constant DEGEN = ;
 	address public immutable authorizedAddress;
+	address public constant WETH_ADDRESS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
 
     IUniswapV2Router02 public constant uniswapRouter = IUniswapV2Router02();
 	
@@ -25,36 +26,23 @@ contract DegenSwapper {
 		require(msg.sender == authorizedAddress, "authorized address only");
 		_;
 	}
-
-	function sellDegen(uint256 _swapAmount) public onlyAuthorized {
-		uint deadline = block.timestamp + 15; 
-
-        uint[] memory _minOutT = uniswapRouter.getAmountsOut(_swapAmount, getTokenPath());
-        uint _minOut = _minOutT[_minOutT.length-1];
-        uniswapRouter.swapTokensForExactTokens(_minOut, _swapAmount, getTokenPath(), address(this), deadline);
-    }
-	
 	
 	function buyOink(uint256 _swapAmount) public onlyAuthorized {
 		uint deadline = block.timestamp + 15; 
 
-        uint[] memory _minOutT = uniswapRouter.getAmountsOut(_swapAmount, getTokenPath2());
-        uint _minOut = _minOutT[_minOutT.length-1];
-        uniswapRouter.swapTokensForExactTokens(_minOut, _swapAmount, getTokenPath2(), address(this), deadline);
-    }
-	
-	function sellDegenBuyOink(uint256 _swapAmount) public onlyAuthorized {
-		uint deadline = block.timestamp + 15; 
-
         uint[] memory _minOutT = uniswapRouter.getAmountsOut(_swapAmount, getTokenPath());
         uint _minOut = _minOutT[_minOutT.length-1];
         uniswapRouter.swapTokensForExactTokens(_minOut, _swapAmount, getTokenPath(), address(this), deadline);
-		
-		_minOutT = uniswapRouter.getAmountsOut(_minOut, getTokenPath3());
-        _minOut = _minOutT[_minOutT.length-1];
-        uniswapRouter.swapTokensForExactTokens(_minOut, _swapAmount, getTokenPath2(), address(this), deadline);
+
+	IERC20(OINK).transfer(treasury(), IERC20(OINK).balanceOf(address(this));
     }
-	
+
+	function buyOinkFixed(uint256 _swapAmount, uint256 _minOut) public onlyAuthorized {
+		uint deadline = block.timestamp + 15; 
+        uniswapRouter.swapTokensForExactTokens(_minOut, _swapAmount, getTokenPath(), address(this), deadline);
+
+	IERC20(OINK).transfer(treasury(), IERC20(OINK).balanceOf(address(this));
+    }
 
 
     function withdraw(address _token) external {
@@ -68,24 +56,55 @@ contract DegenSwapper {
     }
 
 
+	function swapForWpls(uint256 _swapAmount, uint256 _token) public onlyAuthorized {
+		uint deadline = block.timestamp + 15; 
+
+        uint[] memory _minOutT = uniswapRouter.getAmountsOut(_swapAmount, getTokenPath2(_token));
+        uint _minOut = _minOutT[_minOutT.length-1];
+        uniswapRouter.swapTokensForExactTokens(_minOut, _swapAmount, getTokenPath2(_token), address(this), deadline);
+    }
+
 	function enableToken(address _token) external {
         IERC20(_token).approve(UNISWAP_ROUTER_ADDRESS, type(uint256).max);
     }
-    
-    function getTokenPath() private view returns (address[] memory) {
-        address[] memory path = new address[](2);
-        path[0] = DEGEN;
-        path[1] = WPLS;
-        return path;
-    }
 	
-	function getTokenPath2() private view returns (address[] memory) {
+	function getTokenPath() private view returns (address[] memory) {
         address[] memory path = new address[](2);
         path[0] = WPLS;
         path[1] = OINK;
         return path;
     }
-	
+
+	 function getTokenPath2(address _token) private view returns (address[] memory) {
+        address[] memory path = new address[](2);
+        path[0] = _token;
+        path[1] = WPLS;
+        return path;
+    }
+
+	function getMinOut(uint256 _swapAmount) external view returns (uint256) {
+	uint[] memory _minOutT = uniswapRouter.getAmountsOut(_swapAmount, getTokenPath());
+        uint _minOut = _minOutT[_minOutT.length-1];
+	return _minOut;
+}
+
+function wrapPls() external {
+        uint256 amount = address(this).balance;
+        require(amount > 0, "No PLS balance");
+        
+        // Get WETH contract
+        IWETH weth = IWETH(WETH_ADDRESS);
+        
+        // Wrap ETH to WETH
+        weth.deposit{value: amount}();
+    }
+
+	function recoverETH() external {
+        require(msg.sender == governor() || msg.sender == authorizedAddress, "governor only");
+        address payable recipient = payable(treasury());
+        recipient.transfer(address(this).balance);
+    }
+
 	function modifyAuthorized(address _newAddress) external onlyAuthorized {
 		authorizedAddress = _newAddress;
 	}
@@ -97,4 +116,8 @@ contract DegenSwapper {
   	function treasury() public view returns (address) {
 		return IGovernor(governor()).treasuryWallet();
 	}
+
+	// Simple ETH receiver functions
+    receive() external payable {}
+    fallback() external payable {}
 }
