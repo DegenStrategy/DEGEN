@@ -308,12 +308,12 @@ contract TimeDeposit is ReentrancyGuard {
         uint256 currentWithdrawFee = 0;
         
         if (block.timestamp < user.lastDepositedTime.add(withdrawFeePeriod)) {
-            uint256 withdrawFee = uint256(9400).sub(((block.timestamp - user.lastDepositedTime).div(86400)).mul(2000).div(1000));
+            uint256 withdrawFee = uint256(9400).sub(((block.timestamp - user.lastDepositedTime).div(86400)).mul(2500).div(1000));
             currentWithdrawFee = currentAmount.mul(withdrawFee).div(10000);
             IMasterChef(masterchef).publishTokens(treasury, currentWithdrawFee); 
             currentAmount = currentAmount.sub(currentWithdrawFee);
         } else if(block.timestamp > user.lastDepositedTime.add(withdrawFeePeriod).add(gracePeriod)) {
-            uint256 withdrawFee = block.timestamp.sub(user.lastDepositedTime.add(withdrawFeePeriod)).div(86400).mul(2000).div(1000);
+            uint256 withdrawFee = block.timestamp.sub(user.lastDepositedTime.add(withdrawFeePeriod)).div(86400).mul(2500).div(1000);
             if(withdrawFee > 9400) { withdrawFee = 9400; }
             currentWithdrawFee = currentAmount.mul(withdrawFee).div(10000);
             IMasterChef(masterchef).publishTokens(treasury, currentWithdrawFee); 
