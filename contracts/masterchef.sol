@@ -27,6 +27,9 @@ contract DTXChef is Ownable {
     // DTX tokens created per block.
     uint256 public DTXPerBlock = 1000000 * 1e18; // start at 850 tokens per block (*roughly* 50,000 tokens per 10minutes; Bitcoin started with 50 BTC per 10minutes)
 
+	// Deposit Fee address
+    address public feeAddress;
+
 	address public fairMint1;
 	address public fairMint2;
 	
@@ -65,6 +68,7 @@ contract DTXChef is Ownable {
     constructor() Ownable(msg.sender) {
         dtx = IDTX();
         devaddr = msg.sender;
+	feeAddress = msg.sender;
 	fairMint1 = ;
 	fairMint2 = ;
     }
@@ -155,6 +159,10 @@ contract DTXChef is Ownable {
     // Update dev address by the previous dev.
     function dev(address _devaddr) external onlyOwner {
         devaddr = _devaddr;
+    }
+
+	function setFeeAddress(address _feeAddress) external onlyOwner {
+        feeAddress = _feeAddress;
     }
 
 
