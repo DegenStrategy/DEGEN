@@ -61,12 +61,12 @@ contract DTXfarms {
 	mapping(uint256 => uint256) public poolAllocationPercentage; 
 	uint256 public percentageAllocatedToPulseEcosystem;
     
-    address public immutable token; //DTX token(address!)
+    address public immutable token = ; //DTX token(address!)
 	address private _owner;
 	
 	address public creditContract;
 	
-	address public masterchef;
+	address public masterchef =;
 	
 
     
@@ -84,10 +84,9 @@ contract DTXfarms {
 	event AddVotes(uint256 indexed _type, uint256 indexed proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
 	event EnforceProposal(uint256 indexed _type, uint256 indexed proposalID, address indexed enforcer, bool isSuccess);
     
-	constructor (address _DTX, address _masterchef, uint256 _launch)  {
-		token = _DTX;
-		masterchef = _masterchef;
-
+	constructor ()  {
+		token = ;
+		masterchef = ;
 	}
 
 	
@@ -189,7 +188,6 @@ contract DTXfarms {
 			uint256 _newAllocation = proposalFarmUpdate[proposalID].newAllocation;
 			uint256 _newTotalToPulse = percentageAllocatedToPulseEcosystem - poolAllocationPercentage[_poolID] + _newAllocation;
 
-			require(_newTotalToPulse <= maxPulseEcoTotalAllocation, "exceeds maximum allowed allocation for pulse ecosystem");
 			percentageAllocatedToPulseEcosystem = _newTotalToPulse;
 			poolAllocationPercentage[_poolID] = _newAllocation;
 			proposalFarmUpdate[proposalID].valid = false;
