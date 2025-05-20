@@ -83,11 +83,6 @@ contract DTXfarms {
 
 	event AddVotes(uint256 indexed _type, uint256 indexed proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
 	event EnforceProposal(uint256 indexed _type, uint256 indexed proposalID, address indexed enforcer, bool isSuccess);
-    
-	constructor ()  {
-		token = ;
-		masterchef = ;
-	}
 
 	
 	function rebalancePools() public {
