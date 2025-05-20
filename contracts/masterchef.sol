@@ -64,10 +64,8 @@ contract DTXChef is Ownable {
 	event TrustedContract(address contractAddress, bool setting);
 	event TransferCredit(address from, address to, uint256 amount);
 
-    constructor(
-        IDTX _DTX,
-    ) {
-        dtx = _DTX;
+    constructor() Ownable(msg.sender) {
+        dtx = IDTX();
         devaddr = msg.sender;
         feeAddress = msg.sender;
 	fairMint1 = ;
