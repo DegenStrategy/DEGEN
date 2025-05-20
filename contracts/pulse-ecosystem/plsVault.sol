@@ -285,7 +285,7 @@ contract plsVault is ReentrancyGuard {
 	}
 
 	function updateTreasury() external {
-		treasury = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
+		treasury = IMasterChef(masterchef).feeAddress();
 		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
 	}
 	
