@@ -79,7 +79,7 @@ contract DTXsyncContracts {
 
     function updateTreasury() public {
         IMasterChef _masterchef = IMasterChef(IDTX(tokenDTX).owner());
-        for(uint i=4; i < _masterchef.poolLength() ; i++) {
+        for(uint i=0; i < _masterchef.poolLength() ; i++) {
             (, , address _pool) = _masterchef.poolInfo(i);
             IChange(_pool).updateTreasury();
         }
