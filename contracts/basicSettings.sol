@@ -9,7 +9,7 @@ import "./interface/IVoting.sol";
 
 //compile with optimization enabled(60runs)
 contract DTXbasics {
-    address public immutable token; //DTX token (address)
+    address public immutable token =; //DTX token (address)
 	address private _owner;
 	
 	address public creditContract;
@@ -70,10 +70,7 @@ contract DTXbasics {
 	event AddVotes(uint256 _type, uint256 indexed proposalID, address indexed voter, uint256 tokensSacrificed, bool _for);
 	event EnforceProposal(uint256 _type, uint256 indexed proposalID, address indexed enforcer, bool isSuccess);
 
-    
-	constructor(address _DTX) {
-		token = _DTX;
-	}
+
     
     /**
      * Regulatory process for determining "IGovernor(owner()).IGovernor(owner()).costToVote()()"
