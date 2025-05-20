@@ -253,6 +253,6 @@ function updateEmissionRate(uint256 _DTXPerBlock) external onlyOwner {
     }
 
 	function virtualTotalSupply() public view returns (uint256) {
-		return (dtx.totalSupply() + totalCreditRewards + totalPrincipalBurned - totalPublished);
+		return dtx.totalSupply();
 	}
 }
