@@ -31,7 +31,7 @@ contract DTXconsensus {
 	ConsensusVote[] public consensusProposal;
 
 	address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
-    address public immutable token; //DTX token (address)
+    address public immutable token = ; //DTX token (address)
 	uint256 public governorCount; //count number of proposals
 	address private _owner;
 
@@ -45,7 +45,6 @@ contract DTXconsensus {
 	constructor() {
 		//0 is an invalid proposal(is default / neutral position)
 		consensusProposal.push(ConsensusVote(0, address(this), block.timestamp)); 
-		token = IDTX();
     }
     
 	
