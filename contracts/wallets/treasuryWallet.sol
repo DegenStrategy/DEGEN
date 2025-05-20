@@ -5,14 +5,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interface/IDTX.sol";
 
 contract DTXtreasury {
-  address public immutable token; // DTX token(address)
+  address public immutable token = ; // DTX token(address)
 
   /// @notice Event emitted when new transaction is executed
   event ExecuteTransaction(address indexed token, address indexed recipientAddress, uint256 value);
 
-  constructor(address _DTX) {
-   token = _DTX;
-  }
   
    modifier onlyOwner() {
     require(msg.sender == IDTX(token).governor(), "admin: wut?");
