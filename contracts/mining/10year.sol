@@ -128,17 +128,10 @@ contract TimeDeposit is ReentrancyGuard {
 	
 	event SetDelegate(address userDelegating, address delegatee);
 
-    /**
-     * @notice Constructor
-     * @param _token: DTX token contract
-     * @param _masterchef: MasterChef contract
-     */
-    constructor(
-        IDTX _token,
-        IMasterChef _masterchef
+   constructor(
     ) {
-        token = _token;
-        masterchef = _masterchef;
+        token = IDTX();
+        masterchef = IMasterChef();
         admin = msg.sender;
         poolID = 3;
     }
