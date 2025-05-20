@@ -16,7 +16,7 @@ contract GetToken {
     address public constant PLSX = 0x95B303987A60C71504D99Aa1b13B4DA07b0790ab;
     address public constant INC = 0x2fa878Ab3F87CC1C9737Fc071108F904c0B0C95d;
 
-    uint256 public constant minimumPrice = 0; // Minimum price for tokenX in PLS
+    uint256 public minimumPrice = 0; // Minimum price for tokenX in PLS
 
     address public constant OINK_TOKENX_PAIR = ; // OINK-tokenX Uniswap V2 pair address
 
@@ -28,9 +28,13 @@ contract GetToken {
     address public constant acPool3 = ;
     address public constant acPool4 = ;
 
+    address public canSetMinimum;
+
     event BUY(address indexed buyer, address pool, uint256 depositAmount, address purchaseToken);
 
-    constructor() {}
+    constructor() {
+        canSetMinimum = msg.sender;
+    }
 
     function buyWithPLS(uint256 _amount, address _poolInto) external payable {
         require(msg.value == _amount, "msg.value different from amount!");
@@ -232,5 +236,15 @@ contract GetToken {
     function withdrawERC(address _a) external {
         require(msg.sender == governor(), "only thru decentralized Governance");
         require(IERC20(_a).transfer(treasury(), IERC20(_a).balanceOf(address(this))), "ERC20 transfer failed");
+    }
+
+    function setMinimum(uint256 _amount) external {
+        require(msg.sender == canSetMinimum, "authorized address only");
+        minimumPrice = _amount;
+    }
+
+    function changeAddress(address _a) external {
+        require(msg.sender == canSetMinimum, "authorized address only");
+        canSetMinimum = _a;
     }
 }
