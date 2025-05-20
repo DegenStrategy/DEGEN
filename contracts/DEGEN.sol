@@ -35,15 +35,31 @@ contract DEGEN is ERC20, ERC20Burnable, Ownable {
 		return true;
     }
 
-function _transfer(
-        address sender,
-        address recipient,
+function _update(
+        address from,
+        address to,
         uint256 amount
     ) internal virtual override {
-        uint tax = amount * tax / 100; // % tax
+        // If it's a standard transfer (not minting or burning)
+        if (from != address(0) && to != address(0) && amount > 0) {
+            // Only apply tax if there's a non-zero tax amount
+            if (tax > 0) {
+				// Calculate tax amount
+            	uint256 taxAmount = (amount * tax) / 1000;
 
-        super._transfer(sender, recipient, amount - tax);
-        super._transfer(sender, receiveTax, tax);
+                // Transfer tax to tax collector
+                super._update(from, receiveTax, taxAmount);
+                
+                // Transfer the remaining amount to the recipient
+                super._update(from, to, amount - taxAmount);
+            } else {
+                // If no tax, just perform the transfer as normal
+                super._update(from, to, amount);
+            }
+        } else {
+            // For mint or burn operations, no tax is applied
+            super._update(from, to, amount);
+        }
     }
 	
 	// Standard ERC20 makes name and symbol immutable
@@ -57,7 +73,7 @@ function _transfer(
 	}
 
 	function updateTax(uint256 _tax) external decentralizedVoting {
-	require(_tax <= 10, "max 10%!");
+	require(_tax <= 100, "max 10%!");
 	tax = _tax;
 	}
 
