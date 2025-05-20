@@ -10,7 +10,7 @@ import "./interface/IacPool.sol";
 import "./interface/IMasterChef.sol";
 
 contract RedeemReferralRewards {
-	address public immutable token;
+	address public immutable token = ;
 	address private _governor;
 	mapping(address => uint256) public amountRedeemed;
 
@@ -20,11 +20,6 @@ contract RedeemReferralRewards {
 	
 	event ClaimReferralReward(address indexed user, address indexed claimInto, uint256 amount);
 	
-	constructor (
-		address _token
-	) {
-		token = _token;
-	}
 	
 	function redeemRewards(uint256 _amount, address _into) external {
 		uint256 _available = totalUserRewards(msg.sender) - amountRedeemed[msg.sender];
