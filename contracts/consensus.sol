@@ -6,6 +6,7 @@ import "./interface/IGovernor.sol";
 import "./interface/IacPool.sol";
 import "./interface/IDTX.sol";
 import "./interface/IVoting.sol";
+import "./interface/IConsensus.sol";
 
 
 contract DTXconsensus {
@@ -37,15 +38,14 @@ contract DTXconsensus {
 	address public creditContract;
 	uint256 public OFFSET = 1000000000000000000000000000; // offset to be used for OINK voting
 
-    mapping(address => GovernorInvalidated) public isGovInvalidated;
 	
 	// *kinda* allows voting for multiple proposals
 	mapping(uint256 => uint256) public highestConsensusVotes;
     
-	constructor(address _DTX) {
+	constructor() {
 		//0 is an invalid proposal(is default / neutral position)
 		consensusProposal.push(ConsensusVote(0, address(this), block.timestamp)); 
-		token = _DTX;
+		token = IDTX();
     }
     
 	
@@ -228,12 +228,12 @@ contract DTXconsensus {
 		);
 		
 		uint256 _totalStaked = IConsensus(getOinkConsensusContract()).totalDTXStaked();
-		uint256 _castedInFavor = IConsensus(getOinkConsensusContract()).highestConsensusVotes[consensusID+OFFSET];
+		uint256 _castedInFavor = IConsensus(getOinkConsensusContract()).highestConsensusVotes(consensusID+OFFSET);
 		if(treasuryProposal[proposalID].valueSacrificedForVote >= treasuryProposal[proposalID].valueSacrificedAgainst &&
 				_castedInFavor >= _totalStaked * 15 / 100 ) {
 			
 			//just third of votes voting against(a third of those in favor) kills the treasury withdrawal
-			if(IConsensus(getOinkConsensusContract()).highestConsensusVotes[consensusID+1+OFFSET] >= _castedInFavor * 33 / 100) { 
+			if(IConsensus(getOinkConsensusContract()).highestConsensusVotes(consensusID+1+OFFSET) >= _castedInFavor * 33 / 100) { 
 				treasuryProposal[proposalID].valid = false;
 				emit TreasuryEnforce(proposalID, msg.sender, false);
 			} else {
@@ -262,7 +262,7 @@ contract DTXconsensus {
 		updateHighestConsensusVotes(consensusID+1);
 		
         require(
-            highestConsensusVotes(consensusID+1) >= totalDTXStaked() * 15 / 100,
+            highestConsensusVotes[consensusID+1] >= totalDTXStaked() * 15 / 100,
 				"15% weigted vote (voting against) required to kill the proposal"
         );
 		
