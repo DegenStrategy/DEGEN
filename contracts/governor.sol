@@ -42,7 +42,7 @@ contract DTXgovernor {
     uint256 public constant acPool1ID = 0;
     uint256 public constant acPool2ID = 1;
     uint256 public constant acPool3ID = 2;
-    uint256 public constant acPool3ID = 3;
+    uint256 public constant acPool4ID = 3;
 
 	uint256 public proposeGovernorTimestamp;
 	address public proposedGovernor;
