@@ -4,10 +4,15 @@ pragma solidity 0.8.20;
 
 import "./interface/IDTX.sol";
 import "./interface/IMasterChef.sol";
+import "./interface/IVoting.sol";
+
+interface IGovernor {
+	function creditContract() external view returns(address);
+}
 
 contract VotingCredit {
-	IDTX public immutable token;
-	IMasterChef public masterchef;
+	IDTX public immutable token = IDTX();
+	IMasterChef public masterchef = IMasterChef();
 	address private _owner;
 	
 	
@@ -25,13 +30,9 @@ contract VotingCredit {
 	// allows for custom implementations
 	mapping(uint256 => uint256) public burnedForId;
 	
-	constructor(IDTX _token, IMasterChef _masterchef) {
-		token = _token;
-		masterchef = _masterchef;
-		deductingContractCount = 5; 
-		deductingContract[] = true; // set for all deducting contracts (rewardBoost, consensus, basicSettings, farms, nftAllocation)
-		deductingContract[] = true;
-		deductingContract[] = true;
+	constructor() {
+		deductingContractCount = 3; 
+		deductingContract[] = true; // set for all deducting contracts (consensus, basicSettings, farms)
 		deductingContract[] = true;
 		deductingContract[] = true;
 	}
@@ -55,11 +56,11 @@ contract VotingCredit {
 	}
 	
 	function addCredit() external {
-		uint256 _burnedForId = IVoting(getOinkCreditContract()).burnedForId(msg.sender);
+		uint256 _burnedForId = IVoting(getOinkCreditContract()).burnedForId(addressToUint256(msg.sender));
 		uint256 _new = _burnedForId - addedCredit[msg.sender];
 		addedCredit[msg.sender] = _burnedForId;
 		userCredit[msg.sender]+=_new;
-		emit AddCredit(_beneficiary, _new);
+		emit AddCredit(msg.sender, _new);
 	}
 	
 	
@@ -109,7 +110,7 @@ contract VotingCredit {
 	function addressToUint256(address addr) public pure returns (uint256) {
     return uint256(uint160(addr));
 }
-	function getOinkCreditContract() public returns (address) {
+	function getOinkCreditContract() public view returns (address) {
 		return IGovernor(IDTX(0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38).governor()).creditContract();
 }
 }
