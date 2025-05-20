@@ -108,6 +108,6 @@ function _update(
     }
 
 	function totalSupply() public override view returns (uint256) {
-        	return IMasterChef(owner()).virtualTotalSupply();
+		return super.totalSupply() + IMasterChef(owner()).totalCreditRewards() +  IMasterChef(owner()).totalPrincipalBurned() -  IMasterChef(owner()).totalPublished();
     }
 }
