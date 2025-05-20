@@ -61,7 +61,7 @@ contract TimeDeposit is ReentrancyGuard {
 
 	
 	uint256 public minimumGift = 0;
-	bool public updateMinGi0ftGovernor = true; //allows automatic update by anybody to costToVote from governing contract
+	bool public updateMinGiftGovernor = true; //allows automatic update by anybody to costToVote from governing contract
     
     uint256 public callFee = 0; // call fee paid for rebalancing pools
 	
