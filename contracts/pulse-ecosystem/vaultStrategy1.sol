@@ -53,7 +53,7 @@ contract tokenVault is ReentrancyGuard {
 
 	uint256 public poolID; 
 	uint256 public accDtxPerShare;
-    address public treasury; // treasury wallet also
+    address public treasury; // fee address in chef
 	address public treasuryWallet; // Actual treasury wallet
 
 	uint256 public lastCredit; // Keep track of our latest credit score from masterchef
@@ -320,7 +320,7 @@ contract tokenVault is ReentrancyGuard {
 	}
 
 	function updateTreasury() external {
-		treasury = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet(); //to treasury not governor
+		treasury = IMasterChef(masterchef).feeAddress();
 		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
 	}
 	
