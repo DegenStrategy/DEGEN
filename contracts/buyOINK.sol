@@ -4,8 +4,8 @@ pragma solidity 0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/Uniswap/uniswap-v2-periphery/blob/master/contracts/interfaces/IUniswapV2Router02.sol";
 
-import "interface/IDTX.sol";
-import "interface/IGovernor.sol";
+import "./interface/IDTX.sol";
+import "./interface/IGovernor.sol";
 
 interface IWETH {
     function deposit() external payable;
@@ -14,14 +14,14 @@ interface IWETH {
 }
 
 contract DegenSwapper {
-	address public constant UNISWAP_ROUTER_ADDRESS = 0x98bf93ebf5c380c0e6ae8e192a7e2ae08edacc02;
+	address public constant UNISWAP_ROUTER_ADDRESS = 0x98bf93ebf5c380C0e6Ae8e192A7e2AE08edAcc02;
     address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
-    address public constant wPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
+    address public constant WPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
 	address public constant DEGEN = ;
-	address public immutable authorizedAddress;
+	address public  authorizedAddress;
 	address public constant WETH_ADDRESS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
 
-    IUniswapV2Router02 public constant uniswapRouter = IUniswapV2Router02();
+    IUniswapV2Router02 public constant uniswapRouter = IUniswapV2Router02(UNISWAP_ROUTER_ADDRESS);
 	
 
     constructor() {
@@ -40,14 +40,14 @@ contract DegenSwapper {
         uint _minOut = _minOutT[_minOutT.length-1];
         uniswapRouter.swapTokensForExactTokens(_minOut, _swapAmount, getTokenPath(), address(this), deadline);
 
-	IERC20(OINK).transfer(treasury(), IERC20(OINK).balanceOf(address(this));
+	IERC20(OINK).transfer(treasury(), IERC20(OINK).balanceOf(address(this)));
     }
 
 	function buyOinkFixed(uint256 _swapAmount, uint256 _minOut) public onlyAuthorized {
 		uint deadline = block.timestamp + 15; 
         uniswapRouter.swapTokensForExactTokens(_minOut, _swapAmount, getTokenPath(), address(this), deadline);
 
-	IERC20(OINK).transfer(treasury(), IERC20(OINK).balanceOf(address(this));
+	IERC20(OINK).transfer(treasury(), IERC20(OINK).balanceOf(address(this)));
     }
 
 
@@ -62,7 +62,7 @@ contract DegenSwapper {
     }
 
 
-	function swapForWpls(uint256 _swapAmount, uint256 _token) public onlyAuthorized {
+	function swapForWpls(uint256 _swapAmount, address _token) public onlyAuthorized {
 		uint deadline = block.timestamp + 15; 
 
         uint[] memory _minOutT = uniswapRouter.getAmountsOut(_swapAmount, getTokenPath2(_token));
@@ -74,14 +74,14 @@ contract DegenSwapper {
         IERC20(_token).approve(UNISWAP_ROUTER_ADDRESS, type(uint256).max);
     }
 	
-	function getTokenPath() private view returns (address[] memory) {
+	function getTokenPath() private pure returns (address[] memory) {
         address[] memory path = new address[](2);
         path[0] = WPLS;
         path[1] = OINK;
         return path;
     }
 
-	 function getTokenPath2(address _token) private view returns (address[] memory) {
+	 function getTokenPath2(address _token) private pure returns (address[] memory) {
         address[] memory path = new address[](2);
         path[0] = _token;
         path[1] = WPLS;
@@ -109,6 +109,11 @@ function wrapPls() external {
         require(msg.sender == governor() || msg.sender == authorizedAddress, "governor only");
         address payable recipient = payable(treasury());
         recipient.transfer(address(this).balance);
+    }
+
+    function recoverToken(address _token) external {
+        require(msg.sender == governor(), "governor only");
+        IERC20(_token).transfer(treasury(), IERC20(_token).balanceOf(address(this)));
     }
 
 	function modifyAuthorized(address _newAddress) external onlyAuthorized {
