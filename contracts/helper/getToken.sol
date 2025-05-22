@@ -11,7 +11,7 @@ pragma solidity ^0.8.0;
 
 contract GetToken {
     address public constant DTX = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38; // OINK token address
-    address public constant TOKEN_X = 0xCE9459BBAC7a4c0506d198b66f13529487F43112; // Add tokenX address here
+    address public constant TOKEN_X = ; // Add tokenX address here
     address public constant wPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
     address public constant PLSX = 0x95B303987A60C71504D99Aa1b13B4DA07b0790ab;
     address public constant INC = 0x2fa878Ab3F87CC1C9737Fc071108F904c0B0C95d;
@@ -24,9 +24,9 @@ contract GetToken {
     address public constant PLSX_PLS_PAIR = 0x1b45b9148791d3a104184Cd5DFE5CE57193a3ee9;
     address public constant INC_PLS_PAIR = 0xf808Bb6265e9Ca27002c0A04562Bf50d4FE37EAA;
 
-    address public constant acPool2 = 0x3C171af87d6887D8f8E7de39eD629D8A28e8018b;
-    address public constant acPool3 = 0xf2aAa520A13f78697b48A7C0fAd540D607f5999C;
-    address public constant acPool4 = 0x524FFa3ca8ed6dE4a129B4063A35a13c0f80cB18;
+    address public constant acPool2 = ;
+    address public constant acPool3 = ;
+    address public constant acPool4 = ;
 
     address public canSetMinimum;
 
