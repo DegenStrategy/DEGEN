@@ -199,16 +199,16 @@ contract DTXgovernor {
 		}
     }
 	
+		//Modified function; instead of setting governor tax, we set token tax
 	function setGovernorTax(uint256 _amount) external {
 		require(msg.sender == farmContract);
-		IMasterChef(masterchef).setGovernorFee(_amount);
+		IDTX(token).updateTax(_amount);
 	}
 
-	//Modified function; instead of burn; we set token tax
 	function burnTokens(uint256 amount) external {
 		require(msg.sender == farmContract);
 		
-		IDTX(token).updateTax(amount);
+		IDTX(token).burn(amount);
 	}
 	
 	function transferToTreasury(uint256 amount) external {
