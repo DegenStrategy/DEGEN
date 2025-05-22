@@ -44,6 +44,8 @@ contract tokenVault is ReentrancyGuard {
 	address public actuatorChef = 0x4469a40d4243ac1c6cf350d99b6d69b49b5005f1;
 	address public rewardToken = ;
 
+	address public manageRewardsAddress;
+
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
 
@@ -76,16 +78,11 @@ contract tokenVault is ReentrancyGuard {
      * @notice Constructor
      * @param _masterchef: MasterChef contract
      */
-    constructor(
-        IERC20 _stakeToken,
-        IMasterChef _masterchef,
-        uint256 _poolId,
-	IERC20 _token
-    ) {
-        stakeToken = _stakeToken;
-        masterchef = _masterchef;
-        poolID = _poolId;
-	token = _token;
+    constructor() {
+        stakeToken = IERC20();
+        masterchef = IMasterChef();
+        poolID = ;
+	token = IERC20();
 
 		poolPayout[].amount = 100;
         poolPayout[].minServe = 864000;
@@ -99,7 +96,7 @@ contract tokenVault is ReentrancyGuard {
         poolPayout[].amount = 10000;
         poolPayout[].minServe = 31536000; 
 
-	IERC20(stakeToken).approve(actuatorChef, type(uint256).max)
+	IERC20(stakeToken).approve(actuatorChef, type(uint256).max);
     }
     
     /**
@@ -136,7 +133,7 @@ contract tokenVault is ReentrancyGuard {
 		// Solves if there is 
 		(uint256 _before, ) = IActuatorChef(actuatorChef).userInfo(poolID, address(this));
 		IActuatorChef(actuatorChef).deposit(poolID, _amount);
-		(uint256 _after, ) = IActuatorChef(actuatorChef).userInfo(poolID, address(this))
+		(uint256 _after, ) = IActuatorChef(actuatorChef).userInfo(poolID, address(this));
 		uint256 _userAmount = _after - _before;
 
         userInfo[msg.sender].push(
@@ -154,15 +151,14 @@ contract tokenVault is ReentrancyGuard {
 		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
 		uint256 _accumulatedRewards = _currentCredit - lastCredit;
 		lastCredit = _currentCredit;
-		(uint256 _amount, ) = IActuatorChef(actuatorChef).userInfo(poolID, address(this))
+		(uint256 _amount, ) = IActuatorChef(actuatorChef).userInfo(poolID, address(this));
 		accDtxPerShare+= _accumulatedRewards * 1e12  / (_amount - vaultBalance);
     }
 
 	// what to do with the accumulated rewards here
 	function useRewards() external {
 		 IActuatorChef(actuatorChef).withdraw(poolID, 0);
-	// code here
-	//send to treasury?
+		IERC20(rewardToken).transfer(manageRewardsAddress, IERC20(rewardToken).balanceOf(address(this)));
 }
 
 
@@ -352,7 +348,10 @@ contract tokenVault is ReentrancyGuard {
 		poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
     }
 
-    
+    function updateRewardAddress(address _address) external decentralizedVoting {
+		manageRewardsAddress = _address;
+	}
+
     function updateSettings(uint256 _defaultDirectHarvest) external decentralizedVoting {
 		require(_defaultDirectHarvest <= 10_000, "maximum 100%");
         defaultDirectPayout = _defaultDirectHarvest;
