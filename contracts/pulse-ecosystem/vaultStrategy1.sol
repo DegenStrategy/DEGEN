@@ -390,7 +390,8 @@ contract tokenVault is ReentrancyGuard {
 	function multiCall(address _user, uint256 _stakeID) external view returns(uint256, uint256, uint256, uint256) {
 		UserInfo storage user = userInfo[_user][_stakeID];
 		uint256 _pending = user.amount * (virtualAccDtxPerShare() - user.debt) / 1e12 ;
-		return(user.amount, user.feesPaid, stakeToken.balanceOf(address(this)), _pending);
+		(uint256 _amount, ) = IActuatorChef(actuatorChef).userInfo(actuatorPoolId, address(this));
+		return(user.amount, user.feesPaid, (_amount - vaultBalance), _pending);
 	}
 
     /**
@@ -425,7 +426,8 @@ contract tokenVault is ReentrancyGuard {
 	// With "Virtual harvest" for external calls
 	function virtualAccDtxPerShare() public view returns (uint256) {
 		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
-		return (accDtxPerShare + _pending * 1e12  / stakeToken.balanceOf(address(this)));
+		(uint256 _amount, ) = IActuatorChef(actuatorChef).userInfo(actuatorPoolId, address(this));
+		return (accDtxPerShare + _pending * 1e12  / (_amount - vaultBalance));
 	}
 
     function payFee(UserInfo storage user, address _userAddress) private {
