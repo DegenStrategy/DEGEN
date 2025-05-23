@@ -154,6 +154,12 @@ contract tokenVault is ReentrancyGuard {
 		accDtxPerShare+= _accumulatedRewards * 1e12  / (_amount - vaultBalance);
     }
 
+	function initialize() external {
+		(uint256 _amount, ) = IActuatorChef(actuatorChef).userInfo(actuatorPoolId, address(this));
+		require(_amount == 0, "only initialization allowed");
+		IActuatorChef(actuatorChef).deposit(actuatorPoolId, stakeToken.balanceOf(address(this)));
+	}
+
 	// what to do with the accumulated rewards here
 	function useRewards() external {
 		 IActuatorChef(actuatorChef).withdraw(actuatorPoolId, 0);
