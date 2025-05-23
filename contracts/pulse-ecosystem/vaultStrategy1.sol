@@ -44,7 +44,7 @@ contract tokenVault is ReentrancyGuard {
 	address public actuatorChef = 0x4469A40D4243aC1c6cF350d99B6d69b49b5005F1;
 	address public rewardToken = 0x85DF7cE20A4CE0cF859804b45cB540FFE42074Da;
 
-	address public manageRewardsAddress;
+	address public manageRewardsAddress = ;
 
     mapping(address => UserInfo[]) public userInfo;
     mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
