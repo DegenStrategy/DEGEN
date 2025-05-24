@@ -312,10 +312,7 @@ contract DTXconsensus {
 			IacPool(IGovernor(owner()).acPool1()).balanceOf() + 
 			IacPool(IGovernor(owner()).acPool2()).balanceOf() +
 			IacPool(IGovernor(owner()).acPool3()).balanceOf() +
-			IacPool(IGovernor(owner()).acPool4()).balanceOf() + 
-			IacPool(IGovernor(owner()).acPool5()).balanceOf() + 
-			IacPool(IGovernor(owner()).acPool6()).balanceOf()
-		);
+			IacPool(IGovernor(owner()).acPool4()).balanceOf() 
     }
 
     /**
@@ -329,10 +326,11 @@ contract DTXconsensus {
         return (
             IacPool(IGovernor(owner()).acPool1()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool1()).getPricePerFullShare() / 1e19 * 2 + 
                 IacPool(IGovernor(owner()).acPool2()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool2()).getPricePerFullShare() / 1e19 * 3 +
-                        IacPool(IGovernor(owner()).acPool3()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool4()).getPricePerFullShare() / 1e20 * 60 +
-                            IacPool(IGovernor(owner()).acPool4()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool5()).getPricePerFullShare() / 1e19 * 15 
+                        IacPool(IGovernor(owner()).acPool3()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool3()).getPricePerFullShare() / 1e20 * 60 +
+                            IacPool(IGovernor(owner()).acPool4()).totalVotesForID(_forID) * IacPool(IGovernor(owner()).acPool4()).getPricePerFullShare() / 1e19 * 15 
         );
     }
+
 
 	function getOinkConsensusContract() public view returns(address) {
 		return IGovernor(IDTX(OINK).governor()).consensusContract();
