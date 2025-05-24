@@ -313,6 +313,7 @@ contract DTXconsensus {
 			IacPool(IGovernor(owner()).acPool2()).balanceOf() +
 			IacPool(IGovernor(owner()).acPool3()).balanceOf() +
 			IacPool(IGovernor(owner()).acPool4()).balanceOf() 
+	);
     }
 
     /**
