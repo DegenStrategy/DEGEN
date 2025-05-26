@@ -47,7 +47,7 @@ contract DTXbasics {
 	ProposalStructure[] public minThresholdFibonacceningProposal;
 	ProposalStructure2[] public newPoolProposal;
 	
-	uint256 newPoolThresholdMultiplier = 1000;
+	uint256 newPoolThresholdMultiplier = 250;
 	
 	event ProposeMinDeposit(uint256 indexed proposalID, uint256 valueSacrificedForVote, uint256 proposedMinDeposit, address indexed enforcer, uint256 delay);
     
@@ -174,7 +174,7 @@ contract DTXbasics {
 	
 	function initiateNewPool(uint256 depositingTokens, address _newPool, uint256 delay) external {
 		require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-		require(depositingTokens >= IGovernor(owner()).costToVote()*500, "Minimum threshold is 500x Minimum Cost to vote");
+		require(depositingTokens >= IGovernor(owner()).costToVote()*newPoolThresholdMultiplier, "Below minimum threshold");
 
 		IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
 		
