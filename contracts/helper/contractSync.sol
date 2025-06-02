@@ -19,21 +19,17 @@ interface IChange {
 	function syncOwner() external;
 	function updateFees() external;
     function viewVaults() external view returns(address[] memory);
+    function useRewards() external;
 }
 
 contract DTXsyncContracts {
-    address public immutable tokenDTX = ;
-    address public immutable proxyVoting = ;
+    address public immutable tokenDTX = 0xCb761FA439169684b6703669922Ae56d83e1Ce84;
+    address public immutable proxyVoting = 0x454C55D17189eE6601153bB78FDfB718F96E83EC;
     
     address public acPool1;
     address public acPool2;
     address public acPool3;
     address public acPool4;
-    address public acPool5;
-    address public acPool6;
-
-
-
 
 
     function updateAllInitialize() external payable {
@@ -82,6 +78,24 @@ contract DTXsyncContracts {
         for(uint i=0; i < _masterchef.poolLength() ; i++) {
             (, , address _pool) = _masterchef.poolInfo(i);
             IChange(_pool).updateTreasury();
+        }
+    }
+
+    function updatePoolsAll() public {
+        IMasterChef _masterchef = IMasterChef(IDTX(tokenDTX).owner());
+        for(uint i=0; i < _masterchef.poolLength() ; i++) {
+            (, , address _pool) = _masterchef.poolInfo(i);
+            IChange(_pool).updateTreasury();
+            IChange(_pool).setAdmin();
+        }
+    }
+
+    function harvestVaults() public {
+        IMasterChef _masterchef = IMasterChef(IDTX(tokenDTX).owner());
+        for(uint i=4; i < _masterchef.poolLength() ; i++) {
+            (, , address _pool) = _masterchef.poolInfo(i);
+            try IChange(_pool).useRewards() {}
+            catch{}
         }
     }
 
