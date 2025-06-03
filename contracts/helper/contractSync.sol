@@ -38,9 +38,9 @@ contract DTXsyncContracts {
         syncOwners();
         updateMasterchef();
         IChange(proxyVoting).updatePools();
-		updateTreasury();
 		syncCreditContract();
         updateFees();
+        updatePoolsAll();
     }
 
     function updateAll() external {
@@ -49,9 +49,9 @@ contract DTXsyncContracts {
         syncOwners();
         updateMasterchef();
         IChange(proxyVoting).updatePools();
-		updateTreasury();
 		syncCreditContract();
         updateFees();
+        updatePoolsAll();
     }
 
     function updatePools() public {
@@ -73,20 +73,15 @@ contract DTXsyncContracts {
         IacPool(acPool4).setAdmin();
     }
 
-    function updateTreasury() public {
-        IMasterChef _masterchef = IMasterChef(IDTX(tokenDTX).owner());
-        for(uint i=0; i < _masterchef.poolLength() ; i++) {
-            (, , address _pool) = _masterchef.poolInfo(i);
-            IChange(_pool).updateTreasury();
-        }
-    }
-
     function updatePoolsAll() public {
         IMasterChef _masterchef = IMasterChef(IDTX(tokenDTX).owner());
         for(uint i=0; i < _masterchef.poolLength() ; i++) {
             (, , address _pool) = _masterchef.poolInfo(i);
-            IChange(_pool).updateTreasury();
-            IChange(_pool).setAdmin();
+            if(i<4) {
+                IChange(_pool).setAdmin();
+            } else {
+                IChange(_pool).updateTreasury();
+            }
         }
     }
 
