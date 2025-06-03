@@ -45,7 +45,7 @@ contract DegenSwapper {
 	address public constant UNISWAP_ROUTER_ADDRESS = 0x98bf93ebf5c380C0e6Ae8e192A7e2AE08edAcc02;
     address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
     address public constant WPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
-	address public constant DEGEN = 0xCb761FA439169684b6703669922Ae56d83e1Ce84;
+	address public constant DEGEN = ;
 	address public  authorizedAddress;
 	address public constant WETH_ADDRESS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
     bool public allowAll = true;
