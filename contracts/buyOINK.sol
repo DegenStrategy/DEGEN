@@ -43,27 +43,39 @@ interface IVault {
 
 contract DegenSwapper {
 	address public constant UNISWAP_ROUTER_ADDRESS = 0x98bf93ebf5c380C0e6Ae8e192A7e2AE08edAcc02;
+    address public constant UNISWAP_ROUTER_ADDRESS_V1 = 0x165C3410fC91EF562C50559f7d2289fEbed552d9;
     address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
     address public constant WPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
-	address public constant DEGEN = ;
+	address public constant DEGEN = 0xCb761FA439169684b6703669922Ae56d83e1Ce84;
 	address public  authorizedAddress;
 	address public constant WETH_ADDRESS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
     bool public allowAll = true;
 
     IUniswapV2Router02 public constant uniswapRouter = IUniswapV2Router02(UNISWAP_ROUTER_ADDRESS);
+    IUniswapV2Router02 public constant uniswapRouterV1 = IUniswapV2Router02(UNISWAP_ROUTER_ADDRESS_V1); //pulsex v1
 
     mapping(address => bool) public exoticToken;
     mapping(address => bool) public exoticTokenPath;
     mapping(address => bool) public  allowedPhux;
     mapping(bytes32 => bool) public allowedPhuxId;
+    mapping(address => bool) public isV1Liquidity;
+    mapping(address => bool) public isFeeToken;
 
     // Balancer V2 Vault address (mainnet)
     IVault public constant vault = IVault(0x7F51AC3df6A034273FB09BB29e383FCF655e473c);
+
+    uint256 public slippageTolerance = 97; //3% slippage(token tax)
 
 	
 
     constructor() {
 		authorizedAddress = msg.sender;
+
+        isFeeToken[0x32fB5663619A657839A80133994E45c5e5cDf427] = true;
+
+        isV1Liquidity[0x85DF7cE20A4CE0cF859804b45cB540FFE42074Da] = true; //actr and emit
+        isV1Liquidity[0x32fB5663619A657839A80133994E45c5e5cDf427] = true;
+
         allowedPhux[0x6C203A555824ec90a215f37916cf8Db58EBe2fA3] = true; // print
         allowedPhuxId[0x30dd5508c3b1deb46a69fe29955428bb4e0733d90001000000000000000004b6] = true; // INC
 
@@ -78,6 +90,9 @@ contract DegenSwapper {
         IERC20(0x2fa878Ab3F87CC1C9737Fc071108F904c0B0C95d).approve(UNISWAP_ROUTER_ADDRESS, type(uint256).max);
         IERC20(0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39).approve(UNISWAP_ROUTER_ADDRESS, type(uint256).max);
         IERC20(0x95B303987A60C71504D99Aa1b13B4DA07b0790ab).approve(UNISWAP_ROUTER_ADDRESS, type(uint256).max);
+
+        IERC20(0x85DF7cE20A4CE0cF859804b45cB540FFE42074Da).approve(UNISWAP_ROUTER_ADDRESS_V1, type(uint256).max); //actr
+        IERC20(0x32fB5663619A657839A80133994E45c5e5cDf427).approve(UNISWAP_ROUTER_ADDRESS_V1, type(uint256).max); // emit
     }
 
     event BoughtOink(uint256 amountSpent, uint256 amountReceived);
@@ -93,7 +108,7 @@ contract DegenSwapper {
         uint deadline = block.timestamp + 15; 
 
         uint[] memory amountsOut = uniswapRouter.getAmountsOut(_swapAmount, getTokenPath());
-        uint minOut = (amountsOut[amountsOut.length-1] * 97) / 100; // 3% slippage tolerance
+        uint minOut = (amountsOut[amountsOut.length-1] * slippageTolerance) / 100; 
         
         uniswapRouter.swapExactTokensForTokens(
             _swapAmount,      // amountIn
@@ -124,7 +139,33 @@ contract DegenSwapper {
         require(_token != OINK && _token != WPLS && _token != DEGEN, "not allowed for these tokens");
         uint deadline = block.timestamp + 15; 
 
-        uniswapRouter.swapExactTokensForTokens(
+        IUniswapV2Router02 _router;
+        if(isV1Liquidity[_token]) {
+            _router = uniswapRouterV1;
+        } else {
+            _router = uniswapRouter;
+        }
+        _router.swapExactTokensForTokens(
+            _swapAmount,      // amountIn
+            _minOut,          // amountOutMin
+            getTokenPath2(_token), 
+            address(this), 
+            deadline
+        );
+    }
+
+    function swapForWplsFeeToken(uint256 _swapAmount, address _token, uint256 _minOut) public onlyAuthorized {
+        require(_token != OINK && _token != WPLS && _token != DEGEN, "not allowed for these tokens");
+        require(isFeeToken[_token], "only fee tokens!");
+        uint deadline = block.timestamp + 15; 
+
+        IUniswapV2Router02 _router;
+        if(isV1Liquidity[_token]) {
+            _router = uniswapRouterV1;
+        } else {
+            _router = uniswapRouter;
+        }
+        _router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
             _swapAmount,      // amountIn
             _minOut,          // amountOutMin
             getTokenPath2(_token), 
@@ -146,14 +187,21 @@ contract DegenSwapper {
         path[1] = _into;
         path[2] = WPLS;
 
+        IUniswapV2Router02 _router;
+        if(isV1Liquidity[_token]) {
+            _router = uniswapRouterV1;
+        } else {
+            _router = uniswapRouter;
+        }
+
         // Get expected output amounts
-        uint[] memory amountsOut = uniswapRouter.getAmountsOut(tokenBalance, path);
+        uint[] memory amountsOut = _router.getAmountsOut(tokenBalance, path);
         
         // Apply slippage tolerance (e.g., 3% slippage)
         uint256 minAmountOut = amountsOut[amountsOut.length - 1] ;
 
         // Use swapExactTokensForTokens instead
-        uniswapRouter.swapExactTokensForTokens(
+        _router.swapExactTokensForTokens(
             tokenBalance,      // amountIn
             minAmountOut,      // amountOutMin  
             path,              // path
@@ -202,6 +250,9 @@ contract DegenSwapper {
 	function enableToken(address _token) external {
         IERC20(_token).approve(UNISWAP_ROUTER_ADDRESS, type(uint256).max);
     }
+    function enableTokenV1(address _token) external {
+        IERC20(_token).approve(UNISWAP_ROUTER_ADDRESS_V1, type(uint256).max);
+    }
 
 	function getTokenPath() private pure returns (address[] memory) {
         address[] memory path = new address[](2);
@@ -218,7 +269,14 @@ contract DegenSwapper {
     }
 
 	function getMinOut(uint256 _swapAmount, address[] memory _path) external view returns (uint256) {
-	    uint[] memory _minOutT = uniswapRouter.getAmountsOut(_swapAmount, _path);
+        IUniswapV2Router02 _router;
+        if(isV1Liquidity[_path[0]]) {
+            _router = uniswapRouterV1;
+        } else {
+            _router = uniswapRouter;
+        }
+
+	    uint[] memory _minOutT = _router.getAmountsOut(_swapAmount, _path);
         uint _minOut = _minOutT[_minOutT.length-1];
 	    return _minOut;
     }
@@ -280,6 +338,18 @@ contract DegenSwapper {
     function modifyPhuxPool(bytes32 _poolId, bool _setting) external {
 		require(msg.sender == authorizedAddress, "authorized address only");
         allowedPhuxId[_poolId] = _setting;
+	}
+    function modifyV1Liquidity(address _token, bool _setting) external {
+		require(msg.sender == authorizedAddress, "authorized address only");
+        isV1Liquidity[_token] = _setting;
+	}
+    function modifySlippageTolerance(uint256 _amount) external {
+		require(msg.sender == authorizedAddress, "authorized address only");
+        slippageTolerance = _amount;
+	}
+    function modifyisFeeToken(address _token, bool _s) external {
+		require(msg.sender == authorizedAddress, "authorized address only");
+        isFeeToken[_token] = _s;
 	}
 
 	function governor() public view returns (address) {
