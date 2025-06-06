@@ -57,7 +57,8 @@ contract GetToken {
         ) {
             IacPool(_poolInto).giftDeposit(_tokenXAmount, msg.sender, 0);
         } else {
-            require(IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount), "tokenX transfer failed");
+            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount), "insufficient token balance");
+            IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount);
         }
         emit BUY(msg.sender, _poolInto, _amount, wPLS);
     }
@@ -84,7 +85,8 @@ contract GetToken {
         ) {
             IacPool(_poolInto).giftDeposit(_tokenXAmount, msg.sender, 0);
         } else {
-            require(IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount), "tokenX transfer failed");
+            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount), "insufficient token balance");
+            IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount);
         }
         emit BUY(msg.sender, _poolInto, _amount, PLSX);
     }
@@ -111,7 +113,8 @@ contract GetToken {
         ) {
             IacPool(_poolInto).giftDeposit(_tokenXAmount, msg.sender, 0);
         } else {
-            require(IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount), "tokenX transfer failed");
+            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount), "insufficient token balance");
+            IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount);
         }
         emit BUY(msg.sender, _poolInto, _amount, INC);
     }
