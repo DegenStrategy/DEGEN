@@ -205,10 +205,11 @@ contract DTXgovernor {
 		IDTX(token).updateTax(_amount);
 	}
 
-	function burnTokens(uint256 amount) external {
+	//instead of burn token function, we use it to set rewards
+	function burnTokens(uint256 _amount) external {
 		require(msg.sender == farmContract);
 		
-		IDTX(token).burn(amount);
+		IMasterChef(masterchef).updateEmissionRate(_amount);
 	}
 	
 	function transferToTreasury(uint256 amount) external {
