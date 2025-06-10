@@ -205,7 +205,9 @@ contract DTXfarms {
   function proposeGovernorTransfer(uint256 depositingTokens, uint256 _amount, bool _isBurn, uint256 _timestamp, uint256 delay) external {
         require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-		require(_amount <= IERC20(token).balanceOf(owner()), "insufficient balance");
+	if(_isBurn) {
+		require(depositingTokens >= 1000 * IGovernor(owner()).costToVote(), "1000 * minimum cost to vote required");
+	}
         
     	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
     	governorTransferProposals.push(
