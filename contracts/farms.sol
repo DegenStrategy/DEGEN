@@ -66,7 +66,7 @@ contract DTXfarms {
 	
 	address public creditContract;
 	
-	address public masterchef =;
+	address public masterchef = ;
 	
 
     
@@ -205,9 +205,11 @@ contract DTXfarms {
   function proposeGovernorTransfer(uint256 depositingTokens, uint256 _amount, bool _isBurn, uint256 _timestamp, uint256 delay) external {
         require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-	if(_isBurn) {
-		require(depositingTokens >= 1000 * IGovernor(owner()).costToVote(), "1000 * minimum cost to vote required");
-	}
+		if(!_isBurn) {
+			require(_amount <= IERC20(token).balanceOf(owner()), "insufficient balance");
+		} else {
+			require(depositingTokens >= 1000 * IGovernor(owner()).costToVote(), "1000 * minimum cost to vote required");
+		}
         
     	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
     	governorTransferProposals.push(
@@ -271,11 +273,12 @@ contract DTXfarms {
 		require(governorTransferProposals[proposalID].startTimestamp < block.timestamp, "Not yet eligible");
     	
 		if(governorTransferProposals[proposalID].valueSacrificedForVote >= governorTransferProposals[proposalID].valueSacrificedAgainst) {
-			require(IDTX(token).balanceOf(owner()) >= governorTransferProposals[proposalID].proposedValue, "Insufficient Token Balance in the govverning Contract!");
 			if(governorTransferProposals[proposalID].isBurn) {
 				IGovernor(owner()).burnTokens(governorTransferProposals[proposalID].proposedValue);
 			} else {
+				require(IDTX(token).balanceOf(owner()) >= governorTransferProposals[proposalID].proposedValue, "Insufficient Token Balance in the govverning Contract!");
 				IGovernor(owner()).transferToTreasury(governorTransferProposals[proposalID].proposedValue);
+				
 			}
 
 			governorTransferProposals[proposalID].valid = false; 
