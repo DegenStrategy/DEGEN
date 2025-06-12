@@ -112,7 +112,7 @@ contract DegenSwapper {
         uint[] memory amountsOut = uniswapRouter.getAmountsOut(_swapAmount, getTokenPath());
         uint minOut = (amountsOut[amountsOut.length-1] * slippageTolerance) / 100; 
         
-        uniswapRouter.swapExactTokensForTokens(
+        uint[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             _swapAmount,      // amountIn
             minOut,           // amountOutMin
             getTokenPath(), 
@@ -120,13 +120,13 @@ contract DegenSwapper {
             deadline
         );
 
-        emit BoughtOink(_swapAmount, IERC20(OINK).balanceOf(address(this)));
+        emit BoughtOink(_swapAmount, amounts[amounts.length - 1]);
     }
 
     function buyOinkFixed(uint256 _swapAmount, uint256 _minOut) public onlyAuthorized {
         uint deadline = block.timestamp + 15; 
         
-        uniswapRouter.swapExactTokensForTokens(
+        uint[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             _swapAmount,      // amountIn
             _minOut,          // amountOutMin (caller provides this)
             getTokenPath(), 
@@ -134,7 +134,7 @@ contract DegenSwapper {
             deadline
         );
 
-        emit BoughtOink(_swapAmount, IERC20(OINK).balanceOf(address(this)));
+        emit BoughtOink(_swapAmount, amounts[amounts.length - 1]);
     }
 
     function swapForWpls(uint256 _swapAmount, address _token, uint256 _minOut) public onlyAuthorized {
