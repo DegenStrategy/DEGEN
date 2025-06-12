@@ -28,6 +28,11 @@ contract GetToken {
     address public constant acPool3 = ;
     address public constant acPool4 = ;
 
+    bool public canAllocateTokens = true;
+    uint256 public bonusIntoWallet = 100; //to off-set token tax
+
+    mapping(address => uint256) userTokens;
+
     address public canSetMinimum;
 
     event BUY(address indexed buyer, address pool, uint256 depositAmount, address purchaseToken);
@@ -57,7 +62,7 @@ contract GetToken {
         ) {
             IacPool(_poolInto).giftDeposit(_tokenXAmount, msg.sender, 0);
         } else {
-            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount), "insufficient token balance");
+            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount, "insufficient token balance");
             IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount);
         }
         emit BUY(msg.sender, _poolInto, _amount, wPLS);
@@ -85,7 +90,7 @@ contract GetToken {
         ) {
             IacPool(_poolInto).giftDeposit(_tokenXAmount, msg.sender, 0);
         } else {
-            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount), "insufficient token balance");
+            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount, "insufficient token balance");
             IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount);
         }
         emit BUY(msg.sender, _poolInto, _amount, PLSX);
@@ -113,19 +118,51 @@ contract GetToken {
         ) {
             IacPool(_poolInto).giftDeposit(_tokenXAmount, msg.sender, 0);
         } else {
-            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount), "insufficient token balance");
+            require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _tokenXAmount, "insufficient token balance");
             IERC20(TOKEN_X).transfer(msg.sender, _tokenXAmount);
         }
         emit BUY(msg.sender, _poolInto, _amount, INC);
     }
 
+    function claimTokens(uint256 _amount, address _poolInto) external {
+        require(userTokens[msg.sender] >= _amount, "Insufficient user balance!");
+        require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _amount, "insufficient token balance in contract");
+
+        //GIVE BONUS!!! SOMEHOW!!
+        if (_poolInto == acPool2) {
+            IacPool(_poolInto).giftDeposit(_amount*106/100, msg.sender, 0);
+        } else if (_poolInto == acPool3) {
+            IacPool(_poolInto).giftDeposit(_amount*112/100, msg.sender, 0);
+        } else if (_poolInto == acPool4) {
+            IacPool(_poolInto).giftDeposit(_amount*134/100, msg.sender, 0);
+        } else {
+            IERC20(TOKEN_X).transfer(msg.sender, _amount*bonusIntoWallet/100);
+        }
+    }
+
+    function allocateTokens(address _recipient, uint256 _amount) external {
+        require(msg.sender == canSetMinimum, "not allowed");
+        require(canAllocateTokens, "can no longer allocate tokens!");
+        userTokens[_recipient] = userTokens[_recipient] + _amount;
+    }
+    function modifyWalletBonus(uint256 _amount) external {
+        require(msg.sender == canSetMinimum, "not allowed");
+        require(_amount >= 100 && _amount <= 111, "out of allowed range!");
+        bonusIntoWallet = _amount;
+    }
+
+    function disableTokenAllocation() external {
+        require(msg.sender == governor() || msg.sender == canSetMinimum, "not allowed");
+        canAllocateTokens = false;
+    }
+
     function priceWithDiscount(address _poolInto, uint256 _price) public pure returns (uint256) {
         if (_poolInto == acPool4) {
-            return _price * 100 / 130; 
+            return _price * 100 / 134; 
         } else if (_poolInto == acPool3) {
-            return _price * 100 / 110; 
+            return _price * 100 / 112; 
         } else if (_poolInto == acPool2) {
-            return _price * 100 / 105; 
+            return _price * 100 / 106; 
         }
         return _price;
     }
