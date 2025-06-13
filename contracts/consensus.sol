@@ -36,7 +36,7 @@ contract DTXconsensus {
 	address private _owner;
 
 	address public creditContract;
-	uint256 public OFFSET = 1000000000000000000000000000; // offset to be used for OINK voting
+	uint256 public OFFSET = 100000000000000000000000000000; // offset to be used for OINK voting
 
 	
 	// *kinda* allows voting for multiple proposals
