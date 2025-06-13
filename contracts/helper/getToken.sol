@@ -128,6 +128,8 @@ contract GetToken {
         require(userTokens[msg.sender] >= _amount, "Insufficient user balance!");
         require(IERC20(TOKEN_X).balanceOf(address(this)) >=  _amount, "insufficient token balance in contract");
 
+        userTokens[msg.sender]-= _amount;
+
         //GIVE BONUS!!! SOMEHOW!!
         if (_poolInto == acPool2) {
             IacPool(_poolInto).giftDeposit(_amount*106/100, msg.sender, 0);
