@@ -31,7 +31,7 @@ contract GetToken {
     bool public canAllocateTokens = true;
     uint256 public bonusIntoWallet = 100; //to off-set token tax
 
-    mapping(address => uint256) userTokens;
+    mapping(address => uint256) public userTokens;
 
     address public canSetMinimum;
 
