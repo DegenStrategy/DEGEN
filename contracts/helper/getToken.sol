@@ -147,7 +147,7 @@ contract GetToken {
     }
     function modifyWalletBonus(uint256 _amount) external {
         require(msg.sender == canSetMinimum, "not allowed");
-        require(_amount >= 100 && _amount <= 111, "out of allowed range!");
+        require(_amount <= 111, "out of allowed range!");
         bonusIntoWallet = _amount;
     }
 
