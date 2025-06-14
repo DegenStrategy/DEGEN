@@ -264,7 +264,7 @@ contract GetToken {
     }
 
     function governor() public view returns (address) {
-        return IDTX(DTX).governor();
+        return IDTX(TOKEN_X).governor();
     }
 
     function treasury() public view returns (address) {
@@ -272,7 +272,7 @@ contract GetToken {
     }
 
     function receiveAddress() public view returns (address) {
-        return IMasterChef(IDTX(DTX).owner()).feeAddress();
+        return IMasterChef(IDTX(TOKEN_X).owner()).feeAddress();
     }
 
     function withdrawERC(address _a) external {
