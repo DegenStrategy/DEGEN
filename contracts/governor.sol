@@ -176,6 +176,11 @@ contract DTXgovernor {
 	    IMasterChef(masterchef).add(0, _pool, false);
 	}
 
+	function setReward(uint256 _amount) external {
+	    require(msg.sender == farmContract);
+	    IMasterChef(masterchef).updateEmissionRate(_amount);
+	}
+
 	function setPool(uint256 _pid, uint256 _allocPoint, bool _withUpdate) external {
 	    require(msg.sender == farmContract);
 	    IMasterChef(masterchef).set(_pid, _allocPoint, _withUpdate);
