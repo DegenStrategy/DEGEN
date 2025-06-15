@@ -30,6 +30,8 @@ contract DTXgovernor {
     address public constant treasuryWallet = ;
 
 	address public constant rewardContract = ; //for referral rewards
+
+address public constant helperToken = ;
     
     //addresses for time-locked deposits(autocompounding pools)
     address public constant acPool1 = ;
