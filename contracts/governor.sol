@@ -157,11 +157,7 @@ contract DTXgovernor {
 	    require(msg.sender == basicContract);
 	    delayBeforeEnforce = newDelay;
 	}
-	
-	function setCallFee(address _acPool, uint256 _newCallFee) external {
-	    require(msg.sender == basicContract);
-	    IacPool(_acPool).setCallFee(_newCallFee);
-	}
+
 	
 	function updateCostToVote(uint256 newCostToVote) external {
 	    require(msg.sender == basicContract);
