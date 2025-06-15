@@ -13,6 +13,7 @@ contract RedeemReferralRewards {
 	address public immutable token = ;
 	address private _governor;
 	mapping(address => uint256) public amountRedeemed;
+	address claimReward;
 
 	address[] public vaults;
 
@@ -27,10 +28,9 @@ contract RedeemReferralRewards {
 		
 		amountRedeemed[msg.sender]+= _amount;
 
-		address _masterchef = IGovernor(_governor).masterchef();
-		( , , address _vault) = IMasterChef(_masterchef).poolInfo(4);
+		address claimRewardContract = IGovernor(_governor).helperToken();
 
-		uint256 _poolPayout = IVault(_vault).viewPoolPayout(_into);
+		uint256 _poolPayout = IVault(claimRewardContract).viewPoolPayout(_into);
 		uint256 _payout = 0;
 		
 		uint256 referralBonus = IGovernor(governor()).referralBonus();
@@ -40,14 +40,14 @@ contract RedeemReferralRewards {
 		uint256 _minServe = 0;
 		
 		if(_poolPayout == 0) { //send into wallet
-			_payout = _amount * IVault(_vault).defaultDirectPayout() / 10000;
+			_payout = _amount * IVault(claimRewardContract).defaultDirectPayout() / 10000;
 			
 			require(IDTX(token).balanceOf(address(this)) >= _payout, "The reward contract has insufficient balance!");
 			IDTX(token).transfer(_into, _payout);
 		} else {							
 			_payout = _amount * _poolPayout / 10000; 
 			require(IDTX(token).balanceOf(address(this)) >= _payout, "The reward contract has insufficient balance!");
-			_minServe = IVault(_vault).viewPoolMinServe(_into);
+			_minServe = IVault(claimRewardContract).viewPoolMinServe(_into);
 			IacPool(_into).giftDeposit(_payout, msg.sender, _minServe);
 		}
 
