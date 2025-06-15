@@ -15,7 +15,7 @@ interface IChange {
     function setAdmin() external;
     function setMasterchef() external;
 	function syncCreditContract() external;
-    function updateTreasury() external;
+    function updateAddresses() external;
 	function syncOwner() external;
 	function updateFees() external;
     function viewVaults() external view returns(address[] memory);
@@ -23,8 +23,8 @@ interface IChange {
 }
 
 contract DTXsyncContracts {
-    address public immutable tokenDTX = 0xCb761FA439169684b6703669922Ae56d83e1Ce84;
-    address public immutable proxyVoting = 0x454C55D17189eE6601153bB78FDfB718F96E83EC;
+    address public immutable tokenDTX = ;
+    address public immutable proxyVoting = ;
     
     address public acPool1;
     address public acPool2;
@@ -80,7 +80,7 @@ contract DTXsyncContracts {
             if(i<4) {
                 IChange(_pool).setAdmin();
             } else {
-                IChange(_pool).updateTreasury();
+                IChange(_pool).updateAddresses();
             }
         }
     }
@@ -131,6 +131,5 @@ contract DTXsyncContracts {
 		address governor = IDTX(tokenDTX).governor();
 
         IChange(IGovernor(governor).farmContract()).setMasterchef();
-        IChange(IGovernor(governor).fibonacceningContract()).setMasterchef();
     }
 }
