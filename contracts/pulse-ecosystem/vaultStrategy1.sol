@@ -11,6 +11,11 @@ import "../interface/IGovernor.sol";
 import "../interface/IMasterChef.sol";
 import "../interface/IacPool.sol";
 import "../interface/IActuatorChef.sol";
+import "../interface/IDTX.sol";
+
+interface IHelperToken {
+	function mint(address to, uint256 amount) external;
+}
 
 /**
  * Token vault (hex, inc, plsx)
@@ -24,16 +29,11 @@ contract tokenVault is ReentrancyGuard {
 		uint256 feesPaid;
 		uint256 lastAction;
     }
-
-    struct PoolPayout {
-        uint256 amount;
-        uint256 minServe;
-    }
 	
 	uint256 public constant maxFee = 2500; // max 25%
 	uint256 public constant maxFundingFee = 1000; // max 0.1% per hour
 	
-    IERC20 public immutable token; //  token
+    address public immutable token; //  token
 
     IERC20 public immutable stakeToken; // plsx, inc, hex
 
@@ -43,11 +43,11 @@ contract tokenVault is ReentrancyGuard {
 
 	address public actuatorChef = 0x4469A40D4243aC1c6cF350d99B6d69b49b5005F1;
 	address public rewardToken = 0x85DF7cE20A4CE0cF859804b45cB540FFE42074Da;
+	address public helperToken;
 
-	address public manageRewardsAddress = ;
+	address public manageRewardsAddress;
 
     mapping(address => UserInfo[]) public userInfo;
-    mapping(address => PoolPayout) public poolPayout; //determines the percentage received depending on withdrawal option
 
 	// Referral system: Track referrer + referral points
 	mapping(address => address) public referredBy;
@@ -56,12 +56,10 @@ contract tokenVault is ReentrancyGuard {
 	uint256 public poolID; 
 	uint256 public actuatorPoolId;
 	uint256 public accDtxPerShare;
-    address public treasury; // fee address in chef
 	address public treasuryWallet; // Actual treasury wallet
 
 	uint256 public lastCredit; // Keep track of our latest credit score from masterchef
-	
-    uint256 public defaultDirectPayout = 50; //0.5% if withdrawn into wallet
+
 	
 	uint256 public depositFee = 0; // 0
 	uint256 public fundingRate = 0;// 0
@@ -69,31 +67,18 @@ contract tokenVault is ReentrancyGuard {
 	
 
     event Deposit(address indexed sender, uint256 amount, uint256 debt, uint256 depositFee, address indexed referral);
-    event Withdraw(address indexed sender, uint256 stakeID, uint256 harvestAmount, uint256 penalty);
+    event Withdraw(address indexed sender, uint256 stakeID, uint256 harvestAmount);
 
-    event SelfHarvest(address indexed user, address indexed harvestInto, uint256 harvestAmount, uint256 penalty);
+    event SelfHarvest(address indexed user, uint256 harvestAmount);
 	
 	event CollectedFee(address indexed from, uint256 amount);
 
  
     constructor() {
-        stakeToken = IERC20();
-        masterchef = IMasterChef();
-        poolID = ;
-		actuatorPoolId = ;
-	token = IERC20();
-
-		poolPayout[].amount = 100;
-        poolPayout[].minServe = 864000;
-
-        poolPayout[].amount = 300;
-        poolPayout[].minServe = 2592000;
-
-        poolPayout[].amount = 1000;
-        poolPayout[].minServe = 8640000;
-
-        poolPayout[].amount = 10000;
-        poolPayout[].minServe = 31536000; 
+        stakeToken = IERC20(0xBB4D05C1663f079C1d9e0A4A6eE5a877CFE34F72);
+        poolID = 4;
+		actuatorPoolId = 0;
+	token = ;
 
 	IERC20(stakeToken).approve(actuatorChef, type(uint256).max);
     }
@@ -118,6 +103,8 @@ contract tokenVault is ReentrancyGuard {
 		if(referredBy[msg.sender] == address(0) && referral != msg.sender) {
 			referredBy[msg.sender] = referral;
 		}
+
+
 
 		uint256 _depositFee = 0;
 		if(depositFee != 0) {
@@ -170,7 +157,7 @@ contract tokenVault is ReentrancyGuard {
     /**
      * Withdraws all tokens
      */
-    function withdraw(uint256 _stakeID, address _harvestInto) public nonReentrant {
+    function withdraw(uint256 _stakeID) public nonReentrant {
         harvest();
         require(_stakeID < userInfo[msg.sender].length, "invalid stake ID");
         UserInfo storage user = userInfo[msg.sender][_stakeID];
@@ -185,74 +172,46 @@ contract tokenVault is ReentrancyGuard {
 		uint256 userTokens = _after - _before;
 		uint256 currentAmount = user.amount * (accDtxPerShare - user.debt) / 1e12;
 
-		
 		_removeStake(msg.sender, _stakeID);
 
-        uint256 _toWithdraw;      
-
-        if(_harvestInto == msg.sender) { 
-            _toWithdraw = currentAmount * defaultDirectPayout / 10000;
-            currentAmount = currentAmount - _toWithdraw;
-            IMasterChef(masterchef).publishTokens(msg.sender, _toWithdraw);
-        } else {
-            require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
-            _toWithdraw = currentAmount * poolPayout[_harvestInto].amount / 10000;
-            currentAmount = currentAmount - _toWithdraw;
-			IMasterChef(masterchef).publishTokens(address(this), _toWithdraw);
-            IacPool(_harvestInto).giftDeposit(_toWithdraw, msg.sender, poolPayout[_harvestInto].minServe);
-        }
+		IMasterChef(masterchef).transferCredit(helperToken, currentAmount);
+		IHelperToken(helperToken).mint(msg.sender, currentAmount);
 
 		if(referredBy[msg.sender] != address(0)) {
-			referralPoints[msg.sender]+= _toWithdraw;
-			referralPoints[referredBy[msg.sender]]+= _toWithdraw;
+			referralPoints[msg.sender]+= currentAmount;
+			referralPoints[referredBy[msg.sender]]+= currentAmount;
 		}
 
-		if(currentAmount > 0) {
-        	IMasterChef(masterchef).publishTokens(treasury, currentAmount); //penalty goes to governing contract
-		}
+		lastCredit = lastCredit - currentAmount;
 		
-		lastCredit = lastCredit - (_toWithdraw + currentAmount);
-		
-		emit Withdraw(msg.sender, _stakeID, _toWithdraw, currentAmount);
+		emit Withdraw(msg.sender, _stakeID, currentAmount);
 
         stakeToken.safeTransfer(msg.sender, userTokens);
     } 
 
-
-	function selfHarvest(uint256[] calldata _stakeID, address _harvestInto) external nonReentrant {
-        require(_stakeID.length <= userInfo[msg.sender].length, "incorrect Stake list");
-        UserInfo[] storage user = userInfo[msg.sender];
+	function selfHarvest(address _userAddress, uint256[] calldata _stakeID) external nonReentrant {
+        require(_stakeID.length <= userInfo[_userAddress].length, "incorrect Stake list");
+        UserInfo[] storage user = userInfo[_userAddress];
         harvest();
         uint256 _toWithdraw = 0;
-        uint256 _payout = 0;
 
         for(uint256 i = 0; i<_stakeID.length; ++i) {
-		payFee(user[_stakeID[i]], msg.sender);
+		payFee(user[_stakeID[i]], _userAddress);
             _toWithdraw+= user[_stakeID[i]].amount * (accDtxPerShare - user[_stakeID[i]].debt)/ 1e12;
 			user[_stakeID[i]].debt = accDtxPerShare;
         }
 
-        if(_harvestInto == msg.sender) {
-            _payout = _toWithdraw * defaultDirectPayout / 10000;
-            IMasterChef(masterchef).publishTokens(msg.sender, _payout); 
-		} else {
-            require(poolPayout[_harvestInto].amount != 0, "incorrect pool!");
-            _payout = _toWithdraw * poolPayout[_harvestInto].amount / 10000;
-			IMasterChef(masterchef).publishTokens(address(this), _payout);
-            IacPool(_harvestInto).giftDeposit(_payout, msg.sender, poolPayout[_harvestInto].minServe);
-		}
+        IMasterChef(masterchef).transferCredit(helperToken, _toWithdraw);
+		IHelperToken(helperToken).mint(_userAddress, _toWithdraw);
 
-		if(referredBy[msg.sender] != address(0)) {
-			referralPoints[msg.sender]+= _payout;
-			referralPoints[referredBy[msg.sender]]+= _payout;
+		if(referredBy[_userAddress] != address(0)) {
+			referralPoints[_userAddress]+= _toWithdraw;
+			referralPoints[referredBy[_userAddress]]+= _toWithdraw;
 		}
-
-        uint256 _penalty = _toWithdraw - _payout;
-		IMasterChef(masterchef).publishTokens(treasury, _penalty); //penalty to treasury
 		
-		lastCredit = lastCredit - (_payout + _penalty);
+		lastCredit = lastCredit - _toWithdraw;
 
-		emit SelfHarvest(msg.sender, _harvestInto, _payout, _penalty);        
+		emit SelfHarvest(_userAddress, _toWithdraw);        
     }
 
 	// emergency withdraw, without caring about rewards
@@ -268,7 +227,7 @@ contract tokenVault is ReentrancyGuard {
 		uint256 _amount = _after - _before;
 		
 		_removeStake(msg.sender, _stakeID); //delete the stake
-        emit Withdraw(msg.sender, _stakeID, 0, _amount);
+        emit Withdraw(msg.sender, _stakeID, _amount);
         stakeToken.safeTransfer(msg.sender, _amount);
 	}
 
@@ -320,9 +279,11 @@ contract tokenVault is ReentrancyGuard {
 		} 
 	}
 
-	function updateTreasury() external {
-		treasury = IMasterChef(masterchef).feeAddress();
+	function updateAddresses() external {
+		masterchef = IMasterChef(IDTX(token).masterchefAddress());
+		manageRewardsAddress = IMasterChef(masterchef).feeAddress();
 		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
+		helperToken = IGovernor(IMasterChef(masterchef).owner()).helperToken();
 	}
 	
 	
@@ -334,33 +295,6 @@ contract tokenVault is ReentrancyGuard {
 		IERC20(_tokenAddress).safeTransfer(treasuryWallet, IERC20(_tokenAddress).balanceOf(address(this)));
 	}
 
-	/*
-	 * Unlikely, but Masterchef can be changed if needed to be used without changing pools
-	 * masterchef = IMasterChef(token.owner());
-	 * Must stop earning first(withdraw tokens from old chef)
-	*/
-	function setMasterChefAddress(IMasterChef _masterchef, uint256 _newPoolID) external decentralizedVoting {
-		masterchef = _masterchef;
-		poolID = _newPoolID; //in case pool ID changes
-	}
-
-    //need to set pools before launch or perhaps during contract launch
-    //determines the payout depending on the pool. could set a governance process for it(determining amounts for pools)
-	//allocation contract contains the decentralized proccess for updating setting, but so does the admin(governor)
-    function setPoolPayout(address _poolAddress, uint256 _amount, uint256 _minServe) external decentralizedVoting {
-		require(_amount <= 10000, "out of range"); 
-		poolPayout[_poolAddress].amount = _amount;
-		poolPayout[_poolAddress].minServe = _minServe; //mandatory lockup(else stake for 5yr, withdraw with 82% penalty and receive 18%)
-    }
-
-    function updateRewardAddress(address _address) external decentralizedVoting {
-		manageRewardsAddress = _address;
-	}
-
-    function updateSettings(uint256 _defaultDirectHarvest) external decentralizedVoting {
-		require(_defaultDirectHarvest <= 10_000, "maximum 100%");
-        defaultDirectPayout = _defaultDirectHarvest;
-    }
 
 	function collectVaultsCommission() public {
 		IActuatorChef(actuatorChef).withdraw(actuatorPoolId, vaultBalance);
@@ -401,13 +335,6 @@ contract tokenVault is ReentrancyGuard {
         return(IMasterChef(masterchef).pendingDtx(poolID));
     }
 
-	function viewPoolPayout(address _contract) external view returns (uint256) {
-		return poolPayout[_contract].amount;
-	}
-
-	function viewPoolMinServe(address _contract) external view returns (uint256) {
-		return poolPayout[_contract].minServe;
-	}
 
 	/**
      * Returns number of stakes for a user
