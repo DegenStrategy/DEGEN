@@ -377,7 +377,7 @@ contract DTXfarms {
 		    //process for setting deposit fee, funding fee and referral reward	
     function proposeVault(uint256 depositingTokens, uint256 _type, uint256 _amount, uint256 delay) external {	
         require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");	
-        require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");	
+        require(delay <= 7 days, "must be shorter than 7 days");	
         //  Vault has requirement for maximum amount	
         	
     	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);	
@@ -393,7 +393,7 @@ contract DTXfarms {
 		require(
 			(	vaultProposals[proposalID].firstCallTimestamp 
 				+ vaultProposals[proposalID].delay 
-				+ IGovernor(owner()).delayBeforeEnforce()
+				+ 7 days
 			) 
 				> block.timestamp,
 			"can already be enforced"
@@ -409,7 +409,7 @@ contract DTXfarms {
 		require(
 			(	vaultProposals[proposalID].firstCallTimestamp 
 				+ vaultProposals[proposalID].delay 
-				+ IGovernor(owner()).delayBeforeEnforce()
+				+ 7 days
 			) 
 				> block.timestamp,
 			"can already be enforced"
@@ -432,7 +432,7 @@ contract DTXfarms {
     function executeVault(uint256 proposalID) public {	
     	require(	
     	    vaultProposals[proposalID].valid &&	
-    	    vaultProposals[proposalID].firstCallTimestamp + IGovernor(owner()).delayBeforeEnforce() + vaultProposals[proposalID].delay  < block.timestamp,	
+    	    vaultProposals[proposalID].firstCallTimestamp + 7 days + vaultProposals[proposalID].delay  < block.timestamp,	
     	    "conditions not met"	
         );	
     		
