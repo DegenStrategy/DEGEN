@@ -55,7 +55,7 @@ address public constant helperToken = ;
 	uint256 public depositFee = 0;
 	uint256 public fundingRate = 200;
 
-    uint256 public costToVote = 1000 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
+    uint256 public costToVote = 1 * 1e18;  // 1000 coins. All proposals are valid unless rejected. This is a minimum to prevent spam
     uint256 public delayBeforeEnforce = 1 days; //minimum number of TIME between when proposal is initiated and executed
     
 
