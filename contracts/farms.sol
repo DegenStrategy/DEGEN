@@ -23,6 +23,8 @@ contract DTXfarms {
         uint16 newDepositFee;
     }
 
+	//we no longer have govTransfer
+	// burn sets transfer tax, non-burn sets percentageAllocatedToPulseEcosystem
      struct ProposalGovTransfer {
         bool valid;
         uint256 firstCallTimestamp;
@@ -206,7 +208,7 @@ contract DTXfarms {
         require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
 		if(!_isBurn) {
-			require(_amount <= IERC20(token).balanceOf(owner()), "insufficient balance");
+			require(_amount > 0 && _amount <= 10000, "out of bounds");
 		} else {
 			require(depositingTokens >= 1000 * IGovernor(owner()).costToVote(), "1000 * minimum cost to vote required");
 		}
@@ -276,9 +278,7 @@ contract DTXfarms {
 			if(governorTransferProposals[proposalID].isBurn) {
 				IGovernor(owner()).burnTokens(governorTransferProposals[proposalID].proposedValue);
 			} else {
-				require(IDTX(token).balanceOf(owner()) >= governorTransferProposals[proposalID].proposedValue, "Insufficient Token Balance in the govverning Contract!");
-				IGovernor(owner()).transferToTreasury(governorTransferProposals[proposalID].proposedValue);
-				
+				percentageAllocatedToPulseEcosystem = governorTransferProposals[proposalID].proposedValue;
 			}
 
 			governorTransferProposals[proposalID].valid = false; 
