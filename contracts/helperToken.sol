@@ -9,6 +9,10 @@ import "./interface/IVault.sol";
 import "./interface/IacPool.sol";
 import "./interface/IMasterChef.sol";
 
+interface IHarvestContract {
+    function selfHarvest(address _userAddress, uint256[] calldata _stakeID) external;
+}
+
 contract HelperToken is ERC20 {
     struct PoolPayout {
         uint256 amount;
@@ -83,7 +87,27 @@ contract HelperToken is ERC20 {
         }
     }
 
-    function claimRewards(uint256 _amount, address _harvestInto) external {
+    function claimWithHarvest(
+        address[] calldata _contractAddresses,
+        address _userAddress,
+        uint256[][] calldata _stakeIDs,
+        uint256 _amount,
+        address _into
+    ) external {
+        require(
+            _contractAddresses.length == _stakeIDs.length,
+            "Mismatched contracts and stake IDs length"
+        );
+        require(_contractAddresses.length > 0, "No contracts provided");
+
+        for (uint256 i = 0; i < _contractAddresses.length; i++) {
+            IHarvestContract(_contractAddresses[i]).selfHarvest(_userAddress, _stakeIDs[i]);
+        }
+
+        claimRewards(_amount, _into);
+    }
+
+    function claimRewards(uint256 _amount, address _harvestInto) public {
         require(balanceOf(msg.sender) >= _amount, "Insufficient balance!");
 
         _burn(msg.sender, _amount);
