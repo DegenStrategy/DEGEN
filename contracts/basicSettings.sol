@@ -9,7 +9,7 @@ import "./interface/IVoting.sol";
 
 //compile with optimization enabled(60runs)
 contract DTXbasics {
-    address public immutable token =; //DTX token (address)
+    address public immutable token = ; //DTX token (address)
 	address private _owner;
 	
 	address public creditContract;
@@ -42,9 +42,7 @@ contract DTXbasics {
     
     ProposalStructure[] public minDepositProposals;
     ProposalStructure[] public delayProposals;
-	ProposalStructure[] public callFeeProposal;
 	RolloverBonusStructure[] public rolloverBonuses;
-	ProposalStructure[] public minThresholdFibonacceningProposal;
 	ProposalStructure2[] public newPoolProposal;
 	
 	uint256 newPoolThresholdMultiplier = 250;
@@ -415,210 +413,7 @@ contract DTXbasics {
 		}
     }
     
-    
-	 /**
-     * The auto-compounding effect is achieved with the help of the users that initiate the
-     * transaction and pay the gas fee for re-investing earnings into the Masterchef
-     * The call fee is paid as a reward to the user
-     * This is handled in the auto-compounding contract
-     * 
-     * This is a process to change the Call fee(the reward) in the autocompounding contracts
-     * This contract is an admin for the autocompound contract
-     */
-    function initiateSetCallFee(uint256 depositingTokens, uint256 newCallFee, uint256 delay) external { 
-    	require(depositingTokens >= IGovernor(owner()).costToVote(), "below minimum cost to vote");
-    	require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-    	require(newCallFee <= 100, "maximum 1%");
-    
-    	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
-    	callFeeProposal.push(
-    	    ProposalStructure(true, block.timestamp, depositingTokens, 0, delay, newCallFee)
-    	   );
-    	   
-        emit InitiateSetCallFee(callFeeProposal.length - 1, depositingTokens, newCallFee, msg.sender, delay);
-    }
-	function voteSetCallFeeY(uint256 proposalID, uint256 withTokens) external {
-		require(callFeeProposal[proposalID].valid, "invalid");
-		require(
-			(	callFeeProposal[proposalID].firstCallTimestamp 
-				+ callFeeProposal[proposalID].delay 
-				+ IGovernor(owner()).delayBeforeEnforce()
-			) 
-				> block.timestamp,
-			"can already be enforced"
-		);
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
 
-		callFeeProposal[proposalID].valueSacrificedForVote+= withTokens;
-
-		emit AddVotes(4, proposalID, msg.sender, withTokens, true);
-	}
-	function voteSetCallFeeN(uint256 proposalID, uint256 withTokens, bool withAction) external {
-		require(callFeeProposal[proposalID].valid, "invalid");
-		require(
-			(	callFeeProposal[proposalID].firstCallTimestamp 
-				+ callFeeProposal[proposalID].delay 
-				+ IGovernor(owner()).delayBeforeEnforce()
-			) 
-				> block.timestamp,
-			"can already be enforced"
-		);
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-		
-		callFeeProposal[proposalID].valueSacrificedAgainst+= withTokens;
-		if(withAction) { vetoSetCallFee(proposalID); }
-
-		emit AddVotes(4, proposalID, msg.sender, withTokens, false);
-	}
-    function vetoSetCallFee(uint256 proposalID) public {
-    	require(callFeeProposal[proposalID].valid, "Proposal already invalid");
-		require(
-			callFeeProposal[proposalID].firstCallTimestamp + 
-			callFeeProposal[proposalID].delay < block.timestamp, 
-			"pending delay"
-		);
-		require(
-			callFeeProposal[proposalID].valueSacrificedForVote < 
-			callFeeProposal[proposalID].valueSacrificedAgainst, 
-			"needs more votes"
-		);
-
-    	callFeeProposal[proposalID].valid = false;
-    	
-    	emit EnforceProposal(4, proposalID, msg.sender, false);
-    }
-    function executeSetCallFee(uint256 proposalID) public {
-    	require(
-    	    callFeeProposal[proposalID].valid && 
-    	    callFeeProposal[proposalID].firstCallTimestamp + 
-			IGovernor(owner()).delayBeforeEnforce() + 
-			callFeeProposal[proposalID].delay < block.timestamp,
-    	    "Conditions not met"
-    	   );
-        
-		if(callFeeProposal[proposalID].valueSacrificedForVote >= callFeeProposal[proposalID].valueSacrificedAgainst) {
-
-			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool1(), callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool2(), callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool3(), callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool4(), callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool5(), callFeeProposal[proposalID].proposedValue);
-			IGovernor(owner()).setCallFee(IGovernor(owner()).acPool6(), callFeeProposal[proposalID].proposedValue);
-			
-			callFeeProposal[proposalID].valid = false;
-			
-			emit EnforceProposal(4, proposalID, msg.sender, true);
-		} else {
-			vetoSetCallFee(proposalID);
-		}
-    }
-	
-    /**
-     * Regulatory process for determining fibonaccening threshold,
-     * which is the minimum amount of tokens required to be collected,
-     * before a "fibonaccening" event can be scheduled;
-     * 
-     * Bitcoin has "halvening" events every 4 years where block rewards reduce in half
-     * DTX has "fibonaccening" events, which can be scheduled once
-     * this smart contract collects the minimum(threshold) of tokens. 
-     * 
-     * Tokens are collected as penalties from premature withdrawals, as well as voting costs inside this contract
-     *
-     * It's basically a mechanism to re-distribute the penalties(though the rewards can exceed the collected penalties)
-     * 
-     * 
-     * Effectively, the rewards are increased for a short period of time. 
-     * Once the event expires, the tokens collected from penalties are
-     * burned to give a sense of deflation AND the global inflation
-     * for DTX is reduced by a Golden ratio
-    */
-    function proposeSetMinThresholdFibonaccening(uint256 depositingTokens, uint256 newMinimum, uint256 delay) external {
-        require(newMinimum >= IERC20(token).totalSupply() / 1000, "Min 0.1% of supply");
-        require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");
-        require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
-        
-    	IVoting(creditContract).deductCredit(msg.sender, depositingTokens);
-    	minThresholdFibonacceningProposal.push(
-    	    ProposalStructure(true, block.timestamp, depositingTokens, 0, delay, newMinimum)
-    	    );
-		
-    	emit ProposeSetMinThresholdFibonaccening(
-    	    minThresholdFibonacceningProposal.length - 1, depositingTokens, newMinimum, msg.sender, delay
-    	   );
-    }
-	function voteSetMinThresholdFibonacceningY(uint256 proposalID, uint256 withTokens) external {
-		require(minThresholdFibonacceningProposal[proposalID].valid, "invalid");
-		require(
-			(	minThresholdFibonacceningProposal[proposalID].firstCallTimestamp 
-				+ minThresholdFibonacceningProposal[proposalID].delay 
-				+ IGovernor(owner()).delayBeforeEnforce()
-			) 
-				> block.timestamp,
-			"can already be enforced"
-		);
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-		
-		minThresholdFibonacceningProposal[proposalID].valueSacrificedForVote+= withTokens;
-			
-		emit AddVotes(5, proposalID, msg.sender, withTokens, true);
-	}
-	function voteSetMinThresholdFibonacceningN(uint256 proposalID, uint256 withTokens, bool withAction) external {
-		require(minThresholdFibonacceningProposal[proposalID].valid, "invalid");
-		require(
-			(	minThresholdFibonacceningProposal[proposalID].firstCallTimestamp 
-				+ minThresholdFibonacceningProposal[proposalID].delay 
-				+ IGovernor(owner()).delayBeforeEnforce()
-			) 
-				> block.timestamp,
-			"can already be enforced"
-		);
-		
-		IVoting(creditContract).deductCredit(msg.sender, withTokens);
-
-		minThresholdFibonacceningProposal[proposalID].valueSacrificedAgainst+= withTokens;
-		if(withAction) { vetoSetMinThresholdFibonaccening(proposalID); }
-
-		emit AddVotes(5, proposalID, msg.sender, withTokens, false);
-	}
-    function vetoSetMinThresholdFibonaccening(uint256 proposalID) public {
-    	require(minThresholdFibonacceningProposal[proposalID].valid, "Invalid proposal"); 
-		require(
-			minThresholdFibonacceningProposal[proposalID].firstCallTimestamp + 
-			minThresholdFibonacceningProposal[proposalID].delay <= block.timestamp,
-			"pending delay"
-		);
-		require(
-			minThresholdFibonacceningProposal[proposalID].valueSacrificedForVote < 
-			minThresholdFibonacceningProposal[proposalID].valueSacrificedAgainst, 
-			"needs more votes"
-		);
-
-    	minThresholdFibonacceningProposal[proposalID].valid = false;
-    	
-    	emit EnforceProposal(5, proposalID, msg.sender, false);
-    }
-    function executeSetMinThresholdFibonaccening(uint256 proposalID) public {
-    	require(
-    	    minThresholdFibonacceningProposal[proposalID].valid &&
-    	    minThresholdFibonacceningProposal[proposalID].firstCallTimestamp + 
-			IGovernor(owner()).delayBeforeEnforce() + 
-			minThresholdFibonacceningProposal[proposalID].delay < block.timestamp,
-    	    "conditions not met"
-        );
-    	
-		if(minThresholdFibonacceningProposal[proposalID].valueSacrificedForVote >= 
-			minThresholdFibonacceningProposal[proposalID].valueSacrificedAgainst) {
-			IGovernor(owner()).setThresholdFibonaccening(minThresholdFibonacceningProposal[proposalID].proposedValue);
-			minThresholdFibonacceningProposal[proposalID].valid = false; 
-			
-			emit EnforceProposal(5, proposalID, msg.sender, true);
-		} else {
-			vetoSetMinThresholdFibonaccening(proposalID);
-		}
-    }
 	
 	function updateNewPoolProposalThreshold(uint256 _amount) external {
 		require(msg.sender == owner(), "Only through decentralized voting!");
@@ -638,14 +433,12 @@ contract DTXbasics {
 	 * Can be used for building database from scratch (opposed to using event logs)
 	 * also to make sure all data and latest events are synced correctly
 	 */
-	function proposalLengths() external view returns(uint256, uint256, uint256, uint256, uint256, uint256) {
+	function proposalLengths() external view returns(uint256, uint256, uint256, uint256) {
 		return(
 			minDepositProposals.length, 
 			newPoolProposal.length,
 			delayProposals.length, 
-			callFeeProposal.length, 
-			rolloverBonuses.length, 
-			minThresholdFibonacceningProposal.length
+			rolloverBonuses.length
 		);
 	}
 
