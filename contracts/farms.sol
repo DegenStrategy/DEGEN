@@ -187,6 +187,7 @@ contract DTXfarms {
 			uint256 _newTotalToPulse = percentageAllocatedToPulseEcosystem - poolAllocationPercentage[_poolID] + _newAllocation;
 
 			percentageAllocatedToPulseEcosystem = _newTotalToPulse;
+			require(percentageAllocatedToPulseEcosystem < 10000, "out of bounds");
 			poolAllocationPercentage[_poolID] = _newAllocation;
 			proposalFarmUpdate[proposalID].valid = false;
 			
