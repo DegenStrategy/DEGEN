@@ -106,6 +106,7 @@ contract DTXfarms {
 			IGovernor(owner()).setPool(i, _newAlloc, false);
 		}
 	}
+
     
     /**
      * Regulatory process to regulate rewards for PulseChain Ecosystem
@@ -208,7 +209,7 @@ contract DTXfarms {
         require(depositingTokens >= IGovernor(owner()).costToVote(), "Costs to vote");
         require(delay <= IGovernor(owner()).delayBeforeEnforce(), "must be shorter than Delay before enforce");
 		if(!_isBurn) {
-			require(_amount > 0 && _amount <= 10000, "out of bounds");
+			require(_amount <= IERC20(token).balanceOf(owner()), "insufficient balance");
 		} else {
 			require(depositingTokens >= 1000 * IGovernor(owner()).costToVote(), "1000 * minimum cost to vote required");
 		}
@@ -278,7 +279,8 @@ contract DTXfarms {
 			if(governorTransferProposals[proposalID].isBurn) {
 				IGovernor(owner()).burnTokens(governorTransferProposals[proposalID].proposedValue);
 			} else {
-				percentageAllocatedToPulseEcosystem = governorTransferProposals[proposalID].proposedValue;
+				require(IDTX(token).balanceOf(owner()) >= governorTransferProposals[proposalID].proposedValue, "Insufficient Token Balance in the govverning Contract!");
+				IGovernor(owner()).transferToTreasury(governorTransferProposals[proposalID].proposedValue);
 			}
 
 			governorTransferProposals[proposalID].valid = false; 
