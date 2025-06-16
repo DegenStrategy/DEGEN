@@ -60,6 +60,9 @@ address public constant helperToken = ;
 
 	uint256 public lastHarvestedTime;
 
+	bool public isTemporaryAdmin = true;
+	address public temporaryAdmin;
+
     event SetInflation(uint256 rewardPerBlock);
     event EnforceGovernor(address indexed _newGovernor, address indexed enforcer);
     event GiveRolloverBonus(address indexed recipient, uint256 amount, address indexed poolInto);
@@ -70,6 +73,7 @@ address public constant helperToken = ;
 		_rollBonus[acPool2] = 200;
 		_rollBonus[acPool3] = 300;
 		_rollBonus[acPool3] = 500;
+		temporaryAdmin = msg.sender;
     }    
    
    
@@ -219,6 +223,23 @@ address public constant helperToken = ;
 		
 		IERC20(token).transfer(treasuryWallet, amount);
 	}
+
+	//enable governor shift immedietly post-launch in case quick adaption is needed. Function should be disabled shortly after
+	function setNewGovernorByAdmin(address _tempGovernor) external {
+	require(isTemporaryAdmin, "temporary admin access has been revoked!");
+	require(msg.sender == temporaryAdmin, "unauthorized!");
+
+        IMasterChef(masterchef).transferOwnership(_tempGovernor); //transfer masterchef ownership
+
+		emit EnforceGovernor(proposedGovernor, msg.sender);
+    }
+
+	function disableTemporaryAdmin() external {
+		require(isTemporaryAdmin, "already revoked");
+	require(msg.sender == temporaryAdmin, "unauthorized!");
+
+	isTemporaryAdmin = false;
+}
 
 
 	function getRollBonus(address _bonusForPool) external view returns (uint256) {
