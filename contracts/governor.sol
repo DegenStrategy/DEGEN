@@ -16,7 +16,6 @@ interface ITokenBalancer {
 contract DTXgovernor {
     address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
     address public constant token = ; //DEGEN token
-    bool public changedName = false;
 
     //masterchef address
     address public constant masterchef = ;
