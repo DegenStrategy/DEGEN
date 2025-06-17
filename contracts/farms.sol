@@ -94,6 +94,11 @@ contract DTXfarms {
 			_totalAllocatedToXPDMiners+= _allocation;
 		}
 
+		if (_totalAllocatedToXPDMiners == 0) {
+			IMasterChef(masterchef).massUpdatePools();
+        	return; 
+    	}
+
 		uint256 _poolLength = IMasterChef(masterchef).poolLength();
 
 		uint256 _percentageAllocatedToXPDMiners = 10000 - percentageAllocatedToPulseEcosystem;
