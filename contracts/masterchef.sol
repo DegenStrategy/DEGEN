@@ -69,6 +69,8 @@ contract DTXChef is Ownable {
         dtx = IDTX();
         devaddr = msg.sender;
 	feeAddress = msg.sender;
+	totalCreditRewards = 75000000000 * 1e18;
+	credit[msg.sender] = 75000000000 * 1e18;
 	fairMint1 = ;
 	fairMint2 = ;
     }
