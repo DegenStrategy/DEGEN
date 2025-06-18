@@ -13,6 +13,10 @@ interface ITokenBalancer {
     function emergencyWithdraw(address _token) external;
 }
 
+interface IEmitVault {
+	function giveNFTApproval(address[] calldata _allowed, bool _permission) external;
+}
+
 contract DTXgovernor {
     address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
     address public constant token = ; //DEGEN token
@@ -149,6 +153,15 @@ address public constant helperToken = ;
 		governorBlocked[proposedGovernor] = true;
 	}
 }
+
+	//gives allowance to pools to use emit NFT
+	function approveEmitNft(address _updateVault, address[] calldata _vaults, uint256[] calldata _poolIds) external {
+		for(uint i=0; i < _vaults.length; i++) {
+			(,, address _vault) = IMasterChef(masterchef).poolInfo(_poolIds[i]);
+			require(_vaults[i] == _vault, "invalid _vaults data"); // check vault is valid in masterchef
+		}
+		IEmitVault(_updateVault).giveNFTApproval(_vaults, true);
+	}
 
 
 	function treasuryRequest(address _tokenAddr, address _recipient, uint256 _amountToSend) external {
