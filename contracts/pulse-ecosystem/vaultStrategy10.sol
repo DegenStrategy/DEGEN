@@ -280,7 +280,7 @@ contract tokenVault is ReentrancyGuard, IERC721Receiver {
     constructor() {
         stakeToken = IERC20(0x1b45b9148791d3a104184Cd5DFE5CE57193a3ee9); // PLS-PLSX V1
         poolID = 13;
-	token = 0xCb761FA439169684b6703669922Ae56d83e1Ce84;
+	token = ;
 
 	IERC20(stakeToken).approve(emitChef, type(uint256).max);
     }
