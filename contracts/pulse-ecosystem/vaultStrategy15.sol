@@ -258,7 +258,7 @@ contract tokenVault is ReentrancyGuard {
 	uint256 public constant maxFee = 2500; // max 25%
 	uint256 public constant maxFundingFee = 1000; // max 0.1% per hour
 	
-    IERC20 public immutable token; //  token
+    address public immutable token; //  token
 
     address public immutable stakeToken; // plsx, inc, hex
 
@@ -301,7 +301,7 @@ contract tokenVault is ReentrancyGuard {
 
  
     constructor() {
-        stakeToken = IERC20(0x08a2807b8191F23F3E55206705901CBE8B61289E);
+        stakeToken = 0x08a2807b8191F23F3E55206705901CBE8B61289E;
         poolID = 18;
 		actuatorPoolId = 115;
 	token = ;
