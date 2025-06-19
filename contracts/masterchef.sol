@@ -132,6 +132,7 @@ contract DTXChef is Ownable {
 	function startPublishing(uint256 _pid, address _participant, uint256 _alloc) external onlyOwner {
 		require(poolInfo[_pid].allocPoint == 0 && poolInfo[_pid].participant == address(0), "already earning");
         updatePool(_pid);
+	existingParticipant[_participant] = true;
         poolInfo[_pid].participant = _participant;
         poolInfo[_pid].allocPoint = _alloc;
         totalAllocPoint = totalAllocPoint.add(_alloc);
@@ -139,6 +140,7 @@ contract DTXChef is Ownable {
 
     function stopPublishing(uint256 _pid) external onlyOwner {
         updatePool(_pid);
+	existingParticipant[poolInfo[_pid].participant] = false;
         poolInfo[_pid].participant = address(0);
 		totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint);
         poolInfo[_pid].allocPoint = 0;
