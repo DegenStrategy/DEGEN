@@ -260,7 +260,7 @@ contract tokenVault is ReentrancyGuard {
 	
     address public immutable token; //  token
 
-    address public immutable stakeToken; // plsx, inc, hex
+    IERC20 public immutable stakeToken; // plsx, inc, hex
 
     IMasterChef public masterchef;  
 
@@ -301,7 +301,7 @@ contract tokenVault is ReentrancyGuard {
 
  
     constructor() {
-        stakeToken = 0x08a2807b8191F23F3E55206705901CBE8B61289E;
+        stakeToken = IERC20(0x08a2807b8191F23F3E55206705901CBE8B61289E);
         poolID = 18;
 		actuatorPoolId = 115;
 	token = ;
