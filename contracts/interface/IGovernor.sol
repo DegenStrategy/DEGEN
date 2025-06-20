@@ -67,6 +67,8 @@ interface IGovernor {
 
     function harvest() external;
 
+    function manageRewardsAddress() external view returns (address);
+
     function helperToken() external view returns (address);
 
     function lastHarvestedTime() external view returns (uint256);
