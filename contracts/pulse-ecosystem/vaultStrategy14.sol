@@ -523,7 +523,9 @@ contract tokenVault is ReentrancyGuard, IERC721Receiver {
 
     function giveNFTApproval(address[] calldata _allowed, bool _permission) external decentralizedVoting {
         for(uint256 i = 0; i < _allowed.length; ++i) { 
+		if(_allowed[i] != address(this) {
 			nftContract.setApprovalForAll(_allowed[i], _permission);
+		}
         }
     }
 
