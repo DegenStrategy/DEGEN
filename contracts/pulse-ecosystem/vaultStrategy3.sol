@@ -280,7 +280,7 @@ contract tokenVault is ReentrancyGuard {
 
 	function updateAddresses() external {
 		masterchef = IMasterChef(IDTX(token).masterchefAddress());
-		manageRewardsAddress = IMasterChef(masterchef).feeAddress();
+		manageRewardsAddress = IGovernor(IMasterChef(masterchef).owner()).manageRewardsAddress();
 		treasuryWallet = IGovernor(IMasterChef(masterchef).owner()).treasuryWallet();
 		helperToken = IGovernor(IMasterChef(masterchef).owner()).helperToken();
 	}
