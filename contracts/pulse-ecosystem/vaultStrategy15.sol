@@ -5,6 +5,8 @@ pragma solidity 0.8.20;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/utils/SafeERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.4.0/contracts/security/ReentrancyGuard.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/IERC721Receiver.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/IERC721.sol";
 
 
 import "../interface/IGovernor.sol";
@@ -16,236 +18,206 @@ interface IHelperToken {
 	function mint(address to, uint256 amount) external;
 }
 
-interface I2phux {
-    event ArbitratorUpdated(address newArbitrator);
-    event Deposited(
+interface IEmit {
+    event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
+    event EmergencyWithdraw(
         address indexed user,
-        uint256 indexed poolid,
+        uint256 indexed pid,
         uint256 amount
     );
-    event FactoriesUpdated(
-        address rewardFactory,
-        address stashFactory,
-        address tokenFactory
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
     );
-    event FeeInfoChanged(address feeDistro, bool active);
-    event FeeInfoUpdated(address feeDistro, address lockFees, address feeToken);
-    event FeeManagerUpdated(address newFeeManager);
-    event FeesUpdated(
-        uint256 lockIncentive,
-        uint256 stakerIncentive,
-        uint256 earmarkIncentive,
-        uint256 platformFee
-    );
-    event OwnerUpdated(address newOwner);
-    event PoolAdded(
-        address lpToken,
-        address gauge,
-        address token,
-        address rewardPool,
-        address stash,
-        uint256 pid
-    );
-    event PoolManagerUpdated(address newPoolManager);
-    event PoolShutdown(uint256 poolId);
-    event RewardContractsUpdated(address lockRewards, address stakerRewards);
-    event TreasuryUpdated(address newTreasury);
-    event VoteDelegateUpdated(address newVoteDelegate);
-    event Withdrawn(
-        address indexed user,
-        uint256 indexed poolid,
-        uint256 amount
-    );
+    event RewardPaid(address indexed user, uint256 amount);
+    event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
-    function FEE_DENOMINATOR() external view returns (uint256);
+    function BBC() external view returns (address);
 
-    function MaxFees() external view returns (uint256);
+    function INC() external view returns (address);
 
-    function REWARD_MULTIPLIER_DENOMINATOR() external view returns (uint256);
+    function MAX_REWARDS_PER_SEC() external view returns (uint256);
 
-    function addPool(
-        address _lptoken,
-        address _gauge,
-        uint256 _stashVersion
-    ) external returns (bool);
+    function NINE_INCH_MASTERCHEF() external view returns (address);
 
-    function bridgeDelegate() external view returns (address);
+    function PULSE_X_MASTERCHEF() external view returns (address);
 
-    function claimRewards(uint256 _pid, address _gauge) external returns (bool);
-
-    function crv() external view returns (address);
+    function add(
+        uint256 _allocPoint,
+        address _token,
+        bool _withUpdate,
+        uint256 _lastRewardTime,
+        uint16 _depositFeeBP,
+        uint16 _withdrawFeeBP,
+        uint8 _externalProtocol,
+        address _externalFarm,
+        uint256 _externalPid
+    ) external;
 
     function deposit(
         uint256 _pid,
         uint256 _amount,
-        bool _stake
-    ) external returns (bool);
+        address _referrer
+    ) external;
 
-    function depositAll(uint256 _pid, bool _stake) external returns (bool);
+    function depositOnBehalfOf(
+        uint256 _pid,
+        uint256 _amount,
+        address _referrer,
+        address _staker
+    ) external;
 
-    function distributeL2Fees(uint256 _amount) external;
+    function devAddress() external view returns (address);
 
-    function earmarkFees(address _feeToken) external returns (bool);
+    function devPercent() external view returns (uint256);
 
-    function earmarkIncentive() external view returns (uint256);
+    function emergencyWithdraw(uint256 _pid) external;
 
-    function earmarkRewards(uint256 _pid) external returns (bool);
+    function emitToken() external view returns (address);
 
-    function feeManager() external view returns (address);
+    function emittersNft() external view returns (address);
 
-    function feeTokens(address)
+    function feeAddress() external view returns (address);
+
+    function feePercent() external view returns (uint256);
+
+    function getAllPoolViews()
         external
         view
-        returns (
-            address distro,
-            address rewards,
-            bool active
-        );
+        returns (EMISSIONS.PoolView[] memory);
 
-    function gaugeMap(address) external view returns (bool);
+    function getExternalReward(uint256 _pid) external;
 
-    function getRewardMultipliers(address) external view returns (uint256);
+    function getMultiplier(uint256 _from, uint256 _to)
+        external
+        view
+        returns (uint256);
 
-    function isShutdown() external view returns (bool);
+    function getPoolView(uint256 pid)
+        external
+        view
+        returns (EMISSIONS.PoolView memory);
 
-    function l2FeesHistory(uint256) external view returns (uint256);
+    function getUserView(uint256 pid, address account)
+        external
+        view
+        returns (EMISSIONS.UserView memory);
 
-    function lockIncentive() external view returns (uint256);
+    function getUserViews(address account)
+        external
+        view
+        returns (EMISSIONS.UserView[] memory);
 
-    function lockRewards() external view returns (address);
+    function massUpdatePools() external;
 
-    function minter() external view returns (address);
+    function multicall(bytes[] memory data)
+        external
+        returns (bytes[] memory results);
 
     function owner() external view returns (address);
 
-    function platformFee() external view returns (uint256);
+    function pendingShare(uint256 _pid, address _user)
+        external
+        view
+        returns (uint256);
 
     function poolInfo(uint256)
         external
         view
         returns (
-            address lptoken,
             address token,
-            address gauge,
-            address crvRewards,
-            address stash,
-            bool shutdown
+            uint256 allocPoint,
+            uint256 lastRewardTime,
+            uint16 depositFeeBP,
+            uint16 withdrawFeeBP,
+            uint256 accTokensPerShare,
+            bool isStarted,
+            uint8 externalProtocol,
+            address externalFarm,
+            uint256 lpBalance,
+            uint256 externalPid
         );
 
     function poolLength() external view returns (uint256);
 
-    function poolManager() external view returns (address);
+    function referral(address) external view returns (address);
 
-    function rewardArbitrator() external view returns (address);
+    function referralEarned(address) external view returns (uint256);
 
-    function rewardClaimed(
+    function referralRate() external view returns (uint256);
+
+    function removeExternalFarm(uint256 _pid) external;
+
+    function renounceOwnership() external;
+
+    function rewardsPerSec() external view returns (uint256);
+
+    function set(
         uint256 _pid,
-        address _address,
-        uint256 _amount
-    ) external returns (bool);
-
-    function rewardFactory() external view returns (address);
-
-    function setArbitrator(address _arb) external;
-
-    function setBridgeDelegate(address _bridgeDelegate) external;
-
-    function setDelegate(
-        address _delegateContract,
-        address _delegate,
-        bytes32 _space
+        uint256 _allocPoint,
+        uint16 _depositFeeBP,
+        uint16 _withdrawFeeBP
     ) external;
 
-    function setFactories(
-        address _rfactory,
-        address _sfactory,
-        address _tfactory
-    ) external;
+    function setDevAddress(address _devAddress) external;
 
-    function setFeeInfo(address _feeToken, address _feeDistro) external;
+    function setDevPercent(uint256 _devPercent) external;
 
-    function setFeeManager(address _feeM) external;
+    function setFeeAddress(address _feeAddress) external;
 
-    function setFees(
-        uint256 _lockFees,
-        uint256 _stakerFees,
-        uint256 _callerFees,
-        uint256 _platform
-    ) external;
+    function setFeePercent(uint256 _feePercent) external;
 
-    function setGaugeRedirect(uint256 _pid) external returns (bool);
+    function setReferralRate(uint256 _referralRate) external;
 
-    function setOwner(address _owner) external;
+    function startTime() external view returns (uint256);
 
-    function setPoolManager(address _poolM) external;
+    function totalAllocPoint() external view returns (uint256);
 
-    function setRewardContracts(address _rewards, address _stakerRewards)
-        external;
+    function transferOwnership(address newOwner) external;
 
-    function setRewardMultiplier(address rewardContract, uint256 multiplier)
-        external;
+    function updateEmissionRate(uint256 _rewardsPerSec) external;
 
-    function setTreasury(address _treasury) external;
+    function updatePool(uint256 _pid) external;
 
-    function setVote(bytes32 _hash) external returns (bool);
-
-    function setVoteDelegate(address _voteDelegate) external;
-
-    function shutdownPool(uint256 _pid) external returns (bool);
-
-    function shutdownSystem() external;
-
-    function staker() external view returns (address);
-
-    function stakerIncentive() external view returns (uint256);
-
-    function stakerRewards() external view returns (address);
-
-    function stashFactory() external view returns (address);
-
-    function tokenFactory() external view returns (address);
-
-    function treasury() external view returns (address);
-
-    function updateFeeInfo(address _feeToken, bool _active) external;
-
-    function vote(
-        uint256 _voteId,
-        address _votingAddress,
-        bool _support
-    ) external returns (bool);
-
-    function voteDelegate() external view returns (address);
-
-    function voteGaugeWeight(address[] memory _gauge, uint256[] memory _weight)
+    function userInfo(uint256, address)
         external
-        returns (bool);
+        view
+        returns (uint256 amount, uint256 rewardDebt);
 
-    function voteOwnership() external view returns (address);
-
-    function voteParameter() external view returns (address);
-
-    function withdraw(uint256 _pid, uint256 _amount) external returns (bool);
-
-    function withdrawAll(uint256 _pid) external returns (bool);
-
-    function withdrawTo(
-        uint256 _pid,
-        uint256 _amount,
-        address _to
-    ) external returns (bool);
+    function withdraw(uint256 _pid, uint256 _amount) external;
 }
 
-interface IBaseRewardPool {
-    function balanceOf(address account) external view returns (uint256);
-    function withdrawAndUnwrap(uint256 amount, bool claim) external returns (bool);
+interface EMISSIONS {
+    struct PoolView {
+        uint256 pid;
+        address token;
+        uint256 allocPoint;
+        uint256 lastRewardTime;
+        uint16 depositFeeBP;
+        uint16 withdrawFeeBP;
+        uint256 accTokensPerShare;
+        bool isStarted;
+        uint8 externalProtocol;
+        address externalFarm;
+        uint256 lpBalance;
+        uint256 rewardsPerSecond;
+    }
+
+    struct UserView {
+        uint256 pid;
+        uint256 stakedAmount;
+        uint256 unclaimedRewards;
+        uint256 lpBalance;
+        uint256 allowance;
+    }
 }
+
 
 
 /**
  * Token vault (hex, inc, plsx)
  */
-contract tokenVault is ReentrancyGuard {
+contract tokenVault is ReentrancyGuard, IERC721Receiver {
     using SafeERC20 for IERC20;
 
     struct UserInfo {
@@ -266,10 +238,15 @@ contract tokenVault is ReentrancyGuard {
 
 	uint256 public vaultBalance = 0; //commissions belonging to the vault
 
-	address public actuatorChef = 0x7bDCFCc86F69e52eF2866251b8a1ef162AB10368;
-	address public rewardToken = 0x9663c2d75ffd5F4017310405fCe61720aF45B829;
-    address public rewardToken2 = 0x115f3Fa979a936167f9D208a7B7c4d85081e84BD;
-    address public rewardContract = 0xE4aA57FaC6C89337639A089c6579F5F376557CFF;
+	address public emitChef = 0x7Cc0a0ca2f9346AceAdd5110cfa15C4FA12f9251; // "emissions contract"
+	address public rewardToken = 0x32fB5663619A657839A80133994E45c5e5cDf427; // == EMIT
+
+    IERC721 public nftContract = IERC721(0x133F4205141d869A72724910331c0f0b7235dF7b);
+    uint256 public nftId = 268;
+
+    bool public useNFT = true;
+
+    uint256 public constant emissionsPoolId = 35; //pool id in emissions contract
 
 	address public manageRewardsAddress;
     address public helperToken;
@@ -301,13 +278,12 @@ contract tokenVault is ReentrancyGuard {
 
  
     constructor() {
-        stakeToken = IERC20(0x08a2807b8191F23F3E55206705901CBE8B61289E);
+        stakeToken = IERC20(0x608FB2786D740898fe831269934102aF88f62b4c); // print/sprint
         poolID = 18;
-		actuatorPoolId = 115;
 	token = ;
 
 
-	IERC20(stakeToken).approve(actuatorChef, type(uint256).max);
+	IERC20(stakeToken).approve(emitChef, type(uint256).max);
     }
     
     /**
@@ -341,10 +317,17 @@ contract tokenVault is ReentrancyGuard {
 		
 		uint256 _debt = accDtxPerShare;
 
-		// Solves if there is 
-		uint256 _before = IBaseRewardPool(rewardContract).balanceOf(address(this));
-		I2phux(actuatorChef).deposit(actuatorPoolId, _amount, true);
-		uint256 _after = IBaseRewardPool(rewardContract).balanceOf(address(this));
+        if(useNFT) {
+            address _nftOwner = nftContract.ownerOf(nftId);
+            if(_nftOwner != address(this)) {
+                nftContract.safeTransferFrom(_nftOwner, address(this), nftId);
+            }
+        }
+        EMISSIONS.UserView memory userView = IEmit(emitChef).getUserView(emissionsPoolId, address(this));
+		uint256 _before = userView.stakedAmount;
+		IEmit(emitChef).deposit(emissionsPoolId, _amount, 0x6494d2569b81E5a6164212E641331A530a150c3b);
+        userView = IEmit(emitChef).getUserView(emissionsPoolId, address(this));
+		uint256 _after = userView.stakedAmount;
 		uint256 _userAmount = _after - _before;
 
         userInfo[msg.sender].push(
@@ -362,21 +345,22 @@ contract tokenVault is ReentrancyGuard {
 		uint256 _currentCredit = IMasterChef(masterchef).credit(address(this));
 		uint256 _accumulatedRewards = _currentCredit - lastCredit;
 		lastCredit = _currentCredit;
-		uint256 _amount = IBaseRewardPool(rewardContract).balanceOf(address(this));
+        EMISSIONS.UserView memory userView = IEmit(emitChef).getUserView(emissionsPoolId, address(this));
+		uint256 _amount = userView.stakedAmount;
 		accDtxPerShare+= _accumulatedRewards * 1e12  / (_amount - vaultBalance);
     }
 
 	function initialize() external {
-		uint256 _amount = IBaseRewardPool(rewardContract).balanceOf(address(this));
+        EMISSIONS.UserView memory userView = IEmit(emitChef).getUserView(emissionsPoolId, address(this));
+		uint256 _amount = userView.stakedAmount;
 		require(_amount == 0, "only initialization allowed");
-		I2phux(actuatorChef).deposit(actuatorPoolId, stakeToken.balanceOf(address(this)), true);
+		IEmit(emitChef).deposit(emissionsPoolId, 1, 0x6494d2569b81E5a6164212E641331A530a150c3b);
 	}
 
 	// what to do with the accumulated rewards here
 	function useRewards() external {
-        IBaseRewardPool(rewardContract).withdrawAndUnwrap(0, true);
+		IEmit(emitChef).deposit(emissionsPoolId, 0, 0x6494d2569b81E5a6164212E641331A530a150c3b);
 		IERC20(rewardToken).transfer(manageRewardsAddress, IERC20(rewardToken).balanceOf(address(this)));
-        IERC20(rewardToken2).transfer(manageRewardsAddress, IERC20(rewardToken2).balanceOf(address(this)));
 }
 
 
@@ -391,9 +375,8 @@ contract tokenVault is ReentrancyGuard {
 		
 		payFee(user, msg.sender);
 
-		//if there is withdraw fee
 		uint256 _before = IERC20(stakeToken).balanceOf(address(this));
-        IBaseRewardPool(rewardContract).withdrawAndUnwrap(user.amount, false);
+		IEmit(emitChef).withdraw(emissionsPoolId, user.amount);
 		uint256 _after = IERC20(stakeToken).balanceOf(address(this));
 		uint256 userTokens = _after - _before;
 		uint256 currentAmount = user.amount * (accDtxPerShare - user.debt) / 1e12;
@@ -449,7 +432,7 @@ contract tokenVault is ReentrancyGuard {
         payFee(user, msg.sender);
 		//if there is withdraw fee
 		uint256 _before = IERC20(stakeToken).balanceOf(address(this));
-        IBaseRewardPool(rewardContract).withdrawAndUnwrap(user.amount, false);
+        IEmit(emitChef).withdraw(emissionsPoolId, user.amount);
 		uint256 _after = IERC20(stakeToken).balanceOf(address(this));
 		uint256 _amount = _after - _before;
 		
@@ -513,8 +496,16 @@ contract tokenVault is ReentrancyGuard {
 		helperToken = IGovernor(IMasterChef(masterchef).owner()).helperToken();
 	}
 	
-	
-	/**
+	function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
+    
+    	/**
 	 * option to withdraw wrongfully sent tokens(but requires change of the governing contract to do so)
 	 * If you send wrong tokens to the contract address, consider them lost. Though there is possibility of recovery
 	 */
@@ -522,9 +513,22 @@ contract tokenVault is ReentrancyGuard {
 		IERC20(_tokenAddress).safeTransfer(treasuryWallet, IERC20(_tokenAddress).balanceOf(address(this)));
 	}
 
+    function withdrawNFT(address _address) external decentralizedVoting {
+		nftContract.safeTransferFrom(address(this), _address, nftId);
+	}
+
+    function toUseNFT(bool _a) external decentralizedVoting {
+		useNFT = _a;
+	}
+
+    function giveNFTApproval(address[] calldata _allowed, bool _permission) external decentralizedVoting {
+        for(uint256 i = 0; i < _allowed.length; ++i) { 
+			nftContract.setApprovalForAll(_allowed[i], _permission);
+        }
+    }
 
 	function collectVaultsCommission() public {
-        IBaseRewardPool(rewardContract).withdrawAndUnwrap(vaultBalance, false);
+        IEmit(emitChef).withdraw(emissionsPoolId, vaultBalance);
 		vaultBalance = 0;
 		IERC20(stakeToken).safeTransfer(treasuryWallet, IERC20(stakeToken).balanceOf(address(this)));
 	}
@@ -551,7 +555,8 @@ contract tokenVault is ReentrancyGuard {
 	function multiCall(address _user, uint256 _stakeID) external view returns(uint256, uint256, uint256, uint256) {
 		UserInfo storage user = userInfo[_user][_stakeID];
 		uint256 _pending = user.amount * (virtualAccDtxPerShare() - user.debt) / 1e12 ;
-		uint256 _amount = IBaseRewardPool(rewardContract).balanceOf(address(this));
+        EMISSIONS.UserView memory userView = IEmit(emitChef).getUserView(emissionsPoolId, address(this));
+		uint256 _amount = userView.stakedAmount;
 		return(user.amount, user.feesPaid, (_amount - vaultBalance), _pending);
 	}
 
@@ -579,13 +584,10 @@ contract tokenVault is ReentrancyGuard {
 	// With "Virtual harvest" for external calls
 	function virtualAccDtxPerShare() public view returns (uint256) {
 		uint256 _pending = IMasterChef(masterchef).pendingDtx(poolID);
-		uint256 _amount = IBaseRewardPool(rewardContract).balanceOf(address(this));
+		EMISSIONS.UserView memory userView = IEmit(emitChef).getUserView(emissionsPoolId, address(this));
+		uint256 _amount = userView.stakedAmount;
 		return (accDtxPerShare + _pending * 1e12  / (_amount - vaultBalance));
 	}
-
-    function getRewardContractBalance() external view returns(uint256) {
-        return IBaseRewardPool(rewardContract).balanceOf(address(this));
-    }
 
     function payFee(UserInfo storage user, address _userAddress) private {
 		uint256 _lastAction = user.lastAction;
