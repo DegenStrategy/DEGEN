@@ -85,6 +85,16 @@ contract DTXsyncContracts {
         }
     }
 
+	function updatePoolsAll2(uint256 _one, uint256 _two) public {
+        IMasterChef _masterchef = IMasterChef(IDTX(tokenDTX).owner());
+        for(uint i=_one; i < _two ; i++) {
+            (, , address _pool) = _masterchef.poolInfo(i);
+                try IChange(_pool).updateAddresses() {}
+            catch{}
+
+        }
+    }
+
     function harvestVaults() public {
         IMasterChef _masterchef = IMasterChef(IDTX(tokenDTX).owner());
         for(uint i=4; i < _masterchef.poolLength() ; i++) {
