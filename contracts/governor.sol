@@ -98,9 +98,9 @@ address public constant helperToken = ;
    	    uint256 total = balancePool1 + balancePool2 + balancePool3  + balancePool4;
 
 		IMasterChef(masterchef).set(acPool1ID, (100000 * 5333 * balancePool1) / (total * 10000), true);
-	IMasterChef(masterchef).set(acPool2ID, (100000 * 7500 * balancePool3) / (total * 10000), false);
-    	IMasterChef(masterchef).set(acPool3ID, (100000 * 25000 * balancePool2) / (total * 10000), false);
-    	IMasterChef(masterchef).set(acPool4ID, (100000 * 125000 * balancePool3) / (total * 10000), false);
+	IMasterChef(masterchef).set(acPool2ID, (100000 * 7500 * balancePool2) / (total * 10000), false);
+    	IMasterChef(masterchef).set(acPool3ID, (100000 * 25000 * balancePool3) / (total * 10000), false);
+    	IMasterChef(masterchef).set(acPool4ID, (100000 * 125000 * balancePool4) / (total * 10000), false);
 
     }
 	
