@@ -355,7 +355,7 @@ contract DegenSwapper {
 	}
 
 	function governor() public view returns (address) {
-		return IDTX(OINK).governor();
+		return IDTX(DEGEN).governor();
 	}
 
   	function treasury() public view returns (address) {
