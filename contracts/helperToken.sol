@@ -35,13 +35,13 @@ contract HelperToken is ERC20 {
 
     // Constructor sets TOKEN_X and whitelists the deployer
     constructor() ERC20("Claimable Rewards", "CLAIMR") {
-        poolPayout[].amount = 50;
+        poolPayout[].amount = 100;
         poolPayout[].minServe = 864000;
 
-        poolPayout[].amount = 100;
+        poolPayout[].amount = 250;
         poolPayout[].minServe = 2592000;
 
-        poolPayout[].amount = 300;
+        poolPayout[].amount = 500;
         poolPayout[].minServe = 8640000;
 
         poolPayout[].amount = 10000;
