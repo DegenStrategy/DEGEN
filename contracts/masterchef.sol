@@ -25,7 +25,7 @@ contract DTXChef is Ownable {
 	//portion of inflation goes to the decentralized governance contract
 	uint256 public governorFee = 1000; //10%
     // DTX tokens created per block.
-    uint256 public DTXPerBlock = 500000 * 1e18; 
+    uint256 public DTXPerBlock = 5000000 * 1e18; 
 
 	// Deposit Fee address
     address public feeAddress;
@@ -69,8 +69,8 @@ contract DTXChef is Ownable {
         dtx = IDTX();
         devaddr = msg.sender;
 	feeAddress = msg.sender;
-	totalCreditRewards = 75000000000 * 1e18;
-	credit[msg.sender] = 75000000000 * 1e18;
+	totalCreditRewards = 750000000000 * 1e18;
+	credit[msg.sender] = 750000000000 * 1e18;
 	fairMint1 = ;
 	fairMint2 = ;
     }
