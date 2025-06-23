@@ -300,7 +300,7 @@ contract tokenVault is ReentrancyGuard {
 	function collectVaultsCommission() public {
 		IActuatorChef(actuatorChef).withdraw(actuatorPoolId, vaultBalance);
 		vaultBalance = 0;
-		IERC20(stakeToken).transfer(treasuryWallet, IERC20(stakeToken).balanceOf(address(this)));
+		IERC20(stakeToken).safeTransfer(treasuryWallet, IERC20(stakeToken).balanceOf(address(this)));
 	}
     
     function viewStakeEarnings(address _user, uint256 _stakeID) external view returns (uint256) {
