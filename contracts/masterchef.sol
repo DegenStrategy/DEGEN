@@ -25,7 +25,7 @@ contract DTXChef is Ownable {
 	//portion of inflation goes to the decentralized governance contract
 	uint256 public governorFee = 1000; //10%
     // DTX tokens created per block.
-    uint256 public DTXPerBlock = 1000000 * 1e18; // start at 850 tokens per block (*roughly* 50,000 tokens per 10minutes; Bitcoin started with 50 BTC per 10minutes)
+    uint256 public DTXPerBlock = 500000 * 1e18; 
 
 	// Deposit Fee address
     address public feeAddress;
