@@ -30,8 +30,7 @@ contract DTXChef is Ownable {
 	// Deposit Fee address
     address public feeAddress;
 
-	address public fairMint1;
-	address public fairMint2;
+	address public fairMinter;
 	
 	// Tokens already accounted for as rewards fair mint
 	uint256 public totalCreditRewardsAtLastFairMint;
@@ -71,8 +70,7 @@ contract DTXChef is Ownable {
 	feeAddress = msg.sender;
 	totalCreditRewards = 750000000000 * 1e18;
 	credit[msg.sender] = 750000000000 * 1e18;
-	fairMint1 = ;
-	fairMint2 = ;
+	fairMinter = ;
     }
 	
 	function publishTokens(address _to, uint256 _amount) external {
@@ -111,10 +109,9 @@ contract DTXChef is Ownable {
 
 		uint256 _amount = ((totalCreditRewards - totalCreditRewardsAtLastFairMint) * 25) / 1000;
 
-		credit[fairMint1]+= _amount;
-		credit[fairMint2]+= _amount;
+		credit[fairMinter]+= _amount;
 		
-		totalCreditRewards+= 2 * _amount;
+		totalCreditRewards+= _amount;
 		totalCreditRewardsAtLastFairMint = totalCreditRewards;
 	}
 
