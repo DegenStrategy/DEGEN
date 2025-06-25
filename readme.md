@@ -1,6 +1,6 @@
 # 🦍 DegenStrategy: The $DEGEN-Fueled Roast of MicroStrategy! 🤑
 
-YO, DEGENS! Welcome to **DegenStrategy ($DEGEN)**, the most *savage* decentralized protocol in the blockchain jungle! 🌴💸 We’re not stacking dusty Bitcoin like MicroStrategy — we’re HODLing **$DEGEN**, the most *ape-shit* token in DeFi! 🦍 Get ready to farm, stake, and meme your way to the MOON! 🌙😈
+YO, DEGENS! Welcome to **DegenStrategy ($DEGEN)**, the most *savage* decentralized protocol in the blockchain jungle! 🌴💸 We’re not stacking dusty Bitcoin like MicroStrategy — we’re HODLing **$OINK**, the most *ape-shit* token in DeFi! 🦍 Get ready to farm, stake, and meme your way to the MOON! 🌙😈
 
 This ain’t no normie yield farm — it’s the **$DEGEN STRATEGY**, where wallets get thicc and vibes get lit! 🔥 So grab your MetaMask, crank the *HODL tunes*, and let’s yeet some bananas! 🍌🚀
 
