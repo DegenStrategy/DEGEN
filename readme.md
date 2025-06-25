@@ -1,13 +1,13 @@
-# 🦍 DegenStrategy: The $DEGEN-Fueled Parody of MicroStrategy! 🤑
+# 🦍 DegenStrategy: The $DEGEN-Fueled Roast of MicroStrategy! 🤑
 
-YO, DEGENS! Welcome to **DegenStrategy ($DEGEN)**, the wildest decentralized protocol in the blockchain jungle! 🌴💸 Forget MicroStrategy’s Bitcoin obsession — we’re stacking **$DEGEN**, the most *ape-tastic* token in DeFi! 🦍 Get ready to farm, stake, and meme your way to the MOON with the **DegenStrategy** crew! 🌙😈
+YO, DEGENS! Welcome to **DegenStrategy ($DEGEN)**, the most *savage* decentralized protocol in the blockchain jungle! 🌴💸 We’re not stacking dusty Bitcoin like MicroStrategy — we’re HODLing **$DEGEN**, the most *ape-shit* token in DeFi! 🦍 Get ready to farm, stake, and meme your way to the MOON! 🌙😈
 
-This ain’t no normie yield farm — it’s a **$DEGEN STRATEGY** to make your wallet thicc and your vibes immaculate! So crank up the *HODL anthem*, yeet some crypto, and let’s get this banana party started! 🍌🔥
-
----
+This ain’t no normie yield farm — it’s the **$DEGEN STRATEGY**, where wallets get thicc and vibes get lit! 🔥 So grab your MetaMask, crank the *HODL tunes*, and let’s yeet some bananas! 🍌🚀
 
 ## 📜 The Holy $DEGEN Contracts (Ape Together Strong) 🙌
-Our contracts are chillin’ like a degen on penicillin, fully verified on the [Pinata Scanner](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/). Click the links to scope the code — it’s cleaner than a freshly peeled banana! 🍎🦍
+Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the [Pinata Scanner](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/). Click to scope the code and catch the vibes! 😎
+
+
 
 ### 🤑 Core $DEGEN Contracts
 - **Token ($DEGEN)**: [0x3E79130ab714E97ee73f86a56a2427bb1A519896](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x3E79130ab714E97ee73f86a56a2427bb1A519896) - The $DEGEN token, juicier than a crypto bull run! 🚀
@@ -33,7 +33,7 @@ Our contracts are chillin’ like a degen on penicillin, fully verified on the [
 - **Treasury Wallet**: [0xD540b89Ee52F81bE921Aa856bb2808A96BA9E3a1](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xD540b89Ee52F81bE921Aa856bb2808A96BA9E3a1) - Where the $DEGEN stacks higher than a crypto whale’s ego! 🐳
 
 ### 🗳 Governance (Power to the Degens!)
-- **Governor**: [0xFf9BfA69AFe5B3D3813DF12c3dtroppo degen! 🦍
+- **Governor**: [0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf) 
 
 - ### 🛒 Get $DEGEN
 - **Buy $DEGEN**: [0xf641dD2Fa06A60dED241244a786D010f192569a6](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xf641dD2Fa06A60dED241244a786D010f192569a6) 
@@ -47,23 +47,8 @@ Our contracts are chillin’ like a degen on penicillin, fully verified on the [
 
 
 ```markdown
-# 🦍 DegenStrategy: The $DEGEN-Fueled Roast of MicroStrategy! 🤑
-
-YO, DEGENS! Welcome to **DegenStrategy ($DEGEN)**, the most *savage* decentralized protocol in the blockchain jungle! 🌴💸 We’re not stacking dusty Bitcoin like MicroStrategy — we’re HODLing **$DEGEN**, the most *ape-shit* token in DeFi! 🦍 Get ready to farm, stake, and meme your way to the MOON! 🌙😈
-
-This ain’t no normie yield farm — it’s the **$DEGEN STRATEGY**, where wallets get thicc and vibes get lit! 🔥 So grab your MetaMask, crank the *HODL tunes*, and let’s yeet some bananas! 🍌🚀
 
 ---
-
-## 📜 The Holy $DEGEN Contracts (Ape Together Strong) 🙌
-Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the [Pinata Scanner](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/). Click to scope the code and catch the vibes! 😎
-
-### 🤑 Core $DEGEN Contracts
-- **Token ($DEGEN)**: [0x3E79130ab714E97ee73f86a56a2427bb1A519896](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x3E79130ab714E97ee73f86a56a2427bb1A519896) - Juicier than a bull market pump! 🚀
-- **Chef (MasterChef)**: [0xC84FbE083713544BB4Ea85E2fe95148D076b2942](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xC84FbE083713544BB4Ea85E2fe95148D076b2942) - Cookin’ yields like a DeFi Gordon Ramsay! 🍳😤
-
-### ⏰ $DEGEN Staking Periods (Lock It & HODL!)
-- **1 Month**: [0xC84FbE083713544BB4Ea85E2fe95148D076b2942](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xC84FbE083713544BB4Ea85E2fe95148D076b2942) - Quick dip for paper-handed degens! 💦
 
 
 # DegenStrategy (DEGEN)
