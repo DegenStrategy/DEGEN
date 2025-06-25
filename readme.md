@@ -45,7 +45,7 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 - **SyncContract**: [0x3d4A3008B751A5226fBe864BfC2934a1e47EFf4C](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x3d4A3008B751A5226fBe864BfC2934a1e47EFf4C) 
 - **Proxy Voting**: [0xF88B32468a986C18406b4c8839079BDB9Fe76128](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xF88B32468a986C18406b4c8839079BDB9Fe76128) 
 
-### 🔄 Staking Vaults: [Click to view contracts and data](https://pulsedao.org/api2/vaultData.json) 
+### 🔄 Staking Vaults: [Click to view contracts and data](https://github.com/DegenStrategy/DEGEN/blob/main/vaultData.json) 
 
 ```markdown
 
