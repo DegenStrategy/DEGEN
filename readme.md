@@ -11,7 +11,7 @@ Our contracts are chillin’ like a degen on penicillin, fully verified on the [
 
 ### 🤑 Core $DEGEN Contracts
 - **Token ($DEGEN)**: [0x3E79130ab714E97ee73f86a56a2427bb1A519896](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x3E79130ab714E97ee73f86a56a2427bb1A519896) - The $DEGEN token, juicier than a crypto bull run! 🚀
-- **Chef (MasterChef)**: [0xC84FbE083713544BB4Ea85E2fe95148D076b2942](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xC84FbE083713544BB4Ea85E2fe95148D076b2942) - Whippin’ up yields like a DeFi Gordon Ramsay! 🍳😤
+- **Rewards**: [0xC84FbE083713544BB4Ea85E2fe95148D076b2942](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xC84FbE083713544BB4Ea85E2fe95148D076b2942) - Whippin’ up yields like a DeFi Gordon Ramsay! 🍳😤
 
 ### ⏰ $DEGEN Miners (Lock It & HODL!)
 - **1 Month**: [0xC84FbE083713544BB4Ea85E2fe95148D076b2942](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xC84FbE083713544BB4Ea85E2fe95148D076b2942) - Quick dip for the short-term degens! 💦
