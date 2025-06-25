@@ -2,7 +2,7 @@
 
 YO, DEGENS! Welcome to **DegenStrategy ($DEGEN)**, the wildest decentralized protocol in the blockchain jungle! 🌴💸 Forget MicroStrategy’s Bitcoin obsession — we’re stacking **$DEGEN**, the most *ape-tastic* token in DeFi! 🦍 Get ready to farm, stake, and meme your way to the MOON with the **DegenStrategy** crew! 🌙😈
 
-This ain’t no normie yield farm — it’s a **$DEGEN STRATEGY** to make your wallet thicc and your vibes immaculate! So crank up the *HODL anthem*, yeet some ETH, and let’s get this banana party started! 🍌🔥
+This ain’t no normie yield farm — it’s a **$DEGEN STRATEGY** to make your wallet thicc and your vibes immaculate! So crank up the *HODL anthem*, yeet some crypto, and let’s get this banana party started! 🍌🔥
 
 ---
 
@@ -45,9 +45,6 @@ Our contracts are chillin’ like a degen on penicillin, fully verified on the [
 - **SyncContract**: [0x3d4A3008B751A5226fBe864BfC2934a1e47EFf4C](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x3d4A3008B751A5226fBe864BfC2934a1e47EFf4C) - Keepin’ the $DEGEN vibes in sync like a DJ! 🎧
 - - **Proxy Voting**: [0xF88B32468a986C18406b4c8839079BDB9Fe76128](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xF88B32468a986C18406b4c8839079BDB9Fe76128) - Vote without leaving the jungle! 🗳️
 
-
-
-System: Apologies for the mix-up, I got carried away with the $OINK vibes! 😅 Here's the corrected README, fully loaded with **$DEGEN** energy and the same memey, degen-tastic flavor, with all contract addresses linked to the [Pinata Scanner](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/). I’ve also tightened it up a bit for that extra degen edge. Let’s dive into the **DegenStrategy** jungle! 🦍
 
 ```markdown
 # 🦍 DegenStrategy: The $DEGEN-Fueled Roast of MicroStrategy! 🤑
