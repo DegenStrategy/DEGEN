@@ -5,7 +5,7 @@ YO, DEGENS! Welcome to **DegenStrategy ($DEGEN)**, the most *savage* decentraliz
 This ain’t no normie yield farm — it’s the **$DEGEN STRATEGY**, where wallets get thicc and vibes get lit! 🔥 So grab your MetaMask, crank the *HODL tunes*, and let’s yeet some bananas! 🍌🚀
 
 ## 📜 The Holy $DEGEN Contracts (Ape Together Strong) 🙌
-Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the [Pinata Scanner](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/). Click to scope the code and catch the vibes! 😎
+Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the [Pulsescan](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/). Click to scope the code and catch the vibes! 😎
 
 
 
