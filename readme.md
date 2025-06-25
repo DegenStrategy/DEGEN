@@ -29,10 +29,10 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 ### 🗳 Governance (Power to the Degens!)
 - **Governor**: [0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf)
 
-- - ### 🛒 Get $DEGEN
+- ### 🛒 Get $DEGEN
 - **Buy $DEGEN**: [0xf641dD2Fa06A60dED241244a786D010f192569a6](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xf641dD2Fa06A60dED241244a786D010f192569a6) 
 
-- - ### 🛒 $OINK Buyer & Treasury stasher
+- ### 🛒 $OINK Buyer & Treasury stasher
 - **Buy $OINK**: [0x310d0571dcb462f81B5DCcD3bcB50149cEd3C9c4](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x310d0571dcb462f81B5DCcD3bcB50149cEd3C9c4) 
 - 
 ### 🎁 Referral Rewards
@@ -43,7 +43,7 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 
 ### 🔄 Helper Contracts
 - **SyncContract**: [0x3d4A3008B751A5226fBe864BfC2934a1e47EFf4C](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x3d4A3008B751A5226fBe864BfC2934a1e47EFf4C) 
-- - **Proxy Voting**: [0xF88B32468a986C18406b4c8839079BDB9Fe76128](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xF88B32468a986C18406b4c8839079BDB9Fe76128) 
+- **Proxy Voting**: [0xF88B32468a986C18406b4c8839079BDB9Fe76128](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xF88B32468a986C18406b4c8839079BDB9Fe76128) 
 
 
 ```markdown
