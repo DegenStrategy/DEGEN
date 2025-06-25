@@ -24,7 +24,7 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 - **Farms**: [0xCcA87BE305394E3145C9e84464656eF4939B666B](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xCcA87BE305394E3145C9e84464656eF4939B666B) 
 - **Basic**: [0xb30702C84Fc7ADA23d613B9D0c447009d8183785](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xb30702C84Fc7ADA23d613B9D0c447009d8183785) 
 - **Consensus**: [0xF97148335B4C104cfcC0d6abbCCC58c6408BacDF](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xF97148335B4C104cfcC0d6abbCCC58c6408BacDF)
-- - **Voting Contract**: [0xa65fD776D1e495275A7A5B4B660cd228c3EBA6a4](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xa65fD776D1e495275A7A5B4B660cd228c3EBA6a4)
+- **Voting Contract**: [0xa65fD776D1e495275A7A5B4B660cd228c3EBA6a4](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xa65fD776D1e495275A7A5B4B660cd228c3EBA6a4)
 
 ### 🗳 Governance (Power to the Degens!)
 - **Governor**: [0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf)
