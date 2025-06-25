@@ -24,22 +24,22 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 - **Farms**: [0xCcA87BE305394E3145C9e84464656eF4939B666B](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xCcA87BE305394E3145C9e84464656eF4939B666B) 
 - **Basic**: [0xb30702C84Fc7ADA23d613B9D0c447009d8183785](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xb30702C84Fc7ADA23d613B9D0c447009d8183785) 
 - **Consensus**: [0xF97148335B4C104cfcC0d6abbCCC58c6408BacDF](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xF97148335B4C104cfcC0d6abbCCC58c6408BacDF)
-
-### 🎁 Referral Rewards
-- **ReferralRewards**: [0xAAcA9cFc6Fe88Dc16e87ff8315C554220Bf13264](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xAAcA9cFc6Fe88Dc16e87ff8315C554220Bf13264) 
-
-### 💳 Voting & Treasury
-- **Voting Contract**: [0xa65fD776D1e495275A7A5B4B660cd228c3EBA6a4](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xa65fD776D1e495275A7A5B4B660cd228c3EBA6a4)
-- **Treasury Wallet**: [0xD540b89Ee52F81bE921Aa856bb2808A96BA9E3a1](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xD540b89Ee52F81bE921Aa856bb2808A96BA9E3a1)
+- - **Voting Contract**: [0xa65fD776D1e495275A7A5B4B660cd228c3EBA6a4](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xa65fD776D1e495275A7A5B4B660cd228c3EBA6a4)
 
 ### 🗳 Governance (Power to the Degens!)
-- **Governor**: [0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf) 
+- **Governor**: [0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xFf9BfA69AFe5B3D3813DF12c3d920687a0108daf)
 
-- ### 🛒 Get $DEGEN
+- - ### 🛒 Get $DEGEN
 - **Buy $DEGEN**: [0xf641dD2Fa06A60dED241244a786D010f192569a6](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xf641dD2Fa06A60dED241244a786D010f192569a6) 
 
 - - ### 🛒 $OINK Buyer & Treasury stasher
 - **Buy $OINK**: [0x310d0571dcb462f81B5DCcD3bcB50149cEd3C9c4](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x310d0571dcb462f81B5DCcD3bcB50149cEd3C9c4) 
+- 
+### 🎁 Referral Rewards
+- **ReferralRewards**: [0xAAcA9cFc6Fe88Dc16e87ff8315C554220Bf13264](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xAAcA9cFc6Fe88Dc16e87ff8315C554220Bf13264) 
+
+### 💳 Treasury
+- **Treasury Wallet**: [0xD540b89Ee52F81bE921Aa856bb2808A96BA9E3a1](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0xD540b89Ee52F81bE921Aa856bb2808A96BA9E3a1)
 
 ### 🔄 Helper Contracts
 - **SyncContract**: [0x3d4A3008B751A5226fBe864BfC2934a1e47EFf4C](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/0x3d4A3008B751A5226fBe864BfC2934a1e47EFf4C) 
