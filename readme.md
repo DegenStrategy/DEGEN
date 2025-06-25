@@ -14,7 +14,7 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 - **Rewards**: [0xC84FbE083713544BB4Ea85E2fe95148D076b2942](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0xC84FbE083713544BB4Ea85E2fe95148D076b2942)
 
 ### ⏰ $DEGEN Miners (Lock It & HODL!)
-- **1 Month**: [0xC84FbE083713544BB4Ea85E2fe95148D076b2942](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0xC84FbE083713544BB4Ea85E2fe95148D076b2942)
+- **1 Month**: [0xd9b491ac0f5487673500b67224b67b4171a08aca](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0xd9b491ac0f5487673500b67224b67b4171a08aca)
 - **3 Months**: [0x7ED33f65A0398cb26eaB2B03877825c96D9B6077](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x7ED33f65A0398cb26eaB2B03877825c96D9B6077)
 - **1 Year**: [0x3d175C8359169b0e830d36EA9CD3FE209f46f7BD](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x3d175C8359169b0e830d36EA9CD3FE209f46f7BD)
 - **10 Years**: [0xdE672FccA32365bD704c39bd1164a0D34a3a73e6](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0xdE672FccA32365bD704c39bd1164a0D34a3a73e6)
