@@ -67,9 +67,9 @@ contract tokenVault is ReentrancyGuard {
 
 
     constructor() {
-        stakeToken = IERC20(0xa25C026235323d36A7DB4911199a30BA55bE10cF);
+        stakeToken = IERC20(0x3029aA801176F6904e2B6c7527334c215EAf1d8F);
         poolID = 20;
-	    token = ;
+	    token = 0x3E79130ab714E97ee73f86a56a2427bb1A519896;
     }
     
     /**
