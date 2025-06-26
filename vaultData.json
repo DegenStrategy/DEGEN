@@ -288,5 +288,23 @@
         "isRehypotheticated": false,
         "value": 0,
         "color": "#0099C6"
+    },
+	{
+        "vaultContract": "0xBCb904a9422F223f5A79660f026310D4bd8C9941",
+        "tokenContract": "0x3029aA801176F6904e2B6c7527334c215EAf1d8F",
+        "symbol": "OINK-DEGEN",
+        "name": "OINK-DEGEN LP",
+        "decimals": 18,
+        "tax": 0,
+		"isLP": true,
+		"img1": "oink",
+		"img2": "degen",
+        "depositFee": 0,
+        "miningFee": 0,
+        "withdrawFee": 0,
+        "poolId": 20,
+        "isRehypotheticated": false,
+        "value": 0,
+        "color": "#0099C6"
     }
 ]
