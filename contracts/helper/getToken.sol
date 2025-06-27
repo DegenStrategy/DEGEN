@@ -11,7 +11,7 @@ pragma solidity ^0.8.0;
 
 contract GetToken {
     address public constant DTX = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38; // OINK token address
-    address public constant TOKEN_X = ; // Add tokenX address here
+    address public constant TOKEN_X = 0x3E79130ab714E97ee73f86a56a2427bb1A519896; // Add tokenX address here
     address public constant wPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
     address public constant PLSX = 0x95B303987A60C71504D99Aa1b13B4DA07b0790ab;
     address public constant INC = 0x2fa878Ab3F87CC1C9737Fc071108F904c0B0C95d;
@@ -24,9 +24,9 @@ contract GetToken {
     address public constant PLSX_PLS_PAIR = 0x1b45b9148791d3a104184Cd5DFE5CE57193a3ee9;
     address public constant INC_PLS_PAIR = 0xf808Bb6265e9Ca27002c0A04562Bf50d4FE37EAA;
 
-    address public constant acPool2 = ;
-    address public constant acPool3 = ;
-    address public constant acPool4 = ;
+    address public constant acPool2 = 0x7ED33f65A0398cb26eaB2B03877825c96D9B6077;
+    address public constant acPool3 = 0x3d175C8359169b0e830d36EA9CD3FE209f46f7BD;
+    address public constant acPool4 = 0xdE672FccA32365bD704c39bd1164a0D34a3a73e6;
 
     bool public canAllocateTokens = true;
     uint256 public bonusIntoWallet = 100; //to off-set token tax
@@ -272,7 +272,7 @@ contract GetToken {
     }
 
     function receiveAddress() public view returns (address) {
-        return IMasterChef(IDTX(TOKEN_X).owner()).feeAddress();
+        return IGovernor(governor()).manageRewardsAddress();
     }
 
     function withdrawERC(address _a) external {
