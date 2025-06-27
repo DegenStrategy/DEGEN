@@ -42,11 +42,11 @@ interface IVault {
 }
 
 contract DegenSwapper {
-	address public constant UNISWAP_ROUTER_ADDRESS = 0x98bf93ebf5c380C0e6Ae8e192A7e2AE08edAcc02;
-    address public constant UNISWAP_ROUTER_ADDRESS_V1 = 0x165C3410fC91EF562C50559f7d2289fEbed552d9;
+	address public constant UNISWAP_ROUTER_ADDRESS = 0x165C3410fC91EF562C50559f7d2289fEbed552d9;
+    address public constant UNISWAP_ROUTER_ADDRESS_V1 = 0x98bf93ebf5c380C0e6Ae8e192A7e2AE08edAcc02;
     address public constant OINK = 0xFAaC6a85C3e123AB2CF7669B1024f146cFef0b38;
     address public constant WPLS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
-	address public constant DEGEN = ;
+	address public constant DEGEN = 0x3E79130ab714E97ee73f86a56a2427bb1A519896;
 	address public  authorizedAddress;
 	address public constant WETH_ADDRESS = 0xA1077a294dDE1B09bB078844df40758a5D0f9a27;
     bool public allowAll = true;
@@ -73,8 +73,6 @@ contract DegenSwapper {
 
         isFeeToken[0x32fB5663619A657839A80133994E45c5e5cDf427] = true;
 
-        isV1Liquidity[0x85DF7cE20A4CE0cF859804b45cB540FFE42074Da] = true; //actr and emit
-        isV1Liquidity[0x32fB5663619A657839A80133994E45c5e5cDf427] = true;
 
         allowedPhux[0x6C203A555824ec90a215f37916cf8Db58EBe2fA3] = true; // print
         allowedPhuxId[0x30dd5508c3b1deb46a69fe29955428bb4e0733d90001000000000000000004b6] = true; // INC
