@@ -272,24 +272,6 @@
         "color": "#0099C6"
     },
 	{
-        "vaultContract": "0xc667a6EC483edB71f6329413FbcFE8042348956C",
-        "tokenContract": "0xe6a4005013931851424f23f3d7d1bc7da6e6eaa9",
-        "symbol": "EMIT-PLSX",
-        "name": "EMIT-PLSX LP",
-        "decimals": 18,
-        "tax": 0,
-		"isLP": true,
-		"img1": "emit",
-		"img2": "plsx",
-        "depositFee": 0,
-        "miningFee": 0,
-        "withdrawFee": 0,
-        "poolId": 21,
-        "isRehypotheticated": true,
-        "value": 0,
-        "color": "#0099C6"
-    },
-	{
         "vaultContract": "0x61B374Fd8Fa06767927bfb11B947d165C06a8c5E",
         "tokenContract": "0xEf9Ea3d72e28c7140481209190601C085027D6fE",
         "symbol": "OINK-PLS",
@@ -322,6 +304,24 @@
         "withdrawFee": 0,
         "poolId": 20,
         "isRehypotheticated": false,
+        "value": 0,
+        "color": "#0099C6"
+    },
+	{
+        "vaultContract": "0xc667a6EC483edB71f6329413FbcFE8042348956C",
+        "tokenContract": "0xe6a4005013931851424f23f3d7d1bc7da6e6eaa9",
+        "symbol": "EMIT-PLSX",
+        "name": "EMIT-PLSX LP",
+        "decimals": 18,
+        "tax": 0,
+		"isLP": true,
+		"img1": "emit",
+		"img2": "plsx",
+        "depositFee": 0,
+        "miningFee": 0,
+        "withdrawFee": 0,
+        "poolId": 21,
+        "isRehypotheticated": true,
         "value": 0,
         "color": "#0099C6"
     }
