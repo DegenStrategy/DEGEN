@@ -324,5 +324,41 @@
         "isRehypotheticated": true,
         "value": 0,
         "color": "#0099C6"
+    },
+	{
+        "vaultContract": "0xBCFd877b255fF3c2416e2fe5DA7EC8778cC5b57d",
+        "tokenContract": "0xc7327a7FF7e21ee8b3C872448CFf428C6389EdA2",
+        "symbol": "ISLAND-PLS",
+        "name": "ISLAND-PLS V2 LP",
+        "decimals": 18,
+        "tax": 0,
+		"isLP": true,
+		"img1": "island",
+		"img2": "pls",
+        "depositFee": 0,
+        "miningFee": 0,
+        "withdrawFee": 0,
+        "poolId": 22,
+        "isRehypotheticated": true,
+        "value": 0,
+        "color": "#0099C6"
+    },
+	{
+        "vaultContract": "0xd100e649956aCAa3B6F90D58546219C373d28ce2",
+        "tokenContract": "0xcc0C157c49141Da5E541D20abaFdD928A66B4862",
+        "symbol": "IMPLS-INC",
+        "name": "IMPLS-INC V2 LP",
+        "decimals": 18,
+        "tax": 0,
+		"isLP": true,
+		"img1": "impls",
+		"img2": "inc",
+        "depositFee": 0,
+        "miningFee": 0,
+        "withdrawFee": 0,
+        "poolId": 23,
+        "isRehypotheticated": true,
+        "value": 0,
+        "color": "#0099C6"
     }
 ]
