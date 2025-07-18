@@ -366,5 +366,6 @@
         "notStakeable": true,
 	"symbol": "Treasury Miner",
         "name": "Treasury Miner",
+	"poolId": 24
     }
 ]
