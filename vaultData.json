@@ -360,5 +360,9 @@
         "isRehypotheticated": true,
         "value": 0,
         "color": "#0099C6"
+    },
+	{
+        "vaultContract": "0x8Ac62EDa6dD2045d898AB5a0a9E360d4Ae26F77d",
+        "notStakeable": true
     }
 ]
