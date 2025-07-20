@@ -30,7 +30,7 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 - **Governor**: [0x456d747622d30C4db69D40973ecf0D29EE007B57](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x456d747622d30C4db69D40973ecf0D29EE007B57)
 
 - ### 🛒 Get $DEGEN
-- **Buy $DEGEN**: [0x098aAe22522703e4b8d906dE68f8c0d1A0824BCe](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x098aAe22522703e4b8d906dE68f8c0d1A0824BCe) 
+- **Buy $DEGEN**: [0x780B2b215447ccf34CCBB22fDE2bD591e7195b48](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x780B2b215447ccf34CCBB22fDE2bD591e7195b48) 
 
 - ### 🛒 $OINK Buyer & Treasury stasher
 - **Buy $OINK**: [0xCbC05cCC8257A085bC55e2EF184e16cd3ECD462A](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0xCbC05cCC8257A085bC55e2EF184e16cd3ECD462A) 
