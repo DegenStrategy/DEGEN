@@ -367,5 +367,23 @@
 	"symbol": "Treasury Miner",
         "name": "Treasury Miner",
 	"poolId": 24
-    }
+    },
+	{
+        "vaultContract": "0x6a89ef54f612bcf35582bad159760223eec20690",
+        "tokenContract": "0x898bb93f4629c73f0c519415a85d6bd2977cb0b5",
+        "symbol": "PLSX-9INCH",
+        "name": "PLSX-9INCH  9INCH V2 LP",
+        "decimals": 18,
+        "tax": 0,
+		"isLP": true,
+		"img1": "plsx",
+		"img2": "9inch",
+        "depositFee": 0,
+        "miningFee": 0,
+        "withdrawFee": 0,
+        "poolId": 25,
+        "isRehypotheticated": true,
+        "value": 0,
+        "color": "#0099C6"
+    },
 ]
