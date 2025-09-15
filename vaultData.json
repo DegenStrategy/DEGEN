@@ -385,5 +385,41 @@
         "isRehypotheticated": true,
         "value": 0,
         "color": "#0099C6"
+    },
+	{
+        "vaultContract": "0x52763911bDe0651D0709120d51afE3E33c5EccA5",
+        "tokenContract": "0x6753560538eca67617a9ce605178f788be7e524e",
+        "symbol": "USDC-PLS",
+        "name": "USDC-PLS PulseX V1 LP",
+        "decimals": 18,
+        "tax": 0,
+		"isLP": true,
+		"img1": "usdc",
+		"img2": "pls",
+        "depositFee": 0,
+        "miningFee": 0,
+        "withdrawFee": 0,
+        "poolId": 26,
+        "isRehypotheticated": false,
+        "value": 0,
+        "color": "#0099C6"
+    },
+	{
+        "vaultContract": "0x43724568cAb0CCf712eF5dfA40E9Aec68fff5a95",
+        "tokenContract": "0x322df7921f28f1146cdf62afdac0d6bc0ab80711",
+        "symbol": "USDT-PLS",
+        "name": "USDT-PLS PulseX V1 LP",
+        "decimals": 18,
+        "tax": 0,
+		"isLP": true,
+		"img1": "usdt",
+		"img2": "pls",
+        "depositFee": 0,
+        "miningFee": 0,
+        "withdrawFee": 0,
+        "poolId": 27,
+        "isRehypotheticated": false,
+        "value": 0,
+        "color": "#0099C6"
     }
 ]
