@@ -1,0 +1,11 @@
+{
+  "name": "DegenStrategy NFT Miner",
+  "description": "NFT Miner used to accrue OINK and DEGEN mining rewards",
+  "image": "https://avatars.githubusercontent.com/u/211634181?s=400&u=9fe309d180b8809e8494e16da2d5c3882e2d4399&v=4",
+  "attributes": [
+    {
+      "trait_type": "Type",
+      "value": "NFT Miner"
+    }
+  ]
+}
