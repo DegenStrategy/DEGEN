@@ -364,9 +364,9 @@
 	{
         "vaultContract": "0x8Ac62EDa6dD2045d898AB5a0a9E360d4Ae26F77d",
         "notStakeable": true,
-	"symbol": "Treasury Miner",
+		"symbol": "Treasury Miner",
         "name": "Treasury Miner",
-	"poolId": 24
+		"poolId": 24
     },
 	{
         "vaultContract": "0x6a89ef54f612bcf35582bad159760223eec20690",
@@ -421,5 +421,12 @@
         "isRehypotheticated": false,
         "value": 0,
         "color": "#0099C6"
+    },
+	{
+        "vaultContract": "0x2e3f97dbff7EE9a82c60F9088C92833789589A23",
+        "notStakeable": true,
+		"symbol": "DegenStrategy NFT Miner",
+        "name": "DegenStrategy NFT Miner",
+		"poolId": 28
     }
 ]
