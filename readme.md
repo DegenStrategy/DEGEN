@@ -38,7 +38,7 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 - **OINK Buyer & Treasury Stasher**: [0x0fA727BD2eef5f0FF0cBb6522Da77917CA3eD4b0](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x0fA727BD2eef5f0FF0cBb6522Da77917CA3eD4b0)
 
 
-- ### 🛒 $OINK Buyer & Treasury stasher
+### 🛒 $OINK Buyer & Treasury stasher 
 - **Buy $OINK**: [0xCbC05cCC8257A085bC55e2EF184e16cd3ECD462A](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0xCbC05cCC8257A085bC55e2EF184e16cd3ECD462A) 
   
 ### 🎁 Referral Rewards
