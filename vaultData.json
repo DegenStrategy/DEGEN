@@ -430,7 +430,6 @@
 		"poolId": 28
     },
 	{
-		"notStakeable": true,
         "vaultContract": "0xF3EAbb9297B8c7EacFf46190BE97D04bA5b707e2",
         "tokenContract": "0x9165909161c95B4bfE0BC4d46d3DA6E5b2d2FB69",
         "symbol": "HEX-HTT4000",
@@ -449,7 +448,6 @@
         "color": "#0099C6"
     },
 	{
-		"notStakeable": true,
         "vaultContract": "0x38906e4747e6669D26928F39Fd9f3ddd2f299d46",
         "tokenContract": "0xc6CAc89798aAdBc2983beAF55cB98Ce0c07af42d",
         "symbol": "HEX-HTT6000",
