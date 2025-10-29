@@ -448,9 +448,9 @@
     {
         "vaultContract": "0x2e3f97dbff7EE9a82c60F9088C92833789589A23",
         "notStakeable": true,
-        "symbol": "DegenStrategy NFT Miner",
-        "name": "DegenStrategy NFT Miner",
-        "poolId": 31
+        "symbol": "(OLD) DegenStrategy NFT Miner",
+        "name": "(OLD) DegenStrategy NFT Miner",
+        "poolId": 28
     },
     {
         "vaultContract": "0xF3EAbb9297B8c7EacFf46190BE97D04bA5b707e2",
