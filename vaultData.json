@@ -489,5 +489,12 @@
         "value": 0,
         "color": "#0099C6",
         "useProxyViewEarnings": true
+    },
+    {
+        "vaultContract": "0x2EcB9c5460468e916FB8847CF5E903afc9aFE646",
+        "notStakeable": true,
+        "symbol": "DegenStrategy NFT Miner",
+        "name": "DegenStrategy NFT Miner",
+        "poolId": 31
     }
 ]
