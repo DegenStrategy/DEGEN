@@ -448,8 +448,8 @@
     {
         "vaultContract": "0x2e3f97dbff7EE9a82c60F9088C92833789589A23",
         "notStakeable": true,
-        "symbol": "(OLD) DegenStrategy NFT Miner",
-        "name": "(OLD) DegenStrategy NFT Miner",
+        "symbol": "Inactive",
+        "name": "Inactive",
         "poolId": 28
     },
     {
@@ -493,8 +493,15 @@
     {
         "vaultContract": "0x2EcB9c5460468e916FB8847CF5E903afc9aFE646",
         "notStakeable": true,
+        "symbol": "(OLD) DegenStrategy NFT Miner",
+        "name": "(OLD) DegenStrategy NFT Miner",
+        "poolId": 31
+    },
+    {
+        "vaultContract": "0x2EcB9c5460468e916FB8847CF5E903afc9aFE646",
+        "notStakeable": true,
         "symbol": "DegenStrategy NFT Miner",
         "name": "DegenStrategy NFT Miner",
-        "poolId": 31
+        "poolId": 32
     }
 ]
