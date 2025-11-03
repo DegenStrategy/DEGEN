@@ -33,8 +33,8 @@ Our contracts are cleaner than a degen’s DMs after a rugpull, verified on the 
 - **Buy $DEGEN**: [0x780B2b215447ccf34CCBB22fDE2bD591e7195b48](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x780B2b215447ccf34CCBB22fDE2bD591e7195b48) 
 
 ### DegenStrategy NFT Miner
--  **Mint Contract**: [0x8fB7B030743057F3aa54BE27Bb1c36d4a08E17be](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x8fB7B030743057F3aa54BE27Bb1c36d4a08E17be)
-- **NFT Vault**: [0x2EcB9c5460468e916FB8847CF5E903afc9aFE646](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x2EcB9c5460468e916FB8847CF5E903afc9aFE646)
+-  **Mint Contract**: [0x141a8649e3CAEb3a1589ba4922cDb651b6706281](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x141a8649e3CAEb3a1589ba4922cDb651b6706281)
+- **NFT Vault**: [0x7B2DcC0D0180D6863e4D6Fa14903459638c5b45B](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x7B2DcC0D0180D6863e4D6Fa14903459638c5b45B)
 - **OINK Buyer & Treasury Stasher**: [0x5E4b93e3E50eFCe211FEFddE4E635326e89381D6](https://scan.mypinata.cloud/ipfs/bafybeih3olry3is4e4lzm7rus5l3h6zrphcal5a7ayfkhzm5oivjro2cp4/#/address/0x5E4b93e3E50eFCe211FEFddE4E635326e89381D6)
 
 
